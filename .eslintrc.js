@@ -4,6 +4,7 @@ const commonRules = {
   'global-require': 0,
   'import/no-dynamic-require': 0,
   'no-restricted-syntax': ['error', "BinaryExpression[operator='of']"],
+  'import/order': 0,
 };
 
 const jsRules = deepmerge(eslint, {
