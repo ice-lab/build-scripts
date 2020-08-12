@@ -1,0 +1,16 @@
+*.swp
+*.dia~
+.idea/
+.DS_Store
+.eslintcache
+
+package-lock.json
+
+npm-debug.log
+yarn-error.log
+node_modules/
+coverage/
+
+lib/
+
+build/

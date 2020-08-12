@@ -1,0 +1,9 @@
+{
+  "plugins": ["./a.plugin.js"],
+  "modeConfig": {
+    "daily": {
+      "entry": "src/test",
+      "plugins": [["./a.plugin.js", { "name": "test" }], "./b.plugin.js"]
+    }
+  }
+}
