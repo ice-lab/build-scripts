@@ -347,7 +347,7 @@ class Context {
   private mergeModeConfig = (userConfig: IUserConfig): IUserConfig => {
     const { mode } = this.commandArgs;
     // modify userConfig by userConfig.modeConfig
-    if (userConfig.modeConfig && mode) {
+    if (userConfig.modeConfig && mode && (userConfig.modeConfig as IModeConfig)[mode]) {
       const { plugins, ...basicConfig } = (userConfig.modeConfig as IModeConfig)[mode] as IUserConfig;
       const userPlugins = [...userConfig.plugins];
       if (Array.isArray(plugins)) {
