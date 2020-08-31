@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.28
+
+- [feat] bump jest version
+
+## 0.1.27
+
+- [fix] compatible with undefined modeConfig
+
 ## 0.1.26
 
 - [feat] support merge modeConfig with userConfig

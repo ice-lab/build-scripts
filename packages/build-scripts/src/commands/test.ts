@@ -1,4 +1,4 @@
-import jest from 'jest';
+import * as jest from 'jest';
 import chalk from 'chalk';
 import Context, { IContextOptions } from '../core/Context';
 
