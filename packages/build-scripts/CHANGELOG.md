@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.29
+
+- [feat] support process.env.PLUGIN_DIR to resolve plugins
+
 ## 0.1.28
 
 - [feat] bump jest version
