@@ -70,9 +70,8 @@ export = async function({
     }
   });
 
-  await applyHook(`before.${command}.run`);
-
   const webpackConfig = configArr.map(v => v.chainConfig.toConfig());
+  await applyHook(`before.${command}.run`, { args, config: webpackConfig });
 
   let compiler: webpack.MultiCompiler;
   try {
