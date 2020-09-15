@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.29
+
+- [feat] add hook params
+
 ## 0.1.28
 
 - [feat] bump jest version
