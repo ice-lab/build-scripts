@@ -1,4 +1,4 @@
-import * as jest from 'jest';
+import { runCLI } from 'jest';
 import chalk from 'chalk';
 import Context, { IContextOptions } from '../core/Context';
 
@@ -83,7 +83,7 @@ export = async function({
   await applyHook(`before.${command}.run`, { args, config: jestConfig });
 
   const result = await new Promise((resolve, reject): void => {
-    jest.runCLI(
+    runCLI(
       {
         ...restArgv,
         config: JSON.stringify(jestConfig),

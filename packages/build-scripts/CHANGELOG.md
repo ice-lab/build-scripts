@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.30
+
+- [fix] jest import
+
 ## 0.1.29
 
 - [feat] add hook params
