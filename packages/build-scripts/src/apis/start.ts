@@ -39,7 +39,7 @@ async function modifyInspectArgv(execArgv: any[], processArgv: any) {
     const matchResult = /(?:([^:]+):)?(\d+)/.exec(rawArgv.inspect);
     // eslint-disable-next-line
     const [_, ip, port = 9229] = matchResult || [];
-    const newPort = await detect(port);
+    const newPort = await detect(Number(port));
     result.push(`--inspect-brk=${ip ? `${ip}:` : ''}${newPort}`);
   }
 
