@@ -169,9 +169,9 @@ export type IPluginList = (string | [string, Json])[]
 export type IGetBuiltInPlugins = (userConfig: IUserConfig) => IPluginList;
 
 export interface IContextOptions {
-  command: CommandName;
-  rootDir: string;
-  args: CommandArgs;
+  command?: CommandName;
+  rootDir?: string;
+  args?: CommandArgs;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
 }

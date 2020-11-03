@@ -14,8 +14,8 @@ export = async function({
   plugins,
   getBuiltInPlugins,
 }: {
-  args: CommandArgs;
-  rootDir: string;
+  args?: CommandArgs;
+  rootDir?: string;
   eject?: boolean;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
