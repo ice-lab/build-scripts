@@ -6,16 +6,7 @@ import build = require('./build');
 import test = require('./test');
 
 export = async (getBuiltInPlugins: IGetBuiltInPlugins, forkChildProcessPath: string, packageInfo: any, extendCli: Function) => {
-  // eslint-disable-next-line
-  if (packageInfo.__ICEJS_INFO__) {
-    console.log(
-      `${packageInfo.name} ${packageInfo.version}`,
-      // eslint-disable-next-line
-      `(${packageInfo.__ICEJS_INFO__.name} ${packageInfo.__ICEJS_INFO__.version})`
-    );
-  } else {
-    console.log(packageInfo.name, packageInfo.version);
-  }
+  console.log(packageInfo.name, packageInfo.version);
   // finish check before run command
   checkNodeVersion(packageInfo.engines.node, packageInfo.name);
 
