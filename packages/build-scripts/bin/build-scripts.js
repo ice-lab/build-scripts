@@ -4,6 +4,6 @@ const createCli = require('../lib/apis/create-cli');
 
 const scriptPath = require.resolve('./child-process-start.js');
 
-(async () => {
+(() => {
   createCli(() => [], scriptPath, packageInfo);
 })();
