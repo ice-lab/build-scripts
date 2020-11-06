@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.1.29
+## 0.1.30
 
 - [feat] support process.env.PLUGIN_DIR to resolve plugins
+
+## 0.1.29
+
+- [feat] add hook params
 
 ## 0.1.28
 
