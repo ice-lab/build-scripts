@@ -64,6 +64,8 @@ export = async function({
     https: args.https || false,
   };
 
+  const pathname = args.pathname || '/';
+
   for (const item of configArr) {
     const { chainConfig } = item;
     const config = chainConfig.toConfig();
@@ -88,7 +90,7 @@ export = async function({
     throw err;
   }
   const protocol = devServerConfig.https ? 'https' : 'http';
-  const urls = prepareURLs(protocol, devServerConfig.host, devServerConfig.port);
+  const urls = prepareURLs(protocol, devServerConfig.host, devServerConfig.port, pathname);
   serverUrl = urls.localUrlForBrowser;
 
   let isFirstCompile = true;
