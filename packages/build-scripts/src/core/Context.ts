@@ -35,6 +35,7 @@ const VALIDATION_MAP = {
 
 const BUILTIN_CLI_OPTIONS = [
   { name: 'port', commands: ['start'] },
+  { name: 'https', commands: ['start'] },
   { name: 'host', commands: ['start'] },
   { name: 'disableAsk', commands: ['start'] },
   { name: 'config', commands: ['start', 'build', 'test'] },
