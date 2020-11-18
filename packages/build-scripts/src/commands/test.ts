@@ -5,6 +5,7 @@ import Context, { IContextOptions } from '../core/Context';
 import fs = require('fs-extra')
 import path = require('path')
 import log = require('../utils/log')
+import { ensureTestMatchArray } from '../utils/jestArgv';
 
 export = async function({
   args,
@@ -82,6 +83,7 @@ export = async function({
   Object.freeze(jestConfig);
   await applyHook(`before.${command}.run`, { args, config: jestConfig });
 
+  ensureTestMatchArray(restArgv);
   const result = await new Promise((resolve, reject): void => {
     jest.runCLI(
       {
