@@ -44,7 +44,7 @@ export = async function({
     throw err;
   }
 
-  await applyHook(`before.${command}.load`, { args });
+  await applyHook(`before.${command}.load`, { args, webpackConfig: configArr });
 
   // eject config
   if (eject) {
