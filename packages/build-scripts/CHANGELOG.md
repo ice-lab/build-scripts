@@ -2,6 +2,7 @@
 
 ## 0.1.30
 
+- [fix] jest import
 - [feat] support process.env.PLUGIN_DIR to resolve plugins
 
 ## 0.1.29
