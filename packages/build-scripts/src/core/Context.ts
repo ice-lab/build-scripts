@@ -435,7 +435,7 @@ class Context {
     }
   }
 
-  public cancleTask: ICancelTask = (name) => {
+  public cancelTask: ICancelTask = (name) => {
     if (this.cancelTaskNames.includes(name)) {
       log.info('TASK', `task ${name} has already been canceled`);
     } else {

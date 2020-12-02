@@ -43,8 +43,8 @@ describe('api regsiterTask/cancelTask', () => {
   });
 
   it('api cancelTask', async () => {
-    context.cancleTask('task1');
-    context.cancleTask('task2');
+    context.cancelTask('task1');
+    context.cancelTask('task2');
     context.registerTask('task2', new Config());
     context.registerTask('task3', new Config());
     const configArr = await context.setUp();
