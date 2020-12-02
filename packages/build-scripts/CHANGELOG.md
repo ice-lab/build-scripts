@@ -3,7 +3,7 @@
 ## 0.1.30
 
 - [fix] jest import
-- [feat] support process.env.PLUGIN_DIR to resolve plugins
+- [feat] support process.env.EXTRA_PLUGIN_DIR to resolve plugins
 - [feat] support plugin api `cancelTask`
 - [feat] support plugin api `hasMethod`
 - [feat] add hook params of `before.${command}.load`

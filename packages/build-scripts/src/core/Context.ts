@@ -392,7 +392,7 @@ class Context {
         };
       }
       const plugins: [string, IPluginOptions] = Array.isArray(pluginInfo) ? pluginInfo : [pluginInfo, undefined];
-      const pluginResolveDir = process.env.PLUGIN_DIR ? [process.env.PLUGIN_DIR, this.rootDir] : [this.rootDir];
+      const pluginResolveDir = process.env.EXTRA_PLUGIN_DIR ? [process.env.EXTRA_PLUGIN_DIR, this.rootDir] : [this.rootDir];
       const pluginPath = path.isAbsolute(plugins[0]) ? plugins[0] : require.resolve(plugins[0], { paths: pluginResolveDir });
       const options = plugins[1];
 
@@ -550,7 +550,7 @@ class Context {
         registerTask: this.registerTask,
         getAllTask: this.getAllTask,
         getAllPlugin: this.getAllPlugin,
-        cancleTask: this.cancleTask,
+        cancelTask: this.cancelTask,
         onGetWebpackConfig: this.onGetWebpackConfig,
         onGetJestConfig: this.onGetJestConfig,
         onHook: this.onHook,
