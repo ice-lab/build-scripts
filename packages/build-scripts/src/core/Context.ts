@@ -105,6 +105,10 @@ export interface IRegisterTask {
   (name: string, chainConfig: WebpackChain): void;
 }
 
+export interface ICancelTask {
+  (name: string): void;
+}
+
 export interface IMethodFunction {
   (args?: any): void;
 }
@@ -115,6 +119,10 @@ export interface IRegsiterMethod {
 
 export interface IApplyMethod {
   (name: string, ...args: any[]): any;
+}
+
+export interface IHasMethod {
+  (name: string): boolean;
 }
 
 export interface IModifyConfig {
@@ -225,6 +233,8 @@ class Context {
 
   private methodRegistration: IHash<any>
 
+  private cancelTaskNames: string[]
+
   public pkg: Json
 
   public userConfig: IUserConfig
@@ -257,6 +267,7 @@ class Context {
     this.userConfigRegistration = {};
     this.cliOptionRegistration = {};
     this.methodRegistration = {};
+    this.cancelTaskNames = [];
 
     this.pkg = this.getProjectFile(PKG_FILE);
     this.userConfig = this.getUserConfig();
@@ -381,8 +392,8 @@ class Context {
         };
       }
       const plugins: [string, IPluginOptions] = Array.isArray(pluginInfo) ? pluginInfo : [pluginInfo, undefined];
-
-      const pluginPath = require.resolve(plugins[0], { paths: [this.rootDir] });
+      const pluginResolveDir = process.env.EXTRA_PLUGIN_DIR ? [process.env.EXTRA_PLUGIN_DIR, this.rootDir] : [this.rootDir];
+      const pluginPath = path.isAbsolute(plugins[0]) ? plugins[0] : require.resolve(plugins[0], { paths: pluginResolveDir });
       const options = plugins[1];
 
       try {
@@ -424,6 +435,14 @@ class Context {
     }
   }
 
+  public cancelTask: ICancelTask = (name) => {
+    if (this.cancelTaskNames.includes(name)) {
+      log.info('TASK', `task ${name} has already been canceled`);
+    } else {
+      this.cancelTaskNames.push(name);
+    }
+  }
+
   public registerMethod: IRegsiterMethod = (name, fn) => {
     if (this.methodRegistration[name]) {
       throw new Error(`[Error] method '${name}' already registered`);
@@ -438,6 +457,10 @@ class Context {
     } else {
       return new Error(`apply unkown method ${name}`);
     }
+  }
+
+  public hasMethod: IHasMethod = (name) => {
+    return !!this.methodRegistration[name];
   }
 
   public modifyUserConfig: IModifyUserConfig = (configKey, value) => {
@@ -527,6 +550,7 @@ class Context {
         registerTask: this.registerTask,
         getAllTask: this.getAllTask,
         getAllPlugin: this.getAllPlugin,
+        cancelTask: this.cancelTask,
         onGetWebpackConfig: this.onGetWebpackConfig,
         onGetJestConfig: this.onGetJestConfig,
         onHook: this.onHook,
@@ -536,6 +560,7 @@ class Context {
         registerCliOption: this.registerCliOption,
         registerMethod: this.registerMethod,
         applyMethod: this.applyMethod,
+        hasMethod: this.hasMethod,
         modifyUserConfig: this.modifyUserConfig,
       };
       // eslint-disable-next-line no-await-in-loop
@@ -643,7 +668,8 @@ class Context {
     await this.runUserConfig();
     await this.runWebpackFunctions();
     await this.runCliOption();
-
+    // filter webpack config by cancelTaskNames
+    this.configArr = this.configArr.filter((config) => !this.cancelTaskNames.includes(config.name));
     return this.configArr;
   }
 }
