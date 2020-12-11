@@ -1,6 +1,6 @@
 {
   "name": "@alib/build-scripts",
-  "version": "0.1.30",
+  "version": "0.2.0",
   "license": "MIT",
   "description": "scripts core",
   "main": "lib/index.js",

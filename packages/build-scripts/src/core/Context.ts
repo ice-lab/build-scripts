@@ -477,7 +477,9 @@ class Context {
           log.warn('[waring]', errorMsg);
         }
         delete modifiedValue.plugins;
-        this.userConfig = {...this.userConfig, ...modifiedValue };
+        Object.keys(modifiedValue).forEach((configKey) => {
+          this.userConfig[configKey] = modifiedValue[configKey];
+        });
       } else {
         throw new Error(`modifyUserConfig must return a plain object`);
       }
