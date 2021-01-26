@@ -62,10 +62,10 @@ export = async function({
     try {
       const userBuildPath = v.chainConfig.output.get('path');
       const buildPath = path.resolve(ctxRoot, userBuildPath);
-      fs.removeSync(buildPath);
+      fs.emptyDirSync(buildPath);
     } catch (e) {
       if (fs.existsSync(defaultPath)) {
-        fs.removeSync(defaultPath);
+        fs.emptyDirSync(defaultPath);
       }
     }
   });
