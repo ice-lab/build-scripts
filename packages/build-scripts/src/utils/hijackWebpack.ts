@@ -14,9 +14,12 @@ function hijackWebpackResove(rootDir: string): void {
       const newOptions: IOptions = { paths: [] };
       if (options?.paths) {
         newOptions.paths = options?.paths.concat(rootDir);
+      } else {
+        newOptions.paths.push(rootDir);
       }
-      originalResolver(request, parent, isMain, newOptions);
+      return originalResolver(request, parent, isMain, newOptions);
     }
+    return originalResolver(request, parent, isMain, options);
   };
 }
 
