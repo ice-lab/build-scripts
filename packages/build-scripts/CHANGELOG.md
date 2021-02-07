@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+- [feat] keep same reference of userConfig after modifyUserConfig
+
 ## 0.1.30
 
 - [fix] jest import
