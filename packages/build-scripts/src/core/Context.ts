@@ -2,6 +2,7 @@ import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
 import { Logger } from 'npmlog';
 import { IHash, Json, JsonValue, MaybeArray, MaybePromise, JsonArray } from '../types';
+import hijackWebpackResove from '../utils/hijackWebpack';
 
 import path = require('path')
 import assert = require('assert')
@@ -274,6 +275,9 @@ class Context {
     // custom webpack
     const webpackPath = this.userConfig.customWebpack ? require.resolve('webpack', { paths: [this.rootDir] }) : 'webpack';
     this.webpack = require(webpackPath);
+    if (this.userConfig.customWebpack) {
+      hijackWebpackResove(this.rootDir);
+    }
     // register buildin options
     this.registerCliOption(BUILTIN_CLI_OPTIONS);
     const builtInPlugins: IPluginList = [...plugins, ...getBuiltInPlugins(this.userConfig)];
