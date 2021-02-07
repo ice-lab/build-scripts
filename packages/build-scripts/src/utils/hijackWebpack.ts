@@ -10,7 +10,7 @@ function hijackWebpackResove(rootDir: string): void {
 
   // eslint-disable-next-line no-underscore-dangle
   (Module as any)._resolveFilename = function (request: string, parent: string, isMain: boolean, options: IOptions): void {
-    if (request.match('^webpack')) {
+    if (request.match(/^webpack/)) {
       const newOptions: IOptions = { paths: [] };
       if (options?.paths) {
         newOptions.paths = options?.paths.concat(rootDir);
