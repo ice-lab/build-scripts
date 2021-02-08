@@ -276,7 +276,7 @@ class Context {
     const webpackPath = this.userConfig.customWebpack ? require.resolve('webpack', { paths: [this.rootDir] }) : 'webpack';
     this.webpack = require(webpackPath);
     if (this.userConfig.customWebpack) {
-      hijackWebpackResove(this.rootDir);
+      hijackWebpackResove(this.webpack, this.rootDir);
     }
     // register buildin options
     this.registerCliOption(BUILTIN_CLI_OPTIONS);

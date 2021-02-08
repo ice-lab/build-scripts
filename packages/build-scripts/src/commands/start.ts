@@ -109,8 +109,11 @@ export = async function({
       stats,
     });
   });
-
-  const devServer = new WebpackDevServer(compiler, devServerConfig);
+  // require webpack-dev-server after context setup
+  // context may hijack webpack resolve
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const DevServer = require('webpack-dev-server');
+  const devServer = new DevServer(compiler, devServerConfig);
 
   await applyHook(`before.${command}.devServer`, {
     url: serverUrl,
