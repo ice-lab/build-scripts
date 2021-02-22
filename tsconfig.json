@@ -5,7 +5,7 @@
     "strict": true,
     "strictNullChecks": false,
     "jsx": "react",
-    "target": "esnext",
+    "target": "es6",
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "declaration": true,
