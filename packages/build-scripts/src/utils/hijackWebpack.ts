@@ -4,7 +4,7 @@ interface IOptions {
   paths: string[];
 }
 
-function hijackWebpackResove(webpack: any, rootDir: string): void {
+function hijackWebpackResolve(webpack: any, rootDir: string): void {
   const webpackRegex = /^webpack\//;
   // eslint-disable-next-line no-underscore-dangle
   const originalResolver = (Module as any)._resolveFilename;
@@ -43,4 +43,4 @@ function hijackWebpackResove(webpack: any, rootDir: string): void {
   };
 }
 
-export default hijackWebpackResove;
+export default hijackWebpackResolve;

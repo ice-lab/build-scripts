@@ -2,7 +2,7 @@ import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
 import { Logger } from 'npmlog';
 import { IHash, Json, JsonValue, MaybeArray, MaybePromise, JsonArray } from '../types';
-import hijackWebpackResove from '../utils/hijackWebpack';
+import hijackWebpackResolve from '../utils/hijackWebpack';
 
 import path = require('path')
 import assert = require('assert')
@@ -77,7 +77,7 @@ export interface IPluginConfigWebpack {
 }
 
 export interface IUserConfigWebpack {
-  (config: WebpackChain, value: JsonValue, context: UserConfigContext): Promise<void>;
+  (config: WebpackChain, value: JsonValue, context: UserConfigContext): Promise<void> | void;
 }
 
 export interface IUserConfigArgs {
@@ -276,7 +276,7 @@ class Context {
     const webpackPath = this.userConfig.customWebpack ? require.resolve('webpack', { paths: [this.rootDir] }) : 'webpack';
     this.webpack = require(webpackPath);
     if (this.userConfig.customWebpack) {
-      hijackWebpackResove(this.webpack, this.rootDir);
+      hijackWebpackResolve(this.webpack, this.rootDir);
     }
     // register buildin options
     this.registerCliOption(BUILTIN_CLI_OPTIONS);
