@@ -1,8 +1,10 @@
 # Changelog
 
-## 0.2.0
+## 0.1.31
 
 - [feat] keep same reference of userConfig after modifyUserConfig
+- [feat] hijack webpack resolve path
+- [fix] preserve previous build directory
 
 ## 0.1.30
 
