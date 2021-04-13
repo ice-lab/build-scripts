@@ -1,6 +1,6 @@
 {
   "name": "@alib/build-scripts",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "license": "MIT",
   "description": "scripts core",
   "main": "lib/index.js",
@@ -37,6 +37,7 @@
     "npmlog": "^4.1.2",
     "react-dev-utils": "^9.0.4",
     "semver": "^7.3.2",
+    "v8-compile-cache": "^2.3.0",
     "webpack": "^4.27.1",
     "webpack-dev-server": "^3.7.2",
     "yargs-parser": "^14.0.0"

@@ -1,3 +1,4 @@
+import 'v8-compile-cache';
 import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
 import { Logger } from 'npmlog';
