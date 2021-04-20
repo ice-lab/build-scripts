@@ -53,6 +53,9 @@
     "package-json": "^6.5.0",
     "ts-jest": "^26.4.4",
     "typescript": "^3.7.2",
-    "webpack": "^4.27.1"
+    "webpack": "^5.0.0"
+  },
+  "peerDependencies": {
+    "webpack": ">=4.27.1"
   }
 }
