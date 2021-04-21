@@ -39,7 +39,8 @@
     "semver": "^7.3.2",
     "webpack": "^4.27.1",
     "webpack-dev-server": "^3.7.2",
-    "yargs-parser": "^14.0.0"
+    "yargs-parser": "^14.0.0",
+    "trusted-cert": "^1.0.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^8.0.1",

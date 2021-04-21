@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import Context, { CommandArgs, IGetBuiltInPlugins, IPluginList, ITaskConfig } from '../core/Context';
 import webpackStats from '../utils/webpackStats';
+import { certificateFor } from 'trusted-cert';
 
 import deepmerge  = require('deepmerge')
 import WebpackDevServer = require('webpack-dev-server')
@@ -74,6 +75,17 @@ export = async function({
     if (process.env.USE_CLI_PORT) {
       devServerConfig.port = args.port;
     }
+  }
+
+  if (devServerConfig.https) {
+    try {
+      const { key, cert } = await certificateFor(devServerConfig.host);
+      devServerConfig = {
+        ...devServerConfig,
+        https: { key, cert },
+      };
+    // eslint-disable-next-line no-empty
+    } catch (error) { }
   }
 
   const webpackConfig = configArr.map(v => v.chainConfig.toConfig());
