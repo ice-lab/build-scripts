@@ -624,6 +624,8 @@ class Context {
         applyMethod: this.applyMethod,
         hasMethod: this.hasMethod,
         modifyUserConfig: this.modifyUserConfig,
+        modifyConfigRegistration: this.modifyConfigRegistration,
+        modifyCliRegistration: this.modifyCliRegistration,
       };
       // eslint-disable-next-line no-await-in-loop
       await fn(pluginAPI, options);
