@@ -5,6 +5,7 @@ const chokidar = require('chokidar');
 const detect = require('detect-port');
 const path = require('path');
 const log = require('../lib/utils/log');
+const fse = require('fs-extra');
 
 let child = null;
 const rawArgv = parse(process.argv.slice(2));
@@ -65,7 +66,46 @@ function restartProcess() {
         process.exit(code);
       }
     });
+
+    process.on('SIGINT', () => {
+      const rootDir = process.cwd();
+      const SIGINThooksFileName = 'SIGINThooks.json';
+      const hooksPath = path.resolve(rootDir, SIGINThooksFileName);
+      let hooks = legalSIGINThooks(hooksPath);
+      if (hooks) {
+        applySIGINThooks(hooks, hooksPath);
+      }
+      process.exit(1);
+    })
   })();
+}
+
+const legalSIGINThooks = (hooksPath) => {
+  let hooks;
+  if (fse.existsSync(hooksPath)) {
+    hooks = fse.readJsonSync(hooksPath);
+  }
+  return hooks;
+}
+
+const applySIGINThooks = (hooks, hooksPath) => {
+
+  log.info('handleing SIGINThooks...');
+  try {
+    hooks.forEach(item => {
+      try {
+        const fn = eval(item);
+        fn();
+      } catch(e) {
+        log.error('SIGINThook item error', e);
+      }
+    })
+  } catch (e) {
+    log.error('SIGINThooks error', e);
+  }
+  fse.removeSync(hooksPath);
+  log.info('handleing SIGINThooks finished');
+  return
 }
 
 const onUserChange = () => {

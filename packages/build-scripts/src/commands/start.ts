@@ -33,7 +33,11 @@ export = async function({
   log.verbose('OPTIONS', `${command} cliOptions: ${JSON.stringify(args, null, 2)}`);
   let serverUrl = '';
 
-  const { applyHook, webpack } = context;
+  const { 
+    applyHook, 
+    webpack, 
+    removeSIGINThooks,
+  } = context;
 
   let configArr = [];
   try {
@@ -108,6 +112,8 @@ export = async function({
       isFirstCompile,
       stats,
     });
+
+    removeSIGINThooks();
   });
   // require webpack-dev-server after context setup
   // context may hijack webpack resolve

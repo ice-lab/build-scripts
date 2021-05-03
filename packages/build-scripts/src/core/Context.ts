@@ -72,6 +72,10 @@ export interface IOnHook {
   (eventName: string, callback: IOnHookCallback): void;
 }
 
+export interface IOnSIGINThooks {
+  (callback: (() => void)): void;
+}
+
 export interface IPluginConfigWebpack {
   (config: WebpackChain): void;
 }
@@ -677,6 +681,33 @@ class Context {
     // filter webpack config by cancelTaskNames
     this.configArr = this.configArr.filter((config) => !this.cancelTaskNames.includes(config.name));
     return this.configArr;
+  }
+
+  public removeSIGINThooks: () => void = () => {
+    const SIGINThooksFileName = 'SIGINThooks.json';
+    const hooksPath = path.resolve(this.rootDir, SIGINThooksFileName);
+    if (fs.existsSync(hooksPath)) {
+      fs.removeSync(hooksPath);
+    }
+  }
+
+  public onSIGINThooks: IOnSIGINThooks = (fn) => {
+    if (!fn || (typeof fn !== 'function')) {
+      log.warn('siginthooks arg wrong', 'fn should be function or stringify function');
+      return;
+    }
+
+    fn = (fn as any).toString();
+
+    const SIGINThooksFileName = 'SIGINThooks.json';
+    const hooksPath = path.resolve(this.rootDir, SIGINThooksFileName);
+    if (!fs.existsSync(hooksPath)) {
+      fs.ensureFileSync(hooksPath);
+      fs.outputFileSync(hooksPath, JSON.stringify([]));
+    }
+    const hooks = fs.readJsonSync(hooksPath);
+    hooks.push(fn);
+    fs.outputFileSync(hooksPath, JSON.stringify(hooks));
   }
 }
 
