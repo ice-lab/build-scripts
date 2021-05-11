@@ -91,5 +91,18 @@ describe('api modifyUserConfig', () => {
     })
     expect(context.userConfig).toEqual({ plugins: [], entry: './src/index.ts', hash: true })
   })
-})
+});
+
+describe('api modifyConfigRegistration / modifyCliRegistration', () => {
+  const context = new Context({
+    args: { slient: 'true', disableLog: 'true' },
+    command: 'start',
+    rootDir: path.join(__dirname, 'fixtures/apis/')
+  });
+
+  it('config by local plugin', async () => {
+    const configArr = await context.setUp();
+    expect(configArr[0].chainConfig.toConfig().name).toBe('task');
+  });
+});
 

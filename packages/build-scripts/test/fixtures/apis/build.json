@@ -1,0 +1,5 @@
+{
+  "plugins": ["./plugin.js"],
+  "target": {},
+  "output" : true
+}

@@ -658,22 +658,22 @@ class Context {
       const registrations = this[registrationKey as IRegistrationKey] as (IModifyRegisteredConfigArgs | IModifyRegisteredConfigArgs)[];
       registrations.forEach(([name, callback]) => {
         const modifyAll = _.isFunction(name);
+        const configRegistrations = this[registrationKey === 'modifyConfigRegistrationCallbacks' ? 'userConfigRegistration' : 'cliOptionRegistration'];
         if (modifyAll) {
-          // this.userConfigRegistration
           const modifyFunction = name as IModifyRegisteredConfigCallbacks<IUserConfigRegistration>;
-          const modifiedResult = modifyFunction(this.userConfigRegistration);
+          const modifiedResult = modifyFunction(configRegistrations);
           Object.keys(modifiedResult).forEach((configKey) => {
-            this.userConfigRegistration[configKey] = {
-              ...(this.userConfigRegistration[configKey] || {}),
+            configRegistrations[configKey] = {
+              ...(configRegistrations[configKey] || {}),
               ...modifiedResult[configKey],
             };
           });
         } else if (typeof name === 'string') {
-          if (!this.userConfigRegistration[name]) {
+          if (!configRegistrations[name]) {
             throw new Error(`Config key '${name}' is not registered`);
           }
-          const configRegistration = this.userConfigRegistration[name];
-          this.userConfigRegistration[name] = {
+          const configRegistration = configRegistrations[name];
+          configRegistrations[name] = {
             ...configRegistration,
             ...(callback(configRegistration)),
           };
