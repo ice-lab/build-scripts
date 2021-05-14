@@ -15,6 +15,14 @@ interface IHooksTimeMeasure {
   [key: string]: IMeasure[];
 }
 
+interface IGetTimeMeasure {
+  start: number;
+  firstPlugin: number;
+  plugins: IMeasureData;
+  hooks: IHooksTimeMeasure;
+  timeEvent: IMeasureData;
+}
+
 const getCurTime = (): number => new Date().getTime();
 const getOutputTime = (start: number, end: number): string => {
   return textWithColor(humanTime(start, end), end - start);
@@ -41,7 +49,7 @@ class TimeMeasure {
   public wrapPlugin(plugin: IPlugin, name: string): IPlugin {
     if (!name) return plugin;
     this.pluginTimeMeasure[name] = {};
-    return async (api: IPluginAPI, options?: IPluginOptions) => {
+    return async (api: IPluginAPI, options?: IPluginOptions): Promise<void> => {
       const curTime = getCurTime();
       this.pluginTimeMeasure[name].start = curTime;
       if (!this.firstPluginExcuteTime) {
@@ -55,7 +63,7 @@ class TimeMeasure {
   public wrapHook(hookFn: IOnHookCallback, hookName: string, name: string): IOnHookCallback {
     if (!name) return hookFn;
     this.hooksTimeMeasure[name] = [];
-    return async (opts = {}) => {
+    return async (opts = {}): Promise<void> => {
       const hooksTime: IMeasure = {
         name: hookName,
       };
@@ -67,14 +75,14 @@ class TimeMeasure {
   }
 
   public wrapEvent(eventFn: Function, eventName: string): Function {
-    return async (...args: any) => {
+    return async (...args: any): Promise<void> => {
       this.addTimeEvent(eventName, 'start');
       eventFn(...args);
       this.addTimeEvent(eventName, 'end');
     };
   }
 
-  public getTimeMeasure() {
+  public getTimeMeasure(): IGetTimeMeasure {
     return {
       start: this.startTime,
       firstPlugin: this.firstPluginExcuteTime,
