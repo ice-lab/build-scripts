@@ -101,7 +101,7 @@ class TimeMeasure {
 
   public getOutput(): string {
     const curTime = getCurTime();
-    let output = `\n\n${tagBg('[Speed Measure]')} ⏱  \n`;
+    let output = `\n\n${tagBg('[Time Measure]')} ⏱  \n`;
 
     // start time
     output += `General start time took ${getOutputTime(this.startTime, curTime)}\n`;

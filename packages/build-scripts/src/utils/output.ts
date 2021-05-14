@@ -3,8 +3,8 @@ import chalk from 'chalk';
 const MS_IN_MINUTE = 60000;
 const MS_IN_SECOND = 1000;
 
-const tagBg = (text: string) => chalk.bgBlack.green.bold(text);
-const textWithColor = (text: string, time: number) => {
+const tagBg = (text: string): string => chalk.bgBlack.green.bold(text);
+const textWithColor = (text: string, time: number): string => {
   let textModifier = chalk.bold;
   if (time > 10000) {
     textModifier = textModifier.red;
@@ -18,7 +18,7 @@ const textWithColor = (text: string, time: number) => {
 };
 
 // inspired by https://github.com/stephencookdev/speed-measure-webpack-plugin/blob/master/output.js#L8
-const humanTime = (start: number, end: number) => {
+const humanTime = (start: number, end: number): string => {
   const ms = end - start;
   const minutes = Math.floor(ms / MS_IN_MINUTE);
   const secondsRaw = (ms - minutes * MS_IN_MINUTE) / MS_IN_SECOND;
