@@ -81,6 +81,7 @@ export = async function({
 
   let compiler;
   try {
+    context.timeMeasure.addTimeEvent('webpack', 'start');
     compiler = webpack(webpackConfig);
   } catch (err) {
     log.error('CONFIG', chalk.red('Failed to load webpack config.'));
@@ -94,6 +95,7 @@ export = async function({
   let isFirstCompile = true;
   // typeof(stats) is webpack.compilation.MultiStats
   compiler.hooks.done.tap('compileHook', async (stats) => {
+    context.timeMeasure.addTimeEvent('webpack', 'end');
     const isSuccessful = webpackStats({
       urls,
       stats,
@@ -107,6 +109,8 @@ export = async function({
       urls,
       isFirstCompile,
       stats,
+      time: context.timeMeasure.getTimeMeasure(),
+      timeOutput: context.timeMeasure.getOutput(),
     });
   });
   // require webpack-dev-server after context setup

@@ -3,6 +3,7 @@ import { GlobalConfig } from '@jest/types/build/Config';
 import { Logger } from 'npmlog';
 import { IHash, Json, JsonValue, MaybeArray, MaybePromise, JsonArray } from '../types';
 import hijackWebpackResolve from '../utils/hijackWebpack';
+import TimeMeasure from '../utils/TimeMeasure';
 
 import path = require('path')
 import assert = require('assert')
@@ -69,7 +70,7 @@ export interface IOnHookCallback {
 }
 
 export interface IOnHook {
-  (eventName: string, callback: IOnHookCallback): void;
+  (eventName: string, callback: IOnHookCallback, pluginName?: string): void;
 }
 
 export interface IPluginConfigWebpack {
@@ -223,7 +224,7 @@ class Context {
   private modifyJestConfig: IJestConfigFunction[]
 
   private eventHooks: {
-    [name: string]: IOnHookCallback[];
+    [name: string]: [IOnHookCallback, string?][];
   }
 
   private internalValue: IHash<any>
@@ -235,6 +236,10 @@ class Context {
   private methodRegistration: IHash<any>
 
   private cancelTaskNames: string[]
+
+  private customPluginIndex: number
+
+  public timeMeasure: TimeMeasure
 
   public pkg: Json
 
@@ -249,6 +254,8 @@ class Context {
     plugins = [],
     getBuiltInPlugins = () => [],
   }: IContextOptions) {
+    this.timeMeasure = new TimeMeasure();
+    this.customPluginIndex = 0;
     this.command = command;
     this.commandArgs = args;
     this.rootDir = rootDir;
@@ -269,7 +276,10 @@ class Context {
     this.cliOptionRegistration = {};
     this.methodRegistration = {};
     this.cancelTaskNames = [];
+    this.timeMeasure.wrapEvent(this.init ,'init')({ plugins, getBuiltInPlugins });
+  }
 
+  private init(config: IContextOptions) {
     this.pkg = this.getProjectFile(PKG_FILE);
     this.userConfig = this.getUserConfig();
     // custom webpack
@@ -280,7 +290,7 @@ class Context {
     }
     // register buildin options
     this.registerCliOption(BUILTIN_CLI_OPTIONS);
-    const builtInPlugins: IPluginList = [...plugins, ...getBuiltInPlugins(this.userConfig)];
+    const builtInPlugins: IPluginList = [...config.plugins, ...config.getBuiltInPlugins(this.userConfig)];
     this.checkPluginValue(builtInPlugins); // check plugins property
     this.plugins = this.resolvePlugins(builtInPlugins);
   }
@@ -390,8 +400,10 @@ class Context {
     const userPlugins = [...builtInPlugins, ...(this.userConfig.plugins || [])].map((pluginInfo): IPluginInfo => {
       let fn;
       if (_.isFunction(pluginInfo)) {
+        const pluginName = `customPlugin_${this.customPluginIndex++}`;
         return {
-          fn: pluginInfo,
+          name: pluginName,
+          fn: this.timeMeasure.wrapPlugin(pluginInfo, pluginName),
           options: {},
         };
       }
@@ -411,7 +423,7 @@ class Context {
       return {
         name: plugins[0],
         pluginPath,
-        fn: fn.default || fn || ((): void => {}),
+        fn: this.timeMeasure.wrapPlugin(fn.default || fn || ((): void => {}), plugins[0]),
         options,
       };
     });
@@ -510,19 +522,20 @@ class Context {
     return result;
   }
 
-  public onHook: IOnHook = (key, fn) => {
+  public onHook: IOnHook = (key, fn, pluginName) => {
     if (!Array.isArray(this.eventHooks[key])) {
       this.eventHooks[key] = [];
     }
-    this.eventHooks[key].push(fn);
+    this.eventHooks[key].push([fn, pluginName]);
   }
 
   public applyHook = async (key: string, opts = {}): Promise<void> => {
     const hooks = this.eventHooks[key] || [];
 
-    for (const fn of hooks) {
+    for (const [fn, pluginName] of hooks) {
+      const hookFn = this.timeMeasure.wrapHook(fn, key, pluginName);
       // eslint-disable-next-line no-await-in-loop
-      await fn(opts);
+      await hookFn(opts);
     }
   }
 
@@ -546,10 +559,12 @@ class Context {
 
   private runPlugins = async (): Promise<void> => {
     for (const pluginInfo of this.plugins) {
-      const { fn, options } = pluginInfo;
+      const { fn, options, name } = pluginInfo;
 
       const pluginContext = _.pick(this, PLUGIN_CONTEXT_KEY);
-
+      const proxyOnHook: IOnHook = (eventName, callback, pluginName) => {
+        this.onHook(eventName, callback, pluginName || name);
+      };
       const pluginAPI = {
         log,
         context: pluginContext,
@@ -559,7 +574,7 @@ class Context {
         cancelTask: this.cancelTask,
         onGetWebpackConfig: this.onGetWebpackConfig,
         onGetJestConfig: this.onGetJestConfig,
-        onHook: this.onHook,
+        onHook: proxyOnHook,
         setValue: this.setValue,
         getValue: this.getValue,
         registerUserConfig: this.registerUserConfig,
@@ -670,10 +685,10 @@ class Context {
   }
 
   public setUp = async (): Promise<ITaskConfig[]> => {
-    await this.runPlugins();
-    await this.runUserConfig();
-    await this.runWebpackFunctions();
-    await this.runCliOption();
+    await this.timeMeasure.wrapEvent(this.runPlugins, 'runPlugins')();
+    await this.timeMeasure.wrapEvent(this.runUserConfig, 'runUserConfig')();
+    await this.timeMeasure.wrapEvent(this.runWebpackFunctions, 'runWebpackFunctions')();
+    await this.timeMeasure.wrapEvent(this.runCliOption, 'runCliOption')();
     // filter webpack config by cancelTaskNames
     this.configArr = this.configArr.filter((config) => !this.cancelTaskNames.includes(config.name));
     return this.configArr;

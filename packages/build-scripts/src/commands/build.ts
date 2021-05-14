@@ -75,6 +75,7 @@ export = async function({
 
   let compiler: webpack.MultiCompiler;
   try {
+    context.timeMeasure.addTimeEvent('webpack', 'start');
     compiler = webpackInstance(webpackConfig);
   } catch (err) {
     log.error('CONFIG', chalk.red('Failed to load webpack config.'));
@@ -85,6 +86,7 @@ export = async function({
   const result = await new Promise((resolve, reject): void => {
     // typeof(stats) is webpack.compilation.MultiStats
     compiler.run((err, stats) => {
+      context.timeMeasure.addTimeEvent('webpack', 'end');
       if (err) {
         log.error('WEBPACK', (err.stack || err.toString()));
         reject(err);
@@ -97,6 +99,8 @@ export = async function({
       if (isSuccessful) {
         resolve({
           stats,
+          time: context.timeMeasure.getTimeMeasure(),
+          timeOutput: context.timeMeasure.getOutput(),
         });
       } else {
         reject(new Error('webpack compile error'));
