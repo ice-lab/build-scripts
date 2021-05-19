@@ -616,7 +616,7 @@ class Context {
               if (!fnName) {
                 throw new Error(`validation does not support ${supportType}`);
               }
-              return _[VALIDATION_MAP[supportType]](configValue);
+              return _[fnName](configValue);
             });
             assert(validateResult, `Config ${name} should be ${validation}, but got ${configValue}`);
           } else {
