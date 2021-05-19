@@ -185,7 +185,6 @@ export interface IContextOptions {
   getBuiltInPlugins?: IGetBuiltInPlugins;
 }
 
-
 export interface ITaskConfig {
   name: string;
   chainConfig: WebpackChain;
@@ -272,15 +271,16 @@ class Context {
 
     this.pkg = this.getProjectFile(PKG_FILE);
     this.userConfig = this.getUserConfig();
+    // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
+    const builtInPlugins: IPluginList = [...plugins, ...getBuiltInPlugins(this.userConfig)];
     // custom webpack
-    const webpackPath = this.userConfig.customWebpack ? require.resolve('webpack', { paths: [this.rootDir] }) : 'webpack';
-    this.webpack = require(webpackPath);
+    const webpackInstancePath = this.userConfig.customWebpack ? require.resolve('webpack', { paths: [this.rootDir] }) : 'webpack';
+    this.webpack = require(webpackInstancePath);
     if (this.userConfig.customWebpack) {
       hijackWebpackResolve(this.webpack, this.rootDir);
     }
     // register buildin options
     this.registerCliOption(BUILTIN_CLI_OPTIONS);
-    const builtInPlugins: IPluginList = [...plugins, ...getBuiltInPlugins(this.userConfig)];
     this.checkPluginValue(builtInPlugins); // check plugins property
     this.plugins = this.resolvePlugins(builtInPlugins);
   }
