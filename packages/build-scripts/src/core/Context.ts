@@ -353,7 +353,7 @@ class Context {
     for (const webpackConfigInfo of this.configArr) {
       const taskName = webpackConfigInfo.name;
       let ignoreConfig = false;
-      if (ignoreTasks && Array.isArray(ignoreTasks)) {
+      if (Array.isArray(ignoreTasks)) {
         ignoreConfig = ignoreTasks.some((ignoreTask) => new RegExp(ignoreTask).exec(taskName));
       }
       if (!ignoreConfig) {
