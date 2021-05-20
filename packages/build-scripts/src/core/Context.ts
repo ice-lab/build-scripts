@@ -41,6 +41,8 @@ const BUILTIN_CLI_OPTIONS = [
   { name: 'config', commands: ['start', 'build', 'test'] },
 ];
 
+export type IWebpack = typeof webpack
+
 export type PluginContext = Pick<Context, typeof PLUGIN_CONTEXT_KEY[number]>
 
 export type UserConfigContext = PluginContext & {
@@ -80,17 +82,23 @@ export interface IUserConfigWebpack {
   (config: WebpackChain, value: JsonValue, context: UserConfigContext): Promise<void> | void;
 }
 
+export interface IValidation {
+  (value: any): boolean;
+}
+
 export interface IUserConfigArgs {
   name: string;
   configWebpack?: IUserConfigWebpack;
   defaultValue?: any;
-  validation?: ValidationKey;
+  validation?: ValidationKey | IValidation;
+  ignoreTasks?: string[];
 }
 
 export interface ICliOptionArgs {
   name: string;
   configWebpack?: IUserConfigWebpack;
   commands?: string[];
+  ignoreTasks?: string[];
 }
 
 export interface IOnGetWebpackConfig {
@@ -203,7 +211,34 @@ export interface IJestConfigFunction {
   (JestConfig: Json): Json;
 }
 
+export interface IModifyRegisteredConfigCallbacks<T> {
+  (configArgs: T): T;
+}
+
+export interface IUserConfigRegistration {
+  [key: string]: IUserConfigArgs;
+}
+
+export interface ICliOptionRegistration {
+  [key: string]: ICliOptionArgs;
+}
+
+export interface IModifyConfigRegistration {
+  (configFunc: IModifyRegisteredConfigCallbacks<IUserConfigRegistration>): void;
+  (configName: string, configFunc: IModifyRegisteredConfigCallbacks<IUserConfigArgs>): void;
+};
+
+export interface IModifyCliRegistration {
+  (configFunc: IModifyRegisteredConfigCallbacks<ICliOptionRegistration>): void;
+  (configName: string, configFunc: IModifyRegisteredConfigCallbacks<ICliOptionArgs>): void;
+};
+
+export type IModifyRegisteredConfigArgs = [string, IModifyRegisteredConfigCallbacks<IUserConfigArgs>] | [IModifyRegisteredConfigCallbacks<IUserConfigRegistration>]
+export type IModifyRegisteredCliArgs = [string, IModifyRegisteredConfigCallbacks<ICliOptionArgs>] | [IModifyRegisteredConfigCallbacks<ICliOptionRegistration>]
+
 export type IOnGetWebpackConfigArgs = [string, IPluginConfigWebpack] | [IPluginConfigWebpack]
+
+export type IRegistrationKey = 'modifyConfigRegistrationCallbacks' | 'modifyCliRegistrationCallbacks';
 
 class Context {
   public command: CommandName
@@ -212,7 +247,7 @@ class Context {
 
   public rootDir: string
 
-  public webpack: (options: webpack.Configuration[]) => webpack.MultiCompiler
+  public webpack: IWebpack
 
   // 通过registerTask注册，存放初始的webpack-chain配置
   private configArr: ITaskConfig[]
@@ -221,17 +256,21 @@ class Context {
 
   private modifyJestConfig: IJestConfigFunction[]
 
+  private modifyConfigRegistrationCallbacks: IModifyRegisteredConfigArgs[]
+
+  private modifyCliRegistrationCallbacks: IModifyRegisteredConfigArgs[]
+
   private eventHooks: {
     [name: string]: IOnHookCallback[];
   }
 
   private internalValue: IHash<any>
 
-  private userConfigRegistration: IHash<any>
+  private userConfigRegistration: IUserConfigRegistration
 
-  private cliOptionRegistration: IHash<any>
+  private cliOptionRegistration: ICliOptionRegistration
 
-  private methodRegistration: IHash<any>
+  private methodRegistration: IHash<Function>
 
   private cancelTaskNames: string[]
 
@@ -262,6 +301,8 @@ class Context {
     this.configArr = [];
     this.modifyConfigFns = [];
     this.modifyJestConfig = [];
+    this.modifyConfigRegistrationCallbacks = [];
+    this.modifyCliRegistrationCallbacks = [];
     this.eventHooks = {}; // lifecycle functions
     this.internalValue = {}; // internal value shared between plugins
     this.userConfigRegistration = {};
@@ -308,14 +349,21 @@ class Context {
     });
   }
 
-  private async runConfigWebpack(fn: IUserConfigWebpack, configValue: JsonValue): Promise<void> {
+  private async runConfigWebpack(fn: IUserConfigWebpack, configValue: JsonValue, ignoreTasks: string[]|null): Promise<void> {
     for (const webpackConfigInfo of this.configArr) {
-      const userConfigContext: UserConfigContext = {
-        ..._.pick(this, PLUGIN_CONTEXT_KEY),
-        taskName: webpackConfigInfo.name,
-      };
-      // eslint-disable-next-line no-await-in-loop
-      await fn(webpackConfigInfo.chainConfig, configValue, userConfigContext);
+      const taskName = webpackConfigInfo.name;
+      let ignoreConfig = false;
+      if (Array.isArray(ignoreTasks)) {
+        ignoreConfig = ignoreTasks.some((ignoreTask) => new RegExp(ignoreTask).exec(taskName));
+      }
+      if (!ignoreConfig) {
+        const userConfigContext: UserConfigContext = {
+          ..._.pick(this, PLUGIN_CONTEXT_KEY),
+          taskName,
+        };
+        // eslint-disable-next-line no-await-in-loop
+        await fn(webpackConfigInfo.chainConfig, configValue, userConfigContext);
+      }
     }
   }
 
@@ -490,6 +538,14 @@ class Context {
     }
   }
 
+  public modifyConfigRegistration: IModifyConfigRegistration = (...args: IModifyRegisteredConfigArgs) => {
+    this.modifyConfigRegistrationCallbacks.push(args);
+  }
+
+  public modifyCliRegistration: IModifyCliRegistration = (...args: IModifyRegisteredCliArgs) => {
+    this.modifyCliRegistrationCallbacks.push(args);
+  }
+
   public getAllTask = (): string[] => {
     return this.configArr.map(v => v.name);
   }
@@ -568,6 +624,8 @@ class Context {
         applyMethod: this.applyMethod,
         hasMethod: this.hasMethod,
         modifyUserConfig: this.modifyUserConfig,
+        modifyConfigRegistration: this.modifyConfigRegistration,
+        modifyCliRegistration: this.modifyCliRegistration,
       };
       // eslint-disable-next-line no-await-in-loop
       await fn(pluginAPI, options);
@@ -594,6 +652,36 @@ class Context {
     }
   }
 
+  private runConfigModification = async (): Promise<void> => {
+    const callbackRegistrations = ['modifyConfigRegistrationCallbacks', 'modifyCliRegistrationCallbacks'];
+    callbackRegistrations.forEach((registrationKey) => {
+      const registrations = this[registrationKey as IRegistrationKey] as (IModifyRegisteredConfigArgs | IModifyRegisteredConfigArgs)[];
+      registrations.forEach(([name, callback]) => {
+        const modifyAll = _.isFunction(name);
+        const configRegistrations = this[registrationKey === 'modifyConfigRegistrationCallbacks' ? 'userConfigRegistration' : 'cliOptionRegistration'];
+        if (modifyAll) {
+          const modifyFunction = name as IModifyRegisteredConfigCallbacks<IUserConfigRegistration>;
+          const modifiedResult = modifyFunction(configRegistrations);
+          Object.keys(modifiedResult).forEach((configKey) => {
+            configRegistrations[configKey] = {
+              ...(configRegistrations[configKey] || {}),
+              ...modifiedResult[configKey],
+            };
+          });
+        } else if (typeof name === 'string') {
+          if (!configRegistrations[name]) {
+            throw new Error(`Config key '${name}' is not registered`);
+          }
+          const configRegistration = configRegistrations[name];
+          configRegistrations[name] = {
+            ...configRegistration,
+            ...(callback(configRegistration)),
+          };
+        }
+      });
+    });
+  }
+
   private runUserConfig = async (): Promise<void> => {
     for (const configInfoKey in this.userConfig) {
       if (!['plugins', 'customWebpack'].includes(configInfoKey)) {
@@ -603,7 +691,7 @@ class Context {
           throw new Error(`[Config File] Config key '${configInfoKey}' is not supported`);
         }
 
-        const { name, validation } = configInfo;
+        const { name, validation, ignoreTasks } = configInfo;
         const configValue = this.userConfig[name];
 
         if (validation) {
@@ -623,7 +711,7 @@ class Context {
 
         if (configInfo.configWebpack) {
           // eslint-disable-next-line no-await-in-loop
-          await this.runConfigWebpack(configInfo.configWebpack, configValue);
+          await this.runConfigWebpack(configInfo.configWebpack, configValue, ignoreTasks);
         }
       }
     }
@@ -633,13 +721,13 @@ class Context {
     for (const cliOpt in this.commandArgs) {
       // allow all jest option when run command test
       if (this.command !== 'test' || cliOpt !== 'jestArgv') {
-        const { commands, name, configWebpack } = this.cliOptionRegistration[cliOpt] || {};
+        const { commands, name, configWebpack, ignoreTasks } = this.cliOptionRegistration[cliOpt] || {};
         if (!name || !(commands || []).includes(this.command)) {
           throw new Error(`cli option '${cliOpt}' is not supported when run command '${this.command}'`);
         }
         if (configWebpack) {
           // eslint-disable-next-line no-await-in-loop
-          await this.runConfigWebpack(configWebpack, this.commandArgs[cliOpt]);
+          await this.runConfigWebpack(configWebpack, this.commandArgs[cliOpt], ignoreTasks);
         }
       }
     }
@@ -671,6 +759,7 @@ class Context {
 
   public setUp = async (): Promise<ITaskConfig[]> => {
     await this.runPlugins();
+    await this.runConfigModification();
     await this.runUserConfig();
     await this.runWebpackFunctions();
     await this.runCliOption();
