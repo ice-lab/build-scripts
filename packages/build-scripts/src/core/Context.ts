@@ -697,11 +697,16 @@ class Context {
         if (validation) {
           let validationInfo;
           if (_.isString(validation)) {
-            const fnName = VALIDATION_MAP[validation as ValidationKey];
-            if (!fnName) {
-              throw new Error(`validation does not support ${validation}`);
-            }
-            assert(_[VALIDATION_MAP[validation as ValidationKey]](configValue), `Config ${name} should be ${validation}, but got ${configValue}`);
+            // split validation string
+            const supportTypes = validation.split('|') as ValidationKey[];
+            const validateResult = supportTypes.some((supportType) => {
+              const fnName = VALIDATION_MAP[supportType];
+              if (!fnName) {
+                throw new Error(`validation does not support ${supportType}`);
+              }
+              return _[fnName](configValue);
+            });
+            assert(validateResult, `Config ${name} should be ${validation}, but got ${configValue}`);
           } else {
             // eslint-disable-next-line no-await-in-loop
             validationInfo = await validation(configValue);
