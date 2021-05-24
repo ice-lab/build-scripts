@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- [chore] bump version because of 1.0.0 has been previously published
+
 ## 1.0.0
 
 - [feat] remove dependency of webpack and jest #30
