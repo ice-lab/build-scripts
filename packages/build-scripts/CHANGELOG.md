@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0
+
+- [feat] remove dependency of webpack and jest #30
+- [feat] enhance config validation #31
+- [feat] support ignore task of plugin registration #32
+
 ## 0.1.31
 
 - [feat] keep same reference of userConfig after modifyUserConfig
