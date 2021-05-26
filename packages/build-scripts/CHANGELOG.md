@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- [feat] enhance regsiterMethod API, make it possible to get plugin name when applyMethod
+
 ## 1.0.1
 
 - [chore] bump version because of 1.0.0 has been previously published
