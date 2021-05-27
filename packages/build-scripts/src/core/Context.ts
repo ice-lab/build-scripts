@@ -530,7 +530,7 @@ class Context {
         return (registerMethod as IMethodRegistration)(...args);
       }
     } else {
-      return new Error(`apply unkown method ${name}`);
+      return new Error(`apply unkown method ${methodName}`);
     }
   }
 
