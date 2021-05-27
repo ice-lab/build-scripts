@@ -132,15 +132,17 @@ export interface IMethodOptions {
   pluginName?: boolean;
 }
 
-export interface IRegsiterMethodAPI {
-  (name: string, fn: IMethodFunction, options: IMethodOptions): void;
+export interface IRegsiterMethod {
+  (name: string, fn: IMethodFunction, options?: IMethodOptions): void;
 }
 
-export interface IRegsiterMethod {
-  (name: string, fn: IMethodFunction, data?: any): void;
-}
+type IMethod = [string, string];
 
 export interface IApplyMethod {
+  (config: IMethod, ...args: any[]): any;
+}
+
+export interface IApplyMethodAPI {
   (name: string, ...args: any[]): any;
 }
 
@@ -173,8 +175,8 @@ export interface IPluginAPI {
   getValue: (name: string) => any;
   registerUserConfig: (args: MaybeArray<IUserConfigArgs>) => void;
   registerCliOption: (args: MaybeArray<ICliOptionArgs>) => void;
-  registerMethod: IRegsiterMethodAPI;
-  applyMethod: IApplyMethod;
+  registerMethod: IRegsiterMethod;
+  applyMethod: IApplyMethodAPI;
   modifyUserConfig: IModifyUserConfig;
 }
 
@@ -509,20 +511,21 @@ class Context {
     }
   }
 
-  public registerMethod: IRegsiterMethod = (name, fn, data) => {
+  public registerMethod: IRegsiterMethod = (name, fn, options) => {
     if (this.methodRegistration[name]) {
       throw new Error(`[Error] method '${name}' already registered`);
     } else {
-      const registration = [fn, data] as [IMethodFunction, any];
+      const registration = [fn, options] as [IMethodFunction, IMethodOptions];
       this.methodRegistration[name] = registration;
     }
   }
 
-  public applyMethod: IApplyMethod = (name, ...args) =>  {
-    if (this.methodRegistration[name]) {
-      const [registerMethod, data] = this.methodRegistration[name];
-      if (data) {
-        return (registerMethod as IMethodCurry)(data)(...args);
+  public applyMethod: IApplyMethod = (config, ...args) =>  {
+    const [methodName, pluginName] = Array.isArray(config) ? config : [config];
+    if (this.methodRegistration[methodName]) {
+      const [registerMethod, methodOptions] = this.methodRegistration[methodName];
+      if (methodOptions?.pluginName) {
+        return (registerMethod as IMethodCurry)(pluginName)(...args);
       } else {
         return (registerMethod as IMethodRegistration)(...args);
       }
@@ -625,12 +628,8 @@ class Context {
       const { fn, options, name: pluginName } = pluginInfo;
 
       const pluginContext = _.pick(this, PLUGIN_CONTEXT_KEY);
-      const registerMethod: IRegsiterMethodAPI = (methodName, methodNameFn, registerOptions) => {
-        if (registerOptions?.pluginName) {
-          this.registerMethod(methodName, methodNameFn, pluginName);
-        } else {
-          this.registerMethod(methodName, methodNameFn);
-        }
+      const applyMethod: IApplyMethodAPI = (methodName, ...args) => {
+        this.applyMethod([methodName, pluginName], ...args);
       };
       const pluginAPI = {
         log,
@@ -646,8 +645,8 @@ class Context {
         getValue: this.getValue,
         registerUserConfig: this.registerUserConfig,
         registerCliOption: this.registerCliOption,
-        registerMethod,
-        applyMethod: this.applyMethod,
+        registerMethod: this.registerMethod,
+        applyMethod,
         hasMethod: this.hasMethod,
         modifyUserConfig: this.modifyUserConfig,
         modifyConfigRegistration: this.modifyConfigRegistration,
