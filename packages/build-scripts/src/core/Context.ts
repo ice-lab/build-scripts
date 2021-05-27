@@ -629,7 +629,7 @@ class Context {
 
       const pluginContext = _.pick(this, PLUGIN_CONTEXT_KEY);
       const applyMethod: IApplyMethodAPI = (methodName, ...args) => {
-        this.applyMethod([methodName, pluginName], ...args);
+        return this.applyMethod([methodName, pluginName], ...args);
       };
       const pluginAPI = {
         log,
