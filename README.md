@@ -90,7 +90,7 @@ build.json 中核心包括两部分内容：
 - 基础配置（比如 entry、alias 等能力）：每种模式都有差别，请具体看各个模式的使用文档
 - 插件配置：二三方插件，以及针对单个项目通过本地插件实现 webpack config 的更改
 
-> build-scripts 1.x 中不在耦合具体的 webpack 和 jest 版本，因此建议在基础插件比如 build-plugin-component 中依赖 webpack 和 jest。由具体插件根据具体的依赖版本进行基础链路的配置
+> build-scripts 1.x 中不在耦合具体的 webpack 和 jest 版本，建议在基础插件比如 build-plugin-component 中依赖 webpack 和 jest。并由插件根据具体的依赖版本进行基础链路的配置
 
 ### 插件配置
 
