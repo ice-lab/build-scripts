@@ -441,7 +441,7 @@ module.exports = ({ applyMethod }) => {
 
 ## 升级到 1.x
 
-build-scripts 1.x 中不在耦合具体的 webpack 和 jest 版本，建议在基础插件中依赖 webpack 和 jest，并由具体插件根据具体的依赖版本进行基础链路的配置。
+build-scripts 1.x 中不再耦合具体的 webpack 和 jest 版本，建议在基础插件中依赖 webpack 和 jest，并由具体插件根据具体的依赖版本进行基础链路的配置。
 
 如果历史项目升级，可以在 package.json 中增加依赖：
 
