@@ -477,6 +477,26 @@ module.exports = ({ applyMethod }) => {
 }
 ```
 
+## 升级到 1.x
+
+build-scripts 1.x 中不再耦合具体的 webpack 和 jest 版本，建议在基础插件中依赖 webpack 和 jest，并由具体插件根据具体的依赖版本进行基础链路的配置。
+
+如果历史项目升级，可以在 package.json 中增加依赖：
+
+```diff
+{
+  "devDependencies": {
++    "jest": "^26.4.2",
++    "webpack": "^4.27.1",
+-    "@alib/build-scripts": "^0.1.0",
++    "build-scripts": "^1.0.0",
+  }
+}
+```
+
+> build-scripts 1.x 新增的 API 增强了对已注册配置的自定义能力，具体请参考 `进阶 API` 部分文档
+> build-scripts 1.x 的包名从 @alib/build-scripts 升级为 build-scripts
+
 ## 工程生态
 
 |    Project         |    Version                                 |     Docs    |   Description       |
