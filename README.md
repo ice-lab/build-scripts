@@ -38,9 +38,9 @@ $ build-scripts start --help
 Usage: build-scripts start [options]
 
 Options:
-	--port <port>      服务端口号
-	--host <host>      服务主机名
-	--config <config>      自定义配置文件路径（支持 json 或者 js，推荐命名 build.config.js/build.json）
+  --port <port>      服务端口号
+  --host <host>      服务主机名
+  --config <config>      自定义配置文件路径（支持 json 或者 js，推荐命名 build.config.js/build.json）
 ```
 
 build 命令：
@@ -51,7 +51,7 @@ $ build-scripts build --help
 Usage: build-scripts build [options]
 
 Options:
-	--config <config>      同 start
+  --config <config>      同 start
 ```
 
 test 命令：
