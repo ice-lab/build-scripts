@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.2
+## 1.1.0
 
 - [feat] enhance regsiterMethod API, make it possible to get plugin name when applyMethod
 
