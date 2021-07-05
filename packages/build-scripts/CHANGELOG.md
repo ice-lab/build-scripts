@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- [fix] move webpack-dev-server to peerDependencies
+
 ## 1.0.1
 
 - [chore] bump version because of 1.0.0 has been previously published
