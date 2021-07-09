@@ -3,6 +3,7 @@
 ## 1.1.0
 
 - [fix] move webpack-dev-server to peerDependencies
+- [feat] enhance regsiterMethod API, make it possible to get plugin name when applyMethod
 
 ## 1.0.1
 

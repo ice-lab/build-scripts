@@ -118,15 +118,31 @@ export interface ICancelTask {
   (name: string): void;
 }
 
-export interface IMethodFunction {
+export interface IMethodRegistration {
   (args?: any): void;
 }
 
-export interface IRegsiterMethod {
-  (name: string, fn: IMethodFunction): void;
+export interface IMethodCurry {
+  (data?: any): IMethodRegistration;
 }
 
+export type IMethodFunction = IMethodRegistration | IMethodCurry;
+
+export interface IMethodOptions {
+  pluginName?: boolean;
+}
+
+export interface IRegsiterMethod {
+  (name: string, fn: IMethodFunction, options?: IMethodOptions): void;
+}
+
+type IMethod = [string, string];
+
 export interface IApplyMethod {
+  (config: IMethod, ...args: any[]): any;
+}
+
+export interface IApplyMethodAPI {
   (name: string, ...args: any[]): any;
 }
 
@@ -160,7 +176,7 @@ export interface IPluginAPI {
   registerUserConfig: (args: MaybeArray<IUserConfigArgs>) => void;
   registerCliOption: (args: MaybeArray<ICliOptionArgs>) => void;
   registerMethod: IRegsiterMethod;
-  applyMethod: IApplyMethod;
+  applyMethod: IApplyMethodAPI;
   modifyUserConfig: IModifyUserConfig;
 }
 
@@ -270,7 +286,7 @@ class Context {
 
   private cliOptionRegistration: ICliOptionRegistration
 
-  private methodRegistration: IHash<Function>
+  private methodRegistration: {[name: string]: [IMethodFunction, any]}
 
   private cancelTaskNames: string[]
 
@@ -495,19 +511,26 @@ class Context {
     }
   }
 
-  public registerMethod: IRegsiterMethod = (name, fn) => {
+  public registerMethod: IRegsiterMethod = (name, fn, options) => {
     if (this.methodRegistration[name]) {
       throw new Error(`[Error] method '${name}' already registered`);
     } else {
-      this.methodRegistration[name] = fn;
+      const registration = [fn, options] as [IMethodFunction, IMethodOptions];
+      this.methodRegistration[name] = registration;
     }
   }
 
-  public applyMethod: IApplyMethod = (name, ...args) =>  {
-    if (this.methodRegistration[name]) {
-      return this.methodRegistration[name](...args);
+  public applyMethod: IApplyMethod = (config, ...args) =>  {
+    const [methodName, pluginName] = Array.isArray(config) ? config : [config];
+    if (this.methodRegistration[methodName]) {
+      const [registerMethod, methodOptions] = this.methodRegistration[methodName];
+      if (methodOptions?.pluginName) {
+        return (registerMethod as IMethodCurry)(pluginName)(...args);
+      } else {
+        return (registerMethod as IMethodRegistration)(...args);
+      }
     } else {
-      return new Error(`apply unkown method ${name}`);
+      throw new Error(`apply unknown method ${methodName}`);
     }
   }
 
@@ -602,10 +625,12 @@ class Context {
 
   private runPlugins = async (): Promise<void> => {
     for (const pluginInfo of this.plugins) {
-      const { fn, options } = pluginInfo;
+      const { fn, options, name: pluginName } = pluginInfo;
 
       const pluginContext = _.pick(this, PLUGIN_CONTEXT_KEY);
-
+      const applyMethod: IApplyMethodAPI = (methodName, ...args) => {
+        return this.applyMethod([methodName, pluginName], ...args);
+      };
       const pluginAPI = {
         log,
         context: pluginContext,
@@ -621,7 +646,7 @@ class Context {
         registerUserConfig: this.registerUserConfig,
         registerCliOption: this.registerCliOption,
         registerMethod: this.registerMethod,
-        applyMethod: this.applyMethod,
+        applyMethod,
         hasMethod: this.hasMethod,
         modifyUserConfig: this.modifyUserConfig,
         modifyConfigRegistration: this.modifyConfigRegistration,
