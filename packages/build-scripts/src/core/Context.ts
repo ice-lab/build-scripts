@@ -209,7 +209,7 @@ export type IPluginList = (string | [string, Json])[];
 
 export type IGetBuiltInPlugins = (userConfig: IUserConfig) => IPluginList;
 
-export type CommandModule<T> = (context: Context,options: T) => Promise<T>;
+export type CommandModule<T> = (context: Context, options: any) => Promise<T>;
 
 export interface ICommandModules<T = any> {
   [command: string]: CommandModule<T>;
@@ -329,7 +329,7 @@ class Context {
 
   private cancelTaskNames: string[];
 
-  private commandModules: ICommandModules;
+  public commandModules: ICommandModules = {};
 
   constructor({
     command,
@@ -338,7 +338,6 @@ class Context {
     plugins = [],
     getBuiltInPlugins = () => [],
   }: IContextOptions) {
-    this.commandModules = {};
     this.command = command;
     this.commandArgs = args;
     this.rootDir = rootDir;
@@ -917,14 +916,14 @@ class Context {
     }
   };
 
-  public registerCommandModules: RegisterCommandModules = (moduleKey, module) => {
+  public registerCommandModules (moduleKey: string, module: CommandModule<any>): void {
     if (this.commandModules[moduleKey]) {
       log.warn('CONFIG', `command module ${moduleKey} already been registered`);
     }
     this.commandModules[moduleKey] = module;
   }
 
-  private getCommandModule: GetCommandModule<any> = (options) => {
+  public getCommandModule: GetCommandModule<any> = (options) => {
     const { command } = options;
     if (this.commandModules[command]) {
       return this.commandModules[command];
