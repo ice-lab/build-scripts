@@ -1,7 +1,6 @@
 import chalk from 'chalk';
-
-import webpack = require('webpack')
-import formatWebpackMessages = require('react-dev-utils/formatWebpackMessages')
+import { MultiStats, Stats } from 'webpack';
+import formatWebpackMessages from './formatWebpackMessages';
 import log = require('./log')
 
 interface IUrls {
@@ -12,8 +11,8 @@ interface IUrls {
 }
 
 interface IWebpackStatsParams {
-  stats: webpack.Stats | webpack.compilation.MultiStats;
-  statsOptions?: webpack.Stats.ToJsonOptions;
+  stats: Stats | MultiStats;
+  statsOptions?: Record<string, string>;
   urls?: IUrls;
   isFirstCompile?: boolean;
 }
@@ -38,15 +37,11 @@ const defaultOptions = {
 };
 
 const webpackStats: IWebpackStats = ({ urls, stats, statsOptions = defaultOptions, isFirstCompile }) => {
-  const statsJson = (stats as webpack.Stats).toJson({
+  const statsJson = stats.toJson({
     all: false,
     errors: true,
     warnings: true,
     timings: true,
-  });
-  // compatible with webpack 5
-  ['errors', 'warnings'].forEach((jsonKey: string) => {
-    (statsJson as any)[jsonKey] = ((statsJson as any)[jsonKey] || []).map((item: string | IJsonItem ) => ((item as IJsonItem).message || item));
   });
   const messages = formatWebpackMessages(statsJson);
   const isSuccessful = !messages.errors.length;

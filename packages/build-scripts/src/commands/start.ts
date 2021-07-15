@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { WebpackOptionsNormalized } from 'webpack';
 import Context, { CommandArgs, IGetBuiltInPlugins, IPluginList, ITaskConfig } from '../core/Context';
 import webpackStats from '../utils/webpackStats';
 
@@ -6,6 +7,8 @@ import deepmerge  = require('deepmerge')
 import WebpackDevServer = require('webpack-dev-server')
 import prepareURLs = require('../utils/prepareURLs')
 import log = require('../utils/log')
+
+type DevServer = Record<string, any>;
 
 export = async function({
   args,
@@ -58,7 +61,7 @@ export = async function({
     return;
   }
 
-  let devServerConfig = {
+  let devServerConfig: DevServer = {
     port: args.port || 3333,
     host: args.host || '0.0.0.0',
     https: args.https || false,
@@ -66,7 +69,7 @@ export = async function({
 
   for (const item of configArr) {
     const { chainConfig } = item;
-    const config = chainConfig.toConfig();
+    const config = chainConfig.toConfig() as WebpackOptionsNormalized;
     if (config.devServer) {
       devServerConfig = deepmerge(devServerConfig, config.devServer);
     }

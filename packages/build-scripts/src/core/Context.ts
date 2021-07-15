@@ -1,5 +1,6 @@
 import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
+import webpack, { MultiStats } from 'webpack';
 import { Logger } from 'npmlog';
 import { IHash, Json, JsonValue, MaybeArray, MaybePromise, JsonArray } from '../types';
 import hijackWebpackResolve from '../utils/hijackWebpack';
@@ -9,7 +10,6 @@ import assert = require('assert')
 import fs = require('fs-extra')
 import _ = require('lodash')
 import camelCase = require('camelcase')
-import webpack = require('webpack')
 import WebpackChain = require('webpack-chain')
 import WebpackDevServer = require('webpack-dev-server')
 import log = require('../utils/log')
@@ -59,7 +59,7 @@ export interface IJestResult {
 export interface IOnHookCallbackArg {
   err?: Error;
   args?: CommandArgs;
-  stats?: webpack.compilation.MultiStats;
+  stats?: MultiStats;
   url?: string;
   devServer?: WebpackDevServer;
   config?: any;
