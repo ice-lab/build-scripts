@@ -1,16 +1,11 @@
 import { runCLI } from 'jest';
-import chalk from 'chalk';
 import Context, { IJestResult } from '../core/Context';
 
 import fs = require('fs-extra');
 import path = require('path');
 import log = require('../utils/log');
 
-export = async function({
-  context,
-}: {
-  context: Context;
-}): Promise<IJestResult> {
+export = async function(context?: Context): Promise<IJestResult> {
   const { command, commandArgs } = context;
   const { jestArgv = {} } = commandArgs || {};
   const { config, regexForTestFiles, ...restArgv } = jestArgv;
@@ -18,14 +13,7 @@ export = async function({
   const { applyHook, rootDir: ctxRoot } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs });
 
-  let configArr = [];
-  try {
-    configArr = await context.setUp();
-  } catch (err) {
-    log.error('CONFIG', chalk.red('Failed to get config.'));
-    await applyHook(`error`, { err });
-    throw err;
-  }
+  const configArr = context.getWebpackConfig();
 
   // get user jest config
   const jestConfigPath = path.join(ctxRoot, config || 'jest.config.js');

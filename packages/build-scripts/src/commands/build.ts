@@ -1,5 +1,6 @@
 import WebpackService from '../service/WebpackService';
 import { IContextOptions, ITaskConfig } from '../core/Context';
+import { IRunOptions } from '../types';
 
 type BuildResult = void | ITaskConfig[];
 
@@ -9,7 +10,7 @@ export = async function({
   eject,
   plugins,
   getBuiltInPlugins,
-}: IContextOptions & { eject?: boolean }): Promise<BuildResult> {
+}: IContextOptions & IRunOptions): Promise<BuildResult> {
   const command = 'build';
 
   const service = new WebpackService({

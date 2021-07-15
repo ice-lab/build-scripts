@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { WebpackOptionsNormalized } from 'webpack';
 import Context, { ITaskConfig } from '../core/Context';
 import webpackStats from '../utils/webpackStats';
+import { IRunOptions } from '../types';
 import deepmerge = require('deepmerge');
 import WebpackDevServer = require('webpack-dev-server');
 import prepareURLs = require('../utils/prepareURLs');
@@ -9,13 +10,23 @@ import log = require('../utils/log');
 
 type DevServer = Record<string, any>;
 
-export = async function({
-  context,
-}: {
-  context: Context;
-}): Promise<void | ITaskConfig[] | WebpackDevServer> {
-  const { command, commandArgs, webpack, applyHook } = context;
+export = async function(context: Context, options: IRunOptions): Promise<void | ITaskConfig[] | WebpackDevServer> {
+  const { eject } = options;
   const configArr = context.getWebpackConfig();
+  const { command, commandArgs, webpack, applyHook } = context;
+  await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });
+  // eject config
+  if (eject) {
+    return configArr;
+  }
+
+  if (!configArr.length) {
+    const errorMsg = 'No webpack config found.';
+    log.warn('CONFIG', errorMsg);
+    await applyHook(`error`, { err: new Error(errorMsg) });
+    return;
+  }
+  
   let serverUrl = '';
   let devServerConfig: DevServer = {
     port: commandArgs.port || 3333,

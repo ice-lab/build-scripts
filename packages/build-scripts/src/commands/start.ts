@@ -1,6 +1,7 @@
 import WebpackService from '../service/WebpackService';
 import { IContextOptions, ITaskConfig } from '../core/Context';
 import WebpackDevServer = require('webpack-dev-server');
+import { IRunOptions } from '../types';
 
 type StartResult = void | ITaskConfig[] | WebpackDevServer;
 
@@ -10,7 +11,7 @@ export = async function({
   eject,
   plugins,
   getBuiltInPlugins,
-}: IContextOptions & { eject?: boolean }): Promise<StartResult> {
+}: IContextOptions & IRunOptions): Promise<StartResult> {
   const command = 'start';
 
   const service = new WebpackService({

@@ -11,3 +11,7 @@ export type JsonValue = Json[keyof Json];
 export type MaybeArray<T> = T | T[];
 
 export type MaybePromise<T> = T | Promise<T>;
+
+export interface IRunOptions {
+  eject?: boolean;
+}

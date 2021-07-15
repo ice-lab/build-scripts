@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import chalk from 'chalk';
 import camelCase from 'camelCase';
 import webpack, { MultiStats } from 'webpack';
 import { Logger } from 'npmlog';
@@ -208,12 +209,23 @@ export type IPluginList = (string | [string, Json])[];
 
 export type IGetBuiltInPlugins = (userConfig: IUserConfig) => IPluginList;
 
+export type CommandModule<T> = (context: Context,options: T) => Promise<T>;
+
+export interface ICommandModules<T = any> {
+  [command: string]: CommandModule<T>;
+}
+
+export type GetCommandModule<T> = (options: { command: CommandName; userConfig: IUserConfig }) => CommandModule<T>;
+
+export type RegisterCommandModules = (key: string, module: CommandModule<any>) => void;
+
 export interface IContextOptions {
   command: CommandName;
   rootDir: string;
   args: CommandArgs;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
+  commandModules?: ICommandModules;
 }
 
 export interface ITaskConfig {
@@ -317,6 +329,8 @@ class Context {
 
   private cancelTaskNames: string[];
 
+  private commandModules: ICommandModules;
+
   constructor({
     command,
     rootDir = process.cwd(),
@@ -324,6 +338,7 @@ class Context {
     plugins = [],
     getBuiltInPlugins = () => [],
   }: IContextOptions) {
+    this.commandModules = {};
     this.command = command;
     this.commandArgs = args;
     this.rootDir = rootDir;
@@ -902,6 +917,22 @@ class Context {
     }
   };
 
+  public registerCommandModules: RegisterCommandModules = (moduleKey, module) => {
+    if (this.commandModules[moduleKey]) {
+      log.warn('CONFIG', `command module ${moduleKey} already been registered`);
+    }
+    this.commandModules[moduleKey] = module;
+  }
+
+  private getCommandModule: GetCommandModule<any> = (options) => {
+    const { command } = options;
+    if (this.commandModules[command]) {
+      return this.commandModules[command];
+    } else {
+      throw new Error(`command ${command} is not support`);
+    }
+  };
+
   public setUp = async (): Promise<ITaskConfig[]> => {
     await this.runPlugins();
     await this.runConfigModification();
@@ -918,6 +949,23 @@ class Context {
   public getWebpackConfig = (): ITaskConfig[] => {
     return this.configArr;
   };
+
+  public run = async <T, P>(options?: T): Promise<P> => {
+    const { command, commandArgs } = this;
+    const commandModule = this.getCommandModule({ command: this.command, userConfig: this.userConfig });
+    log.verbose(
+      'OPTIONS',
+      `${command} cliOptions: ${JSON.stringify(commandArgs, null, 2)}`,
+    );
+    try {
+      await this.setUp();
+    } catch (err) {
+      log.error('CONFIG', chalk.red('Failed to get config.'));
+      await this.applyHook(`error`, { err });
+      throw err;
+    }
+    return commandModule(this, options);
+  }
 }
 
 export default Context;
