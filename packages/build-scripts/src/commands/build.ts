@@ -1,11 +1,16 @@
 import chalk from 'chalk';
-import Context, { CommandArgs, IPluginList, IGetBuiltInPlugins, ITaskConfig } from '../core/Context';
+import Context, {
+  CommandArgs,
+  IPluginList,
+  IGetBuiltInPlugins,
+  ITaskConfig,
+} from '../core/Context';
 import webpackStats from '../utils/webpackStats';
 
-import webpack = require('webpack')
-import fs = require('fs-extra')
-import path = require('path')
-import log = require('../utils/log')
+import webpack = require('webpack');
+import fs = require('fs-extra');
+import path = require('path');
+import log = require('../utils/log');
 
 export = async function({
   args,
@@ -19,7 +24,7 @@ export = async function({
   eject?: boolean;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
-}): Promise<void | ITaskConfig []> {
+}): Promise<void | ITaskConfig[]> {
   const command = 'build';
 
   const context = new Context({
@@ -30,7 +35,10 @@ export = async function({
     getBuiltInPlugins,
   });
 
-  log.verbose('OPTIONS', `${command} cliOptions: ${JSON.stringify(args, null, 2)}`);
+  log.verbose(
+    'OPTIONS',
+    `${command} cliOptions: ${JSON.stringify(args, null, 2)}`,
+  );
 
   const { applyHook, rootDir: ctxRoot, webpack: webpackInstance } = context;
   let configArr = [];
@@ -86,7 +94,7 @@ export = async function({
     // typeof(stats) is webpack.compilation.MultiStats
     compiler.run((err, stats) => {
       if (err) {
-        log.error('WEBPACK', (err.stack || err.toString()));
+        log.error('WEBPACK', err.stack || err.toString());
         reject(err);
         return;
       }
@@ -105,4 +113,4 @@ export = async function({
   });
 
   await applyHook(`after.${command}.compile`, result);
-}
+};

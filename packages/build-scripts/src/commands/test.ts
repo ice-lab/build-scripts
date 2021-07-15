@@ -2,9 +2,9 @@ import { runCLI } from 'jest';
 import chalk from 'chalk';
 import Context, { IContextOptions } from '../core/Context';
 
-import fs = require('fs-extra')
-import path = require('path')
-import log = require('../utils/log')
+import fs = require('fs-extra');
+import path = require('path');
+import log = require('../utils/log');
 
 export = async function({
   args,
@@ -41,24 +41,27 @@ export = async function({
 
   let userJestConfig = { moduleNameMapper: {} };
   if (fs.existsSync(jestConfigPath)) {
-    userJestConfig = require(jestConfigPath) // eslint-disable-line
+    userJestConfig = require(jestConfigPath); // eslint-disable-line
   }
 
   // get webpack.resolve.alias
-  const alias: { [key: string]: string } = configArr.reduce((acc, {chainConfig}) => {
-    const webpackConfig = chainConfig.toConfig();
-    if (webpackConfig.resolve && webpackConfig.resolve.alias) {
-      return {
-        ...acc,
-        ...webpackConfig.resolve.alias,
-      };
-    } else {
-      return acc;
-    }
-  }, {});
+  const alias: { [key: string]: string } = configArr.reduce(
+    (acc, { chainConfig }) => {
+      const webpackConfig = chainConfig.toConfig();
+      if (webpackConfig.resolve && webpackConfig.resolve.alias) {
+        return {
+          ...acc,
+          ...webpackConfig.resolve.alias,
+        };
+      } else {
+        return acc;
+      }
+    },
+    {},
+  );
 
   const aliasModuleNameMapper: { [key: string]: string } = {};
-  Object.keys(alias || {}).forEach((key) => {
+  Object.keys(alias || {}).forEach(key => {
     const aliasPath = alias[key];
     // check path if it is a directory
     if (fs.existsSync(aliasPath) && fs.statSync(aliasPath).isDirectory()) {
@@ -89,19 +92,21 @@ export = async function({
         config: JSON.stringify(jestConfig),
       },
       [ctxRoot],
-    ).then((data) => {
-      const { results } = data;
-      if (results.success) {
-        resolve(data);
-      } else {
-        reject(new Error('Jest failed'));
-      }
-    }).catch((err: Error) => {
-      log.error('JEST', (err.stack || err.toString()));
-    });
+    )
+      .then(data => {
+        const { results } = data;
+        if (results.success) {
+          resolve(data);
+        } else {
+          reject(new Error('Jest failed'));
+        }
+      })
+      .catch((err: Error) => {
+        log.error('JEST', err.stack || err.toString());
+      });
   });
 
   await applyHook(`after.${command}`, { result });
 
   return result;
-}
+};

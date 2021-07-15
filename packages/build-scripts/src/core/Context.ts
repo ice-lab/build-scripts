@@ -1,18 +1,25 @@
-import { AggregatedResult } from '@jest/test-result';
-import { GlobalConfig } from '@jest/types/build/Config';
+import * as path from 'path';
+import * as fs from 'fs';
+import _ from 'lodash';
+import camelCase from 'camelCase';
 import webpack, { MultiStats } from 'webpack';
 import { Logger } from 'npmlog';
-import { IHash, Json, JsonValue, MaybeArray, MaybePromise, JsonArray } from '../types';
+import { AggregatedResult } from '@jest/test-result';
+import { GlobalConfig } from '@jest/types/build/Config';
+import {
+  IHash,
+  Json,
+  JsonValue,
+  MaybeArray,
+  MaybePromise,
+  JsonArray,
+} from '../types';
 import hijackWebpackResolve from '../utils/hijackWebpack';
 
-import path = require('path')
-import assert = require('assert')
-import fs = require('fs-extra')
-import _ = require('lodash')
-import camelCase = require('camelcase')
-import WebpackChain = require('webpack-chain')
-import WebpackDevServer = require('webpack-dev-server')
-import log = require('../utils/log')
+import assert = require('assert');
+import WebpackChain = require('webpack-chain');
+import WebpackDevServer = require('webpack-dev-server');
+import log = require('../utils/log');
 import JSON5 = require('json5');
 
 const PKG_FILE = 'package.json';
@@ -41,15 +48,15 @@ const BUILTIN_CLI_OPTIONS = [
   { name: 'config', commands: ['start', 'build', 'test'] },
 ];
 
-export type IWebpack = typeof webpack
+export type IWebpack = typeof webpack;
 
-export type PluginContext = Pick<Context, typeof PLUGIN_CONTEXT_KEY[number]>
+export type PluginContext = Pick<Context, typeof PLUGIN_CONTEXT_KEY[number]>;
 
 export type UserConfigContext = PluginContext & {
   taskName: string;
-}
+};
 
-export type ValidationKey = keyof typeof VALIDATION_MAP
+export type ValidationKey = keyof typeof VALIDATION_MAP;
 
 export interface IJestResult {
   results: AggregatedResult;
@@ -136,7 +143,7 @@ export interface IRegsiterMethod {
   (name: string, fn: IMethodFunction, options?: IMethodOptions): void;
 }
 
-type IMethod = [string, string]|string;
+type IMethod = [string, string] | string;
 
 export interface IApplyMethod {
   (config: IMethod, ...args: any[]): any;
@@ -155,7 +162,7 @@ export interface IModifyConfig {
 }
 
 export interface IModifyUserConfig {
-  (configKey: string|IModifyConfig, value?: any): void;
+  (configKey: string | IModifyConfig, value?: any): void;
 }
 
 export interface IGetAllPlugin {
@@ -187,17 +194,17 @@ export interface IPluginInfo {
   options: IPluginOptions;
 }
 
-export type IPluginOptions = Json | JsonArray
+export type IPluginOptions = Json | JsonArray;
 
 export interface IPlugin {
   (api: IPluginAPI, options?: IPluginOptions): MaybePromise<void>;
 }
 
-export type CommandName = 'start' | 'build' | 'test'
+export type CommandName = 'start' | 'build' | 'test';
 
-export type CommandArgs = IHash<any>
+export type CommandArgs = IHash<any>;
 
-export type IPluginList = (string | [string, Json])[]
+export type IPluginList = (string | [string, Json])[];
 
 export type IGetBuiltInPlugins = (userConfig: IUserConfig) => IPluginList;
 
@@ -241,65 +248,79 @@ export interface ICliOptionRegistration {
 
 export interface IModifyConfigRegistration {
   (configFunc: IModifyRegisteredConfigCallbacks<IUserConfigRegistration>): void;
-  (configName: string, configFunc: IModifyRegisteredConfigCallbacks<IUserConfigArgs>): void;
-};
+  (
+    configName: string,
+    configFunc: IModifyRegisteredConfigCallbacks<IUserConfigArgs>,
+  ): void;
+}
 
 export interface IModifyCliRegistration {
   (configFunc: IModifyRegisteredConfigCallbacks<ICliOptionRegistration>): void;
-  (configName: string, configFunc: IModifyRegisteredConfigCallbacks<ICliOptionArgs>): void;
-};
+  (
+    configName: string,
+    configFunc: IModifyRegisteredConfigCallbacks<ICliOptionArgs>,
+  ): void;
+}
 
-export type IModifyRegisteredConfigArgs = [string, IModifyRegisteredConfigCallbacks<IUserConfigArgs>] | [IModifyRegisteredConfigCallbacks<IUserConfigRegistration>]
-export type IModifyRegisteredCliArgs = [string, IModifyRegisteredConfigCallbacks<ICliOptionArgs>] | [IModifyRegisteredConfigCallbacks<ICliOptionRegistration>]
+export type IModifyRegisteredConfigArgs =
+  | [string, IModifyRegisteredConfigCallbacks<IUserConfigArgs>]
+  | [IModifyRegisteredConfigCallbacks<IUserConfigRegistration>];
+export type IModifyRegisteredCliArgs =
+  | [string, IModifyRegisteredConfigCallbacks<ICliOptionArgs>]
+  | [IModifyRegisteredConfigCallbacks<ICliOptionRegistration>];
 
-export type IOnGetWebpackConfigArgs = [string, IPluginConfigWebpack] | [IPluginConfigWebpack]
+export type IOnGetWebpackConfigArgs =
+  | [string, IPluginConfigWebpack]
+  | [IPluginConfigWebpack];
 
-export type IRegistrationKey = 'modifyConfigRegistrationCallbacks' | 'modifyCliRegistrationCallbacks';
+export type IRegistrationKey =
+  | 'modifyConfigRegistrationCallbacks'
+  | 'modifyCliRegistrationCallbacks';
 
 class Context {
-  public command: CommandName
+  public command: CommandName;
 
-  public commandArgs: CommandArgs
+  public commandArgs: CommandArgs;
 
-  public rootDir: string
+  public rootDir: string;
 
-  public webpack: IWebpack
+  public webpack: IWebpack;
 
   // 通过registerTask注册，存放初始的webpack-chain配置
-  private configArr: ITaskConfig[]
+  private configArr: ITaskConfig[];
 
-  private modifyConfigFns: IOnGetWebpackConfigArgs[]
+  private modifyConfigFns: IOnGetWebpackConfigArgs[];
 
-  private modifyJestConfig: IJestConfigFunction[]
+  private modifyJestConfig: IJestConfigFunction[];
 
-  private modifyConfigRegistrationCallbacks: IModifyRegisteredConfigArgs[]
+  private modifyConfigRegistrationCallbacks: IModifyRegisteredConfigArgs[];
 
-  private modifyCliRegistrationCallbacks: IModifyRegisteredConfigArgs[]
+  private modifyCliRegistrationCallbacks: IModifyRegisteredConfigArgs[];
 
   private eventHooks: {
     [name: string]: IOnHookCallback[];
-  }
+  };
 
-  private internalValue: IHash<any>
+  private internalValue: IHash<any>;
 
-  private userConfigRegistration: IUserConfigRegistration
+  private userConfigRegistration: IUserConfigRegistration;
 
-  private cliOptionRegistration: ICliOptionRegistration
+  private cliOptionRegistration: ICliOptionRegistration;
 
-  private methodRegistration: {[name: string]: [IMethodFunction, any]}
+  private methodRegistration: { [name: string]: [IMethodFunction, any] };
 
-  private cancelTaskNames: string[]
+  private cancelTaskNames: string[];
 
-  public pkg: Json
+  public pkg: Json;
 
-  public userConfig: IUserConfig
+  public userConfig: IUserConfig;
 
-  public plugins: IPluginInfo[]
+  public plugins: IPluginInfo[];
 
   constructor({
     command,
     rootDir = process.cwd(),
-    args = {} ,
+    args = {},
     plugins = [],
     getBuiltInPlugins = () => [],
   }: IContextOptions) {
@@ -329,9 +350,14 @@ class Context {
     this.pkg = this.getProjectFile(PKG_FILE);
     this.userConfig = this.getUserConfig();
     // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
-    const builtInPlugins: IPluginList = [...plugins, ...getBuiltInPlugins(this.userConfig)];
+    const builtInPlugins: IPluginList = [
+      ...plugins,
+      ...getBuiltInPlugins(this.userConfig),
+    ];
     // custom webpack
-    const webpackInstancePath = this.userConfig.customWebpack ? require.resolve('webpack', { paths: [this.rootDir] }) : 'webpack';
+    const webpackInstancePath = this.userConfig.customWebpack
+      ? require.resolve('webpack', { paths: [this.rootDir] })
+      : 'webpack';
     this.webpack = require(webpackInstancePath);
     if (this.userConfig.customWebpack) {
       hijackWebpackResolve(this.webpack, this.rootDir);
@@ -342,10 +368,18 @@ class Context {
     this.plugins = this.resolvePlugins(builtInPlugins);
   }
 
-  private registerConfig = (type: string, args: MaybeArray<IUserConfigArgs> | MaybeArray<ICliOptionArgs>, parseName?: (name: string) => string): void => {
-    const registerKey = `${type}Registration` as 'userConfigRegistration' | 'cliOptionRegistration';
+  private registerConfig = (
+    type: string,
+    args: MaybeArray<IUserConfigArgs> | MaybeArray<ICliOptionArgs>,
+    parseName?: (name: string) => string,
+  ): void => {
+    const registerKey = `${type}Registration` as
+      | 'userConfigRegistration'
+      | 'cliOptionRegistration';
     if (!this[registerKey]) {
-      throw new Error(`unknown register type: ${type}, use available types (userConfig or cliOption) instead`);
+      throw new Error(
+        `unknown register type: ${type}, use available types (userConfig or cliOption) instead`,
+      );
     }
     const configArr = _.isArray(args) ? args : [args];
     configArr.forEach((conf): void => {
@@ -357,20 +391,28 @@ class Context {
       this[registerKey][confName] = conf;
 
       // set default userConfig
-      if (type === 'userConfig'
-        && _.isUndefined(this.userConfig[confName])
-        && Object.prototype.hasOwnProperty.call(conf, 'defaultValue')) {
+      if (
+        type === 'userConfig' &&
+        _.isUndefined(this.userConfig[confName]) &&
+        Object.prototype.hasOwnProperty.call(conf, 'defaultValue')
+      ) {
         this.userConfig[confName] = (conf as IUserConfigArgs).defaultValue;
       }
     });
-  }
+  };
 
-  private async runConfigWebpack(fn: IUserConfigWebpack, configValue: JsonValue, ignoreTasks: string[]|null): Promise<void> {
+  private async runConfigWebpack(
+    fn: IUserConfigWebpack,
+    configValue: JsonValue,
+    ignoreTasks: string[] | null,
+  ): Promise<void> {
     for (const webpackConfigInfo of this.configArr) {
       const taskName = webpackConfigInfo.name;
       let ignoreConfig = false;
       if (Array.isArray(ignoreTasks)) {
-        ignoreConfig = ignoreTasks.some((ignoreTask) => new RegExp(ignoreTask).exec(taskName));
+        ignoreConfig = ignoreTasks.some(ignoreTask =>
+          new RegExp(ignoreTask).exec(taskName),
+        );
       }
       if (!ignoreConfig) {
         const userConfigContext: UserConfigContext = {
@@ -391,18 +433,23 @@ class Context {
       try {
         config = fs.readJsonSync(configPath);
       } catch (err) {
-        log.info('CONFIG', `Fail to load config file ${configPath}, use empty object`);
+        log.info(
+          'CONFIG',
+          `Fail to load config file ${configPath}, use empty object`,
+        );
       }
     }
 
     return config;
-  }
+  };
 
   private getUserConfig = (): IUserConfig => {
     const { config } = this.commandArgs;
     let configPath = '';
     if (config) {
-      configPath = path.isAbsolute(config) ? config : path.resolve(this.rootDir, config);
+      configPath = path.isAbsolute(config)
+        ? config
+        : path.resolve(this.rootDir, config);
     } else {
       configPath = path.resolve(this.rootDir, USER_CONFIG_FILE);
     }
@@ -412,29 +459,43 @@ class Context {
     const isJsFile = path.extname(configPath) === '.js';
     if (fs.existsSync(configPath)) {
       try {
-        userConfig = isJsFile ? require(configPath) : JSON5.parse(fs.readFileSync(configPath, 'utf-8')); // read build.json
+        userConfig = isJsFile
+          ? require(configPath)
+          : JSON5.parse(fs.readFileSync(configPath, 'utf-8')); // read build.json
       } catch (err) {
-        log.info('CONFIG', `Fail to load config file ${configPath}, use default config instead`);
-        log.error('CONFIG', (err.stack || err.toString()));
+        log.info(
+          'CONFIG',
+          `Fail to load config file ${configPath}, use default config instead`,
+        );
+        log.error('CONFIG', err.stack || err.toString());
         process.exit(1);
       }
     }
 
     return this.mergeModeConfig(userConfig);
-  }
+  };
 
   private mergeModeConfig = (userConfig: IUserConfig): IUserConfig => {
     const { mode } = this.commandArgs;
     // modify userConfig by userConfig.modeConfig
-    if (userConfig.modeConfig && mode && (userConfig.modeConfig as IModeConfig)[mode]) {
-      const { plugins, ...basicConfig } = (userConfig.modeConfig as IModeConfig)[mode] as IUserConfig;
+    if (
+      userConfig.modeConfig &&
+      mode &&
+      (userConfig.modeConfig as IModeConfig)[mode]
+    ) {
+      const {
+        plugins,
+        ...basicConfig
+      } = (userConfig.modeConfig as IModeConfig)[mode] as IUserConfig;
       const userPlugins = [...userConfig.plugins];
       if (Array.isArray(plugins)) {
-        const pluginKeys = userPlugins.map((pluginInfo) => {
+        const pluginKeys = userPlugins.map(pluginInfo => {
           return Array.isArray(pluginInfo) ? pluginInfo[0] : pluginInfo;
         });
-        plugins.forEach((pluginInfo) => {
-          const [pluginName] = Array.isArray(pluginInfo) ? pluginInfo : [pluginInfo];
+        plugins.forEach(pluginInfo => {
+          const [pluginName] = Array.isArray(pluginInfo)
+            ? pluginInfo
+            : [pluginInfo];
           const pluginIndex = pluginKeys.indexOf(pluginName);
           if (pluginIndex > -1) {
             // overwrite plugin info by modeConfig
@@ -445,50 +506,65 @@ class Context {
           }
         });
       }
-      return { ...userConfig, ...basicConfig, plugins: userPlugins};
+      return { ...userConfig, ...basicConfig, plugins: userPlugins };
     }
     return userConfig;
-  }
+  };
 
   private resolvePlugins = (builtInPlugins: IPluginList): IPluginInfo[] => {
-    const userPlugins = [...builtInPlugins, ...(this.userConfig.plugins || [])].map((pluginInfo): IPluginInfo => {
-      let fn;
-      if (_.isFunction(pluginInfo)) {
+    const userPlugins = [
+      ...builtInPlugins,
+      ...(this.userConfig.plugins || []),
+    ].map(
+      (pluginInfo): IPluginInfo => {
+        let fn;
+        if (_.isFunction(pluginInfo)) {
+          return {
+            fn: pluginInfo,
+            options: {},
+          };
+        }
+        const plugins: [string, IPluginOptions] = Array.isArray(pluginInfo)
+          ? pluginInfo
+          : [pluginInfo, undefined];
+        const pluginResolveDir = process.env.EXTRA_PLUGIN_DIR
+          ? [process.env.EXTRA_PLUGIN_DIR, this.rootDir]
+          : [this.rootDir];
+        const pluginPath = path.isAbsolute(plugins[0])
+          ? plugins[0]
+          : require.resolve(plugins[0], { paths: pluginResolveDir });
+        const options = plugins[1];
+
+        try {
+          fn = require(pluginPath); // eslint-disable-line
+        } catch (err) {
+          log.error('CONFIG', `Fail to load plugin ${pluginPath}`);
+          log.error('CONFIG', err.stack || err.toString());
+          process.exit(1);
+        }
+
         return {
-          fn: pluginInfo,
-          options: {},
+          name: plugins[0],
+          pluginPath,
+          fn: fn.default || fn || ((): void => {}),
+          options,
         };
-      }
-      const plugins: [string, IPluginOptions] = Array.isArray(pluginInfo) ? pluginInfo : [pluginInfo, undefined];
-      const pluginResolveDir = process.env.EXTRA_PLUGIN_DIR ? [process.env.EXTRA_PLUGIN_DIR, this.rootDir] : [this.rootDir];
-      const pluginPath = path.isAbsolute(plugins[0]) ? plugins[0] : require.resolve(plugins[0], { paths: pluginResolveDir });
-      const options = plugins[1];
-
-      try {
-        fn = require(pluginPath) // eslint-disable-line
-      } catch (err) {
-        log.error('CONFIG', `Fail to load plugin ${pluginPath}`);
-        log.error('CONFIG', (err.stack || err.toString()));
-        process.exit(1);
-      }
-
-      return {
-        name: plugins[0],
-        pluginPath,
-        fn: fn.default || fn || ((): void => {}),
-        options,
-      };
-    });
+      },
+    );
 
     return userPlugins;
-  }
+  };
 
-  public getAllPlugin: IGetAllPlugin = (dataKeys = ['pluginPath', 'options', 'name']) => {
-    return this.plugins.map((pluginInfo): Partial<IPluginInfo> => {
-      // filter fn to avoid loop
-      return _.pick(pluginInfo, dataKeys);
-    });
-  }
+  public getAllPlugin: IGetAllPlugin = (
+    dataKeys = ['pluginPath', 'options', 'name'],
+  ) => {
+    return this.plugins.map(
+      (pluginInfo): Partial<IPluginInfo> => {
+        // filter fn to avoid loop
+        return _.pick(pluginInfo, dataKeys);
+      },
+    );
+  };
 
   public registerTask: IRegisterTask = (name, chainConfig) => {
     const exist = this.configArr.find((v): boolean => v.name === name);
@@ -501,15 +577,15 @@ class Context {
     } else {
       throw new Error(`[Error] config '${name}' already exists!`);
     }
-  }
+  };
 
-  public cancelTask: ICancelTask = (name) => {
+  public cancelTask: ICancelTask = name => {
     if (this.cancelTaskNames.includes(name)) {
       log.info('TASK', `task ${name} has already been canceled`);
     } else {
       this.cancelTaskNames.push(name);
     }
-  }
+  };
 
   public registerMethod: IRegsiterMethod = (name, fn, options) => {
     if (this.methodRegistration[name]) {
@@ -518,12 +594,14 @@ class Context {
       const registration = [fn, options] as [IMethodFunction, IMethodOptions];
       this.methodRegistration[name] = registration;
     }
-  }
+  };
 
-  public applyMethod: IApplyMethod = (config, ...args) =>  {
+  public applyMethod: IApplyMethod = (config, ...args) => {
     const [methodName, pluginName] = Array.isArray(config) ? config : [config];
     if (this.methodRegistration[methodName]) {
-      const [registerMethod, methodOptions] = this.methodRegistration[methodName];
+      const [registerMethod, methodOptions] = this.methodRegistration[
+        methodName
+      ];
       if (methodOptions?.pluginName) {
         return (registerMethod as IMethodCurry)(pluginName)(...args);
       } else {
@@ -532,11 +610,11 @@ class Context {
     } else {
       throw new Error(`apply unknown method ${methodName}`);
     }
-  }
+  };
 
-  public hasMethod: IHasMethod = (name) => {
+  public hasMethod: IHasMethod = name => {
     return !!this.methodRegistration[name];
-  }
+  };
 
   public modifyUserConfig: IModifyUserConfig = (configKey, value) => {
     const errorMsg = 'config plugins is not support to be modified';
@@ -552,34 +630,40 @@ class Context {
           log.warn('[waring]', errorMsg);
         }
         delete modifiedValue.plugins;
-        Object.keys(modifiedValue).forEach((configKey) => {
+        Object.keys(modifiedValue).forEach(configKey => {
           this.userConfig[configKey] = modifiedValue[configKey];
         });
       } else {
         throw new Error(`modifyUserConfig must return a plain object`);
       }
     }
-  }
+  };
 
-  public modifyConfigRegistration: IModifyConfigRegistration = (...args: IModifyRegisteredConfigArgs) => {
+  public modifyConfigRegistration: IModifyConfigRegistration = (
+    ...args: IModifyRegisteredConfigArgs
+  ) => {
     this.modifyConfigRegistrationCallbacks.push(args);
-  }
+  };
 
-  public modifyCliRegistration: IModifyCliRegistration = (...args: IModifyRegisteredCliArgs) => {
+  public modifyCliRegistration: IModifyCliRegistration = (
+    ...args: IModifyRegisteredCliArgs
+  ) => {
     this.modifyCliRegistrationCallbacks.push(args);
-  }
+  };
 
   public getAllTask = (): string[] => {
     return this.configArr.map(v => v.name);
-  }
+  };
 
-  public onGetWebpackConfig: IOnGetWebpackConfig = (...args: IOnGetWebpackConfigArgs) => {
+  public onGetWebpackConfig: IOnGetWebpackConfig = (
+    ...args: IOnGetWebpackConfigArgs
+  ) => {
     this.modifyConfigFns.push(args);
-  }
+  };
 
   public onGetJestConfig: IOnGetJestConfig = (fn: IJestConfigFunction) => {
     this.modifyJestConfig.push(fn);
-  }
+  };
 
   public runJestConfig = (jestConfig: Json): Json => {
     let result = jestConfig;
@@ -587,14 +671,14 @@ class Context {
       result = fn(result);
     }
     return result;
-  }
+  };
 
   public onHook: IOnHook = (key, fn) => {
     if (!Array.isArray(this.eventHooks[key])) {
       this.eventHooks[key] = [];
     }
     this.eventHooks[key].push(fn);
-  }
+  };
 
   public applyHook = async (key: string, opts = {}): Promise<void> => {
     const hooks = this.eventHooks[key] || [];
@@ -603,25 +687,25 @@ class Context {
       // eslint-disable-next-line no-await-in-loop
       await fn(opts);
     }
-  }
+  };
 
   public setValue = (key: string | number, value: any): void => {
     this.internalValue[key] = value;
-  }
+  };
 
   public getValue = (key: string | number): any => {
     return this.internalValue[key];
-  }
+  };
 
   public registerUserConfig = (args: MaybeArray<IUserConfigArgs>): void => {
     this.registerConfig('userConfig', args);
-  }
+  };
 
   public registerCliOption = (args: MaybeArray<ICliOptionArgs>): void => {
-    this.registerConfig('cliOption', args, (name) => {
+    this.registerConfig('cliOption', args, name => {
       return camelCase(name, { pascalCase: false });
     });
-  }
+  };
 
   private runPlugins = async (): Promise<void> => {
     for (const pluginInfo of this.plugins) {
@@ -655,11 +739,11 @@ class Context {
       // eslint-disable-next-line no-await-in-loop
       await fn(pluginAPI, options);
     }
-  }
+  };
 
   private checkPluginValue = (plugins: IPluginList): void => {
     let flag;
-    if(!_.isArray(plugins)) {
+    if (!_.isArray(plugins)) {
       flag = false;
     } else {
       flag = plugins.every(v => {
@@ -672,22 +756,32 @@ class Context {
       });
     }
 
-    if(!flag) {
+    if (!flag) {
       throw new Error('plugins did not pass validation');
     }
-  }
+  };
 
   private runConfigModification = async (): Promise<void> => {
-    const callbackRegistrations = ['modifyConfigRegistrationCallbacks', 'modifyCliRegistrationCallbacks'];
-    callbackRegistrations.forEach((registrationKey) => {
-      const registrations = this[registrationKey as IRegistrationKey] as (IModifyRegisteredConfigArgs | IModifyRegisteredConfigArgs)[];
+    const callbackRegistrations = [
+      'modifyConfigRegistrationCallbacks',
+      'modifyCliRegistrationCallbacks',
+    ];
+    callbackRegistrations.forEach(registrationKey => {
+      const registrations = this[registrationKey as IRegistrationKey] as (
+        | IModifyRegisteredConfigArgs
+        | IModifyRegisteredConfigArgs
+      )[];
       registrations.forEach(([name, callback]) => {
         const modifyAll = _.isFunction(name);
-        const configRegistrations = this[registrationKey === 'modifyConfigRegistrationCallbacks' ? 'userConfigRegistration' : 'cliOptionRegistration'];
+        const configRegistrations = this[
+          registrationKey === 'modifyConfigRegistrationCallbacks'
+            ? 'userConfigRegistration'
+            : 'cliOptionRegistration'
+        ];
         if (modifyAll) {
           const modifyFunction = name as IModifyRegisteredConfigCallbacks<IUserConfigRegistration>;
           const modifiedResult = modifyFunction(configRegistrations);
-          Object.keys(modifiedResult).forEach((configKey) => {
+          Object.keys(modifiedResult).forEach(configKey => {
             configRegistrations[configKey] = {
               ...(configRegistrations[configKey] || {}),
               ...modifiedResult[configKey],
@@ -700,12 +794,12 @@ class Context {
           const configRegistration = configRegistrations[name];
           configRegistrations[name] = {
             ...configRegistration,
-            ...(callback(configRegistration)),
+            ...callback(configRegistration),
           };
         }
       });
     });
-  }
+  };
 
   private runUserConfig = async (): Promise<void> => {
     for (const configInfoKey in this.userConfig) {
@@ -713,7 +807,9 @@ class Context {
         const configInfo = this.userConfigRegistration[configInfoKey];
 
         if (!configInfo) {
-          throw new Error(`[Config File] Config key '${configInfoKey}' is not supported`);
+          throw new Error(
+            `[Config File] Config key '${configInfoKey}' is not supported`,
+          );
         }
 
         const { name, validation, ignoreTasks } = configInfo;
@@ -724,53 +820,72 @@ class Context {
           if (_.isString(validation)) {
             // split validation string
             const supportTypes = validation.split('|') as ValidationKey[];
-            const validateResult = supportTypes.some((supportType) => {
+            const validateResult = supportTypes.some(supportType => {
               const fnName = VALIDATION_MAP[supportType];
               if (!fnName) {
                 throw new Error(`validation does not support ${supportType}`);
               }
               return _[fnName](configValue);
             });
-            assert(validateResult, `Config ${name} should be ${validation}, but got ${configValue}`);
+            assert(
+              validateResult,
+              `Config ${name} should be ${validation}, but got ${configValue}`,
+            );
           } else {
             // eslint-disable-next-line no-await-in-loop
             validationInfo = await validation(configValue);
-            assert(validationInfo, `${name} did not pass validation, result: ${validationInfo}`);
+            assert(
+              validationInfo,
+              `${name} did not pass validation, result: ${validationInfo}`,
+            );
           }
         }
 
         if (configInfo.configWebpack) {
           // eslint-disable-next-line no-await-in-loop
-          await this.runConfigWebpack(configInfo.configWebpack, configValue, ignoreTasks);
+          await this.runConfigWebpack(
+            configInfo.configWebpack,
+            configValue,
+            ignoreTasks,
+          );
         }
       }
     }
-  }
+  };
 
   private runCliOption = async (): Promise<void> => {
     for (const cliOpt in this.commandArgs) {
       // allow all jest option when run command test
       if (this.command !== 'test' || cliOpt !== 'jestArgv') {
-        const { commands, name, configWebpack, ignoreTasks } = this.cliOptionRegistration[cliOpt] || {};
+        const { commands, name, configWebpack, ignoreTasks } =
+          this.cliOptionRegistration[cliOpt] || {};
         if (!name || !(commands || []).includes(this.command)) {
-          throw new Error(`cli option '${cliOpt}' is not supported when run command '${this.command}'`);
+          throw new Error(
+            `cli option '${cliOpt}' is not supported when run command '${this.command}'`,
+          );
         }
         if (configWebpack) {
           // eslint-disable-next-line no-await-in-loop
-          await this.runConfigWebpack(configWebpack, this.commandArgs[cliOpt], ignoreTasks);
+          await this.runConfigWebpack(
+            configWebpack,
+            this.commandArgs[cliOpt],
+            ignoreTasks,
+          );
         }
       }
     }
-  }
+  };
 
   private runWebpackFunctions = async (): Promise<void> => {
     this.modifyConfigFns.forEach(([name, func]) => {
       const isAll = _.isFunction(name);
-      if (isAll) {  // modify all
+      if (isAll) {
+        // modify all
         this.configArr.forEach(config => {
           config.modifyFunctions.push(name as IPluginConfigWebpack);
         });
-      } else { // modify named config
+      } else {
+        // modify named config
         this.configArr.forEach(config => {
           if (config.name === name) {
             config.modifyFunctions.push(func);
@@ -785,7 +900,7 @@ class Context {
         await func(configInfo.chainConfig);
       }
     }
-  }
+  };
 
   public setUp = async (): Promise<ITaskConfig[]> => {
     await this.runPlugins();
@@ -794,9 +909,11 @@ class Context {
     await this.runWebpackFunctions();
     await this.runCliOption();
     // filter webpack config by cancelTaskNames
-    this.configArr = this.configArr.filter((config) => !this.cancelTaskNames.includes(config.name));
+    this.configArr = this.configArr.filter(
+      config => !this.cancelTaskNames.includes(config.name),
+    );
     return this.configArr;
-  }
+  };
 }
 
 export default Context;

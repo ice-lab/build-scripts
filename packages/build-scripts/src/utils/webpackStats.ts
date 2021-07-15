@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { MultiStats, Stats } from 'webpack';
 import formatWebpackMessages from './formatWebpackMessages';
-import log = require('./log')
+import log = require('./log');
 
 interface IUrls {
   lanUrlForTerminal: string;
@@ -36,7 +36,12 @@ const defaultOptions = {
   modules: false,
 };
 
-const webpackStats: IWebpackStats = ({ urls, stats, statsOptions = defaultOptions, isFirstCompile }) => {
+const webpackStats: IWebpackStats = ({
+  urls,
+  stats,
+  statsOptions = defaultOptions,
+  isFirstCompile,
+}) => {
   const statsJson = stats.toJson({
     all: false,
     errors: true,
@@ -60,8 +65,14 @@ const webpackStats: IWebpackStats = ({ urls, stats, statsOptions = defaultOption
       if (isFirstCompile && urls) {
         console.log();
         log.info('WEBPACK', chalk.green('Starting the development server at:'));
-        log.info('   - Local  : ', chalk.underline.white(urls.localUrlForBrowser));
-        log.info('   - Network: ', chalk.underline.white(urls.lanUrlForTerminal));
+        log.info(
+          '   - Local  : ',
+          chalk.underline.white(urls.localUrlForBrowser),
+        );
+        log.info(
+          '   - Network: ',
+          chalk.underline.white(urls.lanUrlForTerminal),
+        );
         console.log();
       }
     } else if (messages.errors.length) {

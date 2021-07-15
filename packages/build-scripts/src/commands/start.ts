@@ -1,12 +1,17 @@
 import chalk from 'chalk';
 import { WebpackOptionsNormalized } from 'webpack';
-import Context, { CommandArgs, IGetBuiltInPlugins, IPluginList, ITaskConfig } from '../core/Context';
+import Context, {
+  CommandArgs,
+  IGetBuiltInPlugins,
+  IPluginList,
+  ITaskConfig,
+} from '../core/Context';
 import webpackStats from '../utils/webpackStats';
 
-import deepmerge  = require('deepmerge')
-import WebpackDevServer = require('webpack-dev-server')
-import prepareURLs = require('../utils/prepareURLs')
-import log = require('../utils/log')
+import deepmerge = require('deepmerge');
+import WebpackDevServer = require('webpack-dev-server');
+import prepareURLs = require('../utils/prepareURLs');
+import log = require('../utils/log');
 
 type DevServer = Record<string, any>;
 
@@ -33,7 +38,10 @@ export = async function({
     getBuiltInPlugins,
   });
 
-  log.verbose('OPTIONS', `${command} cliOptions: ${JSON.stringify(args, null, 2)}`);
+  log.verbose(
+    'OPTIONS',
+    `${command} cliOptions: ${JSON.stringify(args, null, 2)}`,
+  );
   let serverUrl = '';
 
   const { applyHook, webpack } = context;
@@ -91,12 +99,16 @@ export = async function({
     throw err;
   }
   const protocol = devServerConfig.https ? 'https' : 'http';
-  const urls = prepareURLs(protocol, devServerConfig.host, devServerConfig.port);
+  const urls = prepareURLs(
+    protocol,
+    devServerConfig.host,
+    devServerConfig.port,
+  );
   serverUrl = urls.localUrlForBrowser;
 
   let isFirstCompile = true;
   // typeof(stats) is webpack.compilation.MultiStats
-  compiler.hooks.done.tap('compileHook', async (stats) => {
+  compiler.hooks.done.tap('compileHook', async stats => {
     const isSuccessful = webpackStats({
       urls,
       stats,
@@ -124,19 +136,26 @@ export = async function({
     devServer,
   });
 
-  devServer.listen(devServerConfig.port, devServerConfig.host, async (err: Error) => {
-    if (err) {
-      log.info('WEBPACK',chalk.red('[ERR]: Failed to start webpack dev server'));
-      log.error('WEBPACK', (err.stack || err.toString()));
-    }
+  devServer.listen(
+    devServerConfig.port,
+    devServerConfig.host,
+    async (err: Error) => {
+      if (err) {
+        log.info(
+          'WEBPACK',
+          chalk.red('[ERR]: Failed to start webpack dev server'),
+        );
+        log.error('WEBPACK', err.stack || err.toString());
+      }
 
-    await applyHook(`after.${command}.devServer`, {
-      url: serverUrl,
-      urls,
-      devServer,
-      err,
-    });
-  });
+      await applyHook(`after.${command}.devServer`, {
+        url: serverUrl,
+        urls,
+        devServer,
+        err,
+      });
+    },
+  );
 
   return devServer;
-}
+};
