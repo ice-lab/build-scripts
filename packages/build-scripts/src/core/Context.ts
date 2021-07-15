@@ -1,6 +1,5 @@
 import * as path from 'path';
-import * as fs from 'fs';
-import _ from 'lodash';
+import * as fs from 'fs-extra';
 import camelCase from 'camelCase';
 import webpack, { MultiStats } from 'webpack';
 import { Logger } from 'npmlog';
@@ -17,6 +16,7 @@ import {
 import hijackWebpackResolve from '../utils/hijackWebpack';
 
 import assert = require('assert');
+import _ = require('lodash');
 import WebpackChain = require('webpack-chain');
 import WebpackDevServer = require('webpack-dev-server');
 import log = require('../utils/log');
@@ -82,7 +82,7 @@ export interface IOnHook {
 }
 
 export interface IPluginConfigWebpack {
-  (config: WebpackChain): void;
+  (config: WebpackChain): Promise<void>;
 }
 
 export interface IUserConfigWebpack {
@@ -139,7 +139,7 @@ export interface IMethodOptions {
   pluginName?: boolean;
 }
 
-export interface IRegsiterMethod {
+export interface IRegisterMethod {
   (name: string, fn: IMethodFunction, options?: IMethodOptions): void;
 }
 
@@ -158,7 +158,7 @@ export interface IHasMethod {
 }
 
 export interface IModifyConfig {
-  (userConfig: IUserConfig): IHash<any>;
+  (userConfig: IUserConfig): Omit<IUserConfig, 'plugins'>;
 }
 
 export interface IModifyUserConfig {
@@ -178,11 +178,11 @@ export interface IPluginAPI {
   onGetWebpackConfig: IOnGetWebpackConfig;
   onGetJestConfig: IOnGetJestConfig;
   onHook: IOnHook;
-  setValue: (name: string, value: any) => void;
-  getValue: (name: string) => any;
+  setValue: <T>(name: string, value: T) => void;
+  getValue: <T>(name: string) => T;
   registerUserConfig: (args: MaybeArray<IUserConfigArgs>) => void;
   registerCliOption: (args: MaybeArray<ICliOptionArgs>) => void;
-  registerMethod: IRegsiterMethod;
+  registerMethod: IRegisterMethod;
   applyMethod: IApplyMethodAPI;
   modifyUserConfig: IModifyUserConfig;
 }
@@ -286,6 +286,12 @@ class Context {
 
   public webpack: IWebpack;
 
+  public pkg: Json;
+
+  public userConfig: IUserConfig;
+
+  public plugins: IPluginInfo[];
+
   // 通过registerTask注册，存放初始的webpack-chain配置
   private configArr: ITaskConfig[];
 
@@ -310,12 +316,6 @@ class Context {
   private methodRegistration: { [name: string]: [IMethodFunction, any] };
 
   private cancelTaskNames: string[];
-
-  public pkg: Json;
-
-  public userConfig: IUserConfig;
-
-  public plugins: IPluginInfo[];
 
   constructor({
     command,
@@ -587,7 +587,7 @@ class Context {
     }
   };
 
-  public registerMethod: IRegsiterMethod = (name, fn, options) => {
+  public registerMethod: IRegisterMethod = (name, fn, options) => {
     if (this.methodRegistration[name]) {
       throw new Error(`[Error] method '${name}' already registered`);
     } else {
@@ -630,8 +630,8 @@ class Context {
           log.warn('[waring]', errorMsg);
         }
         delete modifiedValue.plugins;
-        Object.keys(modifiedValue).forEach(configKey => {
-          this.userConfig[configKey] = modifiedValue[configKey];
+        Object.keys(modifiedValue).forEach(modifiedConfigKey => {
+          this.userConfig[modifiedConfigKey] = modifiedValue[modifiedConfigKey];
         });
       } else {
         throw new Error(`modifyUserConfig must return a plain object`);
@@ -912,6 +912,10 @@ class Context {
     this.configArr = this.configArr.filter(
       config => !this.cancelTaskNames.includes(config.name),
     );
+    return this.configArr;
+  };
+
+  public getWebpackConfig = (): ITaskConfig[] => {
     return this.configArr;
   };
 }

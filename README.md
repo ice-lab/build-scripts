@@ -78,10 +78,7 @@ build-scripts 本身不耦合具体的工程构建逻辑，所以如果希望上
   "externals": {
     "react": "React"
   },
-  "plugins": [
-    "build-plugin-component",
-    "./build.plugin.js"
-  ]
+  "plugins": ["build-plugin-component", "./build.plugin.js"]
 }
 ```
 
@@ -100,9 +97,7 @@ build.json 中核心包括两部分内容：
 
 ```json
 {
-  "plugins": [
-    "build-plugin-component"
-  ]
+  "plugins": ["build-plugin-component"]
 }
 ```
 
@@ -112,9 +107,12 @@ build.json 中核心包括两部分内容：
 {
   "plugins": [
     // 数组第一项为插件名，第二项为插件参数
-    ["build-plugin-fusion", {
-      "themePackage": "@icedesign/theme"
-    }]
+    [
+      "build-plugin-fusion",
+      {
+        "themePackage": "@icedesign/theme"
+      }
+    ]
   ]
 }
 ```
@@ -126,20 +124,15 @@ build.json 中核心包括两部分内容：
 ```js
 module.exports = ({ context, onGetWebpackConfig }) => {
   // 这里面可以写哪些，具体请查看插件开发章节
-  onGetWebpackConfig((config) => {
-  });
-}
+  onGetWebpackConfig(config => {});
+};
 ```
 
 最后在 `build.json` 里引入自定义插件即可：
 
 ```json
-
 {
-  "plugins": [
-    "build-plugin-component",
-    "./build.plugin.js"
-  ]
+  "plugins": ["build-plugin-component", "./build.plugin.js"]
 }
 ```
 
@@ -187,7 +180,7 @@ module.exports = ({ context }) => {
   const { userConfig, command, webpack } = context;
   console.log('userConfig', userConfig);
   console.log('command', command);
-}
+};
 ```
 
 #### onGetWebpackConfig
@@ -206,11 +199,11 @@ module.exports = ({ onGetWebpackConfig }) => {
 module.exports = ({onGetWebpackConfig, registerTask}) => {
   registerTask('web', webpackConfigWeb);
   registerTask('weex', webpackConfigWeex);
-  
+
   onGetWebpackConfig('web'，(config) => {
     config.entry('src/index');
   });
-  
+
   onGetWebpackConfig('weex'，(config) => {
     config.entry('src/app');
   });
@@ -223,43 +216,42 @@ module.exports = ({onGetWebpackConfig, registerTask}) => {
 
 ```js
 module.exports = ({ onHook }) => {
- onHook('before.start.load', () => {
-   // do something before dev
- });
- onHook('after.build.compile', (stats) => {
-   // do something after build
- });
-}
+  onHook('before.start.load', () => {
+    // do something before dev
+  });
+  onHook('after.build.compile', stats => {
+    // do something after build
+  });
+};
 ```
 
 目前的命令执行生命周期如下：
 
 start 命令：
 
-|  生命周期  | 参数 | 调用时机 |
-|  ----  | ----  | ----  |
-|  before.start.load  | { args: CommandArgs; webpackConfig: WebpackConfig[] } | 获取 webpack 配置之前 |
-|  before.start.run  | { args: CommandArgs; webpackConfig: WebpackConfig[] } | webpack 执行构建之前 |
-|  after.start.compile  | { url: string; stats: WebpackAssets; isFirstCompile: boolean } | 编译结束，每次重新编译都会执行 |
-|  before.start.devServer  | { url: string; devServer: WebpackDevServer } | server 中间件加载后，webpack devServer 启动前 |
-|  after.start.devServer  | { url: string; devServer: WebpackDevServer; err: Error } | webpack devServer 启动后 |
+| 生命周期               | 参数                                                           | 调用时机                                      |
+| ---------------------- | -------------------------------------------------------------- | --------------------------------------------- |
+| before.start.load      | { args: CommandArgs; webpackConfig: WebpackConfig[] }          | 获取 webpack 配置之前                         |
+| before.start.run       | { args: CommandArgs; webpackConfig: WebpackConfig[] }          | webpack 执行构建之前                          |
+| after.start.compile    | { url: string; stats: WebpackAssets; isFirstCompile: boolean } | 编译结束，每次重新编译都会执行                |
+| before.start.devServer | { url: string; devServer: WebpackDevServer }                   | server 中间件加载后，webpack devServer 启动前 |
+| after.start.devServer  | { url: string; devServer: WebpackDevServer; err: Error }       | webpack devServer 启动后                      |
 
 build 命令：
 
-|  生命周期  | 参数 | 调用时机 |
-|  ----  | ----  | ----  |
-|  before.build.load  | { args: CommandArgs; webpackConfig: WebpackConfig[] } | 获取 webpack 配置之前 |
-|  before.build.run  | { args: CommandArgs; webpackConfig: WebpackConfig[] } | webpack 执行构建之前 |
-|  after.build.compile  | { url: string; stats: WebpackAssets; isFirstCompile } | 编译结束 |
+| 生命周期            | 参数                                                  | 调用时机              |
+| ------------------- | ----------------------------------------------------- | --------------------- |
+| before.build.load   | { args: CommandArgs; webpackConfig: WebpackConfig[] } | 获取 webpack 配置之前 |
+| before.build.run    | { args: CommandArgs; webpackConfig: WebpackConfig[] } | webpack 执行构建之前  |
+| after.build.compile | { url: string; stats: WebpackAssets; isFirstCompile } | 编译结束              |
 
 test 命令：
 
-|  生命周期  | 参数 | 调用时机 |
-|  ----  | ----  | ----  |
-|  before.test.load  | { args: CommandArgs; webpackConfig: WebpackConfig[] } | 获取 jest 配置之前 |
-|  before.test.run  | { args: CommandArgs; config: JestConfig } | jest 执行构建之前 |
-|  after.test  | { result: JestResult } | 测试结束 |
-
+| 生命周期         | 参数                                                  | 调用时机           |
+| ---------------- | ----------------------------------------------------- | ------------------ |
+| before.test.load | { args: CommandArgs; webpackConfig: WebpackConfig[] } | 获取 jest 配置之前 |
+| before.test.run  | { args: CommandArgs; config: JestConfig }             | jest 执行构建之前  |
+| after.test       | { result: JestResult }                                | 测试结束           |
 
 #### log
 
@@ -271,7 +263,7 @@ module.exports = ({ log }) => {
   log.info('info');
   log.error('error');
   log.warn('warn');
-}
+};
 ```
 
 ### 进阶 API
@@ -287,7 +279,7 @@ module.exports = ({ log }) => {
 module.exports = ({ registerTask }) => {
   registerTask('web', webpackConfigWeb);
   registerTask('component', webpackConfigComponent);
-}
+};
 ```
 
 #### cancelTask
@@ -297,7 +289,7 @@ module.exports = ({ registerTask }) => {
 ```js
 module.exports = ({ cancelTask }) => {
   cancelTask('web');
-}
+};
 ```
 
 #### registerUserConfig
@@ -315,7 +307,7 @@ module.exports = ({ cancelTask }) => {
 
 - validation(string|function)
 
-字段校验，支持string快速校验，string|boolean|number，也可以自定义函数，根据return值判断校验结果
+字段校验，支持 string 快速校验，string|boolean|number，也可以自定义函数，根据 return 值判断校验结果
 
 - ignoreTasks(string[])
 
@@ -325,23 +317,23 @@ module.exports = ({ cancelTask }) => {
 
 字段效果，具体作用到 webpack 配置上，接收参数：
 
-  - config：webpack-chain 形式的配置
-  - value: build.json 中的字段值
-  - context：与外部 context 相同，新增字段 taskName 表现当前正在修改的task
+- config：webpack-chain 形式的配置
+- value: build.json 中的字段值
+- context：与外部 context 相同，新增字段 taskName 表现当前正在修改的 task
 
 ```js
 module.exports = ({ registerUserConfig }) => {
   registerUserConfig({
     name: 'entry',
     // validation: 'string',
-    validation: (value) => {
-      return typeof value === 'string'
+    validation: value => {
+      return typeof value === 'string';
     },
     configWebpack: (config, value, context) => {
-      config.mode(value)
+      config.mode(value);
     },
   });
-}
+};
 ```
 
 #### modifyConfigRegistration
@@ -350,14 +342,14 @@ module.exports = ({ registerUserConfig }) => {
 
 ```js
 module.exports = ({ modifyConfigRegistration }) => {
-  modifyConfigRegistration('name', (configRegistration) => {
+  modifyConfigRegistration('name', configRegistration => {
     return {
       ...configRegistration,
       // 修正验证字段
       validation: 'string',
-    }
+    };
   });
-}
+};
 ```
 
 #### modifyUserConfig
@@ -366,11 +358,11 @@ module.exports = ({ modifyConfigRegistration }) => {
 
 ```js
 module.exports = ({ modifyUserConfig }) => {
-  modifyUserConfig((originConfig) => {
+  modifyUserConfig(originConfig => {
     // 通过函数返回批量修改
-    return { ...originConfig, define: { target: 'xxxx'}};
+    return { ...originConfig, define: { target: 'xxxx' } };
   });
-}
+};
 ```
 
 > API 执行的生命周期：所有插件对于修改配置函数将保存至 modifyConfigRegistration 中，在 runUserConfig 执行前完成对当前 userConfig 内容的修改
@@ -383,12 +375,12 @@ module.exports = ({ modifyUserConfig }) => {
 module.exports = ({ registerCliOption }) => {
   registerCliOption({
     name: 'https', // 注册的 cli 参数名称，
-    commands: ['start'],  // 支持的命令，如果为空默认任何命令都将执行注册方法
+    commands: ['start'], // 支持的命令，如果为空默认任何命令都将执行注册方法
     configWebpack: (config, value, context) => {
       // 对应命令链路上的需要执行的相关操作
-    }
-  })
-}
+    },
+  });
+};
 ```
 
 > 注册函数执行周期，在 userConfig 相关注册函数执行之后。
@@ -399,14 +391,14 @@ module.exports = ({ registerCliOption }) => {
 
 ```js
 module.exports = ({ modifyConfigRegistration }) => {
-  modifyConfigRegistration('https', (cliRegistration) => {
+  modifyConfigRegistration('https', cliRegistration => {
     return {
       ...cliRegistration,
       // 修正 commands 字段
       commands: ['start'],
-    }
+    };
   });
-}
+};
 ```
 
 #### getAllTask
@@ -414,11 +406,10 @@ module.exports = ({ modifyConfigRegistration }) => {
 用于获取所有注入任务的名称：
 
 ```js
-
 module.exports = ({ getAllTask }) => {
   const taskNames = getAllTask();
   // ['web', 'miniapp']
-}
+};
 ```
 
 ### 插件通信
@@ -433,22 +424,22 @@ module.exports = ({ getAllTask }) => {
 
 #### setValue
 
-用来在context中注册变量，以供插件之间的通信。
+用来在 context 中注册变量，以供插件之间的通信。
 
 ```js
 module.exports = ({ setValue }) => {
   setValue('key', 123);
-}
+};
 ```
 
 #### getValue
 
-用来获取context中注册的变量。
+用来获取 context 中注册的变量。
 
 ```js
-module.exports = ({getValue}) => {
+module.exports = ({ getValue }) => {
   const value = getValue('key'); // 123
-}
+};
 ```
 
 #### registerMethod
@@ -458,11 +449,11 @@ module.exports = ({getValue}) => {
 ```js
 module.exports = ({ registerMethod }) => {
   // 注册方法
-  registerMethod('pipeAppRouterBefore', (content) => {
+  registerMethod('pipeAppRouterBefore', content => {
     // 执行相关注册逻辑，可以返回相应的值
     return true;
   });
-}
+};
 ```
 
 #### applyMethod
@@ -474,7 +465,7 @@ module.exports = ({ applyMethod }) => {
   // 使用其他差价注册方法的方式，如果插件未注册，将返回一个 error 类型的错误
   // 类似 new Error(`apply unkown method ${name}`)
   const result = applyMethod('pipeAppRouterBefore', 'content');
-}
+};
 ```
 
 ## 升级到 1.x
@@ -499,20 +490,17 @@ build-scripts 1.x 中不再耦合具体的 webpack 和 jest 版本，建议在�
 
 ## 工程生态
 
-|    Project         |    Version                                 |     Docs    |   Description       |
-|----------------|-----------------------------------------|--------------|-----------|
-| [icejs] | [![icejs-status]][icejs-package] | [docs][icejs-docs] |A universal framework based on react|
-| [rax-scripts] | [![rax-scripts-status]][rax-scripts-package] | [docs][rax-scripts-docs] |Rax official engineering tools use @alib/build-scripts|
+| Project       | Version                                      | Docs                     | Description                                            |
+| ------------- | -------------------------------------------- | ------------------------ | ------------------------------------------------------ |
+| [icejs]       | [![icejs-status]][icejs-package]             | [docs][icejs-docs]       | A universal framework based on react                   |
+| [rax-scripts] | [![rax-scripts-status]][rax-scripts-package] | [docs][rax-scripts-docs] | Rax official engineering tools use @alib/build-scripts |
 
 [icejs]: https://github.com/alibaba/ice
 [rax-scripts]: https://github.com/raxjs/rax-scripts
-
 [icejs-status]: https://img.shields.io/npm/v/ice.js.svg
 [rax-scripts-status]: https://img.shields.io/npm/v/build-plugin-rax-app.svg
-
 [icejs-package]: https://npmjs.com/package/ice.js
 [rax-scripts-package]: https://npmjs.com/package/build-plugin-rax-app
-
 [icejs-docs]: https://ice.work/docs/guide/intro
 [rax-scripts-docs]: https://rax.js.org/
 
