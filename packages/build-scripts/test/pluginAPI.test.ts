@@ -23,8 +23,14 @@ describe('api regsiterMethod/applyMethod', () => {
   })
 
   it('api applyMethod unregistered', () => {
-    const err: any = context.applyMethod('unregistered')
-    expect(err instanceof Error).toBe(true)
+    let error = false;
+    try {
+      const err: any = context.applyMethod('unregistered')
+    } catch (err) {
+      error = true;
+    }
+    
+    expect(error).toBe(true)
   })
 
 });

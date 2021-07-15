@@ -136,7 +136,7 @@ export interface IRegsiterMethod {
   (name: string, fn: IMethodFunction, options?: IMethodOptions): void;
 }
 
-type IMethod = [string, string];
+type IMethod = [string, string]|string;
 
 export interface IApplyMethod {
   (config: IMethod, ...args: any[]): any;
