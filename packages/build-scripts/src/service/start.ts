@@ -10,8 +10,8 @@ import log = require('../utils/log');
 
 type DevServer = Record<string, any>;
 
-export = async function(context: Context, options: IRunOptions): Promise<void | ITaskConfig[] | WebpackDevServer> {
-  const { eject } = options;
+export = async function(context: Context, options?: IRunOptions): Promise<void | ITaskConfig[] | WebpackDevServer> {
+  const { eject } = options || {};
   const configArr = context.getWebpackConfig();
   const { command, commandArgs, webpack, applyHook } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });

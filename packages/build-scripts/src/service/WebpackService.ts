@@ -2,7 +2,7 @@ import Context, { IContextOptions } from '../core/Context';
 import start = require('./start');
 import build = require('./build');
 
-class WebpackContext extends Context {
+class WebpackService extends Context {
   constructor(props: IContextOptions) {
     super(props);
     super.registerCommandModules('start', start);
@@ -10,4 +10,4 @@ class WebpackContext extends Context {
   }
 }
 
-export default WebpackContext;
+export default WebpackService;

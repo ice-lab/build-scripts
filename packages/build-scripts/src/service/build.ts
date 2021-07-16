@@ -8,8 +8,8 @@ import fs = require('fs-extra');
 import path = require('path');
 import log = require('../utils/log');
 
-export = async function(context: Context, options: IRunOptions): Promise<void | ITaskConfig[]> {
-  const { eject } = options;
+export = async function(context: Context, options?: IRunOptions): Promise<void | ITaskConfig[]> {
+  const { eject } = options || {};
   const configArr = context.getWebpackConfig();
   const { command, commandArgs, applyHook, rootDir, webpack: webpackInstance } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });

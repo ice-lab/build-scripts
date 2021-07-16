@@ -83,7 +83,7 @@ export interface IOnHook {
 }
 
 export interface IPluginConfigWebpack {
-  (config: WebpackChain): Promise<void>;
+  (config: WebpackChain): Promise<void> | void;
 }
 
 export interface IUserConfigWebpack {
@@ -214,8 +214,6 @@ export type CommandModule<T> = (context: Context, options: any) => Promise<T>;
 export interface ICommandModules<T = any> {
   [command: string]: CommandModule<T>;
 }
-
-export type GetCommandModule<T> = (options: { command: CommandName; userConfig: IUserConfig }) => CommandModule<T>;
 
 export type RegisterCommandModules = (key: string, module: CommandModule<any>) => void;
 
@@ -923,7 +921,7 @@ class Context {
     this.commandModules[moduleKey] = module;
   }
 
-  public getCommandModule: GetCommandModule<any> = (options) => {
+  public getCommandModule (options: { command: CommandName; commandArgs: CommandArgs; userConfig: IUserConfig }): CommandModule<any> {
     const { command } = options;
     if (this.commandModules[command]) {
       return this.commandModules[command];
@@ -951,7 +949,7 @@ class Context {
 
   public run = async <T, P>(options?: T): Promise<P> => {
     const { command, commandArgs } = this;
-    const commandModule = this.getCommandModule({ command: this.command, userConfig: this.userConfig });
+    const commandModule = this.getCommandModule({ command, commandArgs, userConfig: this.userConfig });
     log.verbose(
       'OPTIONS',
       `${command} cliOptions: ${JSON.stringify(commandArgs, null, 2)}`,
