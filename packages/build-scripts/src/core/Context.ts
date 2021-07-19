@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import chalk from 'chalk';
-import camelCase from 'camelCase';
 import webpack, { MultiStats } from 'webpack';
 import { Logger } from 'npmlog';
 import { AggregatedResult } from '@jest/test-result';
@@ -18,6 +17,7 @@ import hijackWebpackResolve from '../utils/hijackWebpack';
 
 import assert = require('assert');
 import _ = require('lodash');
+import camelCase = require('camelcase');
 import WebpackChain = require('webpack-chain');
 import WebpackDevServer = require('webpack-dev-server');
 import log = require('../utils/log');
