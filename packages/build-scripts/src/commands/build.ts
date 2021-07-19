@@ -10,7 +10,7 @@ export = async function({
   eject,
   plugins,
   getBuiltInPlugins,
-}: IContextOptions & IRunOptions): Promise<BuildResult> {
+}: Omit<IContextOptions, 'command'> & IRunOptions): Promise<BuildResult> {
   const command = 'build';
 
   const service = new WebpackService({

@@ -10,7 +10,7 @@ export = async function({
   eject,
   plugins,
   getBuiltInPlugins,
-}: IContextOptions & { eject?: boolean }): Promise<StartResult> {
+}: Omit<IContextOptions, 'command'> & { eject?: boolean }): Promise<StartResult> {
   const command = 'start';
 
   const service = new WebpackService({
