@@ -164,7 +164,6 @@ export interface IModifyConfig {
 
 export interface IModifyUserConfig {
   (configKey: string | IModifyConfig, value?: any): void;
-  (configKey: string, value?: any | (<T>(value: T) => T)): void;
 }
 
 export interface IGetAllPlugin {
