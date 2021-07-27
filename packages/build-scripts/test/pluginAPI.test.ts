@@ -65,30 +65,34 @@ describe('api modifyUserConfig', () => {
     command: 'start',
     rootDir: path.join(__dirname, 'fixtures/basic/')
   })
-  it('api modifyUserConfig of plugins', () => {
+  it('api modifyUserConfig of plugins', async () => {
     let modified = false
     try {
+      await context.resolveConfig();
       context.modifyUserConfig('plugins', [])
       modified = true
     } catch(err) {}
     expect(modified).toBe(false)
   })
 
-  it('api config plugins by function', () => {
+  it('api config plugins by function', async () => {
     context.modifyUserConfig(() => {
       return {
         plugins: ['build-plugin-test'],
       }
     })
+    await context.resolveConfig();
     expect(context.userConfig).toEqual({ plugins: [] })
   })
   
-  it('api modifyUserConfig single config', () => {
+  it('api modifyUserConfig single config', async () => {
+    await context.resolveConfig();
     context.modifyUserConfig('entry', './src/temp')
     expect(context.userConfig).toEqual({ plugins: [], entry: './src/temp' })
   })
 
-  it('api modifyUserConfig by function', () => {
+  it('api modifyUserConfig by function', async () => {
+    await context.resolveConfig();
     context.modifyUserConfig(() => {
       return {
         entry: './src/index.ts',
