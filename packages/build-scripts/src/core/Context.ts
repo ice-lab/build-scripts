@@ -164,6 +164,7 @@ export interface IModifyConfig {
 
 export interface IModifyUserConfig {
   (configKey: string | IModifyConfig, value?: any): void;
+  (configKey: string, value?: any | (<T>(value: T) => T)): void;
 }
 
 export interface IGetAllPlugin {
@@ -618,7 +619,9 @@ class Context {
       if (configKey === 'plugins') {
         throw new Error(errorMsg);
       }
-      this.userConfig[configKey] = value;
+      const configPath = configKey.split('.');
+      const originalValue = _.get(this.userConfig, configPath);
+      _.set(this.userConfig, configPath, typeof value !== 'function' ? value : value(originalValue));
     } else if (typeof configKey === 'function') {
       const modifiedValue = configKey(this.userConfig);
       if (_.isPlainObject(modifiedValue)) {
