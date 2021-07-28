@@ -956,7 +956,6 @@ class Context {
 
   public run = async <T, P>(options?: T): Promise<P> => {
     const { command, commandArgs } = this;
-    const commandModule = this.getCommandModule({ command, commandArgs, userConfig: this.userConfig });
     log.verbose(
       'OPTIONS',
       `${command} cliOptions: ${JSON.stringify(commandArgs, null, 2)}`,
@@ -968,6 +967,7 @@ class Context {
       await this.applyHook(`error`, { err });
       throw err;
     }
+    const commandModule = this.getCommandModule({ command, commandArgs, userConfig: this.userConfig });
     return commandModule(this, options);
   }
 }
