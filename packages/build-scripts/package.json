@@ -54,10 +54,5 @@
     "typescript": "^3.7.2",
     "webpack": "^5.0.0",
     "webpack-dev-server": "^3.7.2"
-  },
-  "peerDependencies": {
-    "webpack": ">=4.27.1",
-    "jest": ">=26.4.2",
-    "webpack-dev-server": ">=3.7.2"
   }
 }
