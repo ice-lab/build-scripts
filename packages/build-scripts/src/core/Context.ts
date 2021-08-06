@@ -21,6 +21,7 @@ import _ = require('lodash');
 import camelCase = require('camelcase');
 import WebpackChain = require('webpack-chain');
 import WebpackDevServer = require('webpack-dev-server');
+import deepmerge = require('deepmerge');
 import log = require('../utils/log');
 
 const PKG_FILE = 'package.json';
@@ -30,6 +31,7 @@ const PLUGIN_CONTEXT_KEY = [
   'commandArgs' as 'commandArgs',
   'rootDir' as 'rootDir',
   'userConfig' as 'userConfig',
+  'originalUserConfig' as 'originalUserConfig',
   'pkg' as 'pkg',
   'webpack' as 'webpack',
 ];
@@ -163,7 +165,7 @@ export interface IModifyConfig {
 }
 
 export interface IModifyUserConfig {
-  (configKey: string | IModifyConfig, value?: any): void;
+  (configKey: string | IModifyConfig, value?: any, options?: { deepmerge: boolean }): void;
 }
 
 export interface IGetAllPlugin {
@@ -287,6 +289,17 @@ export type IRegistrationKey =
   | 'modifyConfigRegistrationCallbacks'
   | 'modifyCliRegistrationCallbacks';
 
+const mergeConfig = <T>(currentValue: T, newValue: T): T => {
+  // only merge when currentValue and newValue is object and array
+  const isBothArray = Array.isArray(currentValue) && Array.isArray(newValue);
+  const isBothObject = _.isPlainObject(currentValue) && _.isPlainObject(newValue);
+  if (isBothArray || isBothObject) {
+    return deepmerge(currentValue, newValue);
+  } else {
+    return newValue;
+  }
+};
+
 class Context {
   public command: CommandName;
 
@@ -299,6 +312,8 @@ class Context {
   public pkg: Json;
 
   public userConfig: IUserConfig;
+
+  public originalUserConfig: IUserConfig;
 
   public plugins: IPluginInfo[];
 
@@ -612,15 +627,17 @@ class Context {
     return !!this.methodRegistration[name];
   };
 
-  public modifyUserConfig: IModifyUserConfig = (configKey, value) => {
+  public modifyUserConfig: IModifyUserConfig = (configKey, value, options) => {
     const errorMsg = 'config plugins is not support to be modified';
+    const { deepmerge: mergeInDeep } = options || {};
     if (typeof configKey === 'string') {
       if (configKey === 'plugins') {
         throw new Error(errorMsg);
       }
       const configPath = configKey.split('.');
       const originalValue = _.get(this.userConfig, configPath);
-      _.set(this.userConfig, configPath, typeof value !== 'function' ? value : value(originalValue));
+      const newValue = typeof value !== 'function' ? value : value(originalValue);
+      _.set(this.userConfig, configPath, mergeInDeep ? mergeConfig<JsonValue>(originalValue, newValue): newValue);
     } else if (typeof configKey === 'function') {
       const modifiedValue = configKey(this.userConfig);
       if (_.isPlainObject(modifiedValue)) {
@@ -629,7 +646,8 @@ class Context {
         }
         delete modifiedValue.plugins;
         Object.keys(modifiedValue).forEach(modifiedConfigKey => {
-          this.userConfig[modifiedConfigKey] = modifiedValue[modifiedConfigKey];
+          const originalValue = this.userConfig[modifiedConfigKey];
+          this.userConfig[modifiedConfigKey] = mergeInDeep ? mergeConfig<JsonValue>(originalValue, modifiedValue[modifiedConfigKey]) : modifiedValue[modifiedConfigKey] ;
         });
       } else {
         throw new Error(`modifyUserConfig must return a plain object`);
@@ -707,6 +725,8 @@ class Context {
 
   public resolveConfig = async (): Promise<void> => {
     this.userConfig = await this.getUserConfig();
+    // shallow copy of userConfig while userConfig may be modified
+    this.originalUserConfig = { ...this.userConfig };
     const { plugins = [], getBuiltInPlugins = () => []} = this.options;
     // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
     const builtInPlugins: IPluginList = [

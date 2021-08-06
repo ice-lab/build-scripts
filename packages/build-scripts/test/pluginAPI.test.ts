@@ -89,6 +89,28 @@ describe('api modifyUserConfig', () => {
     await context.resolveConfig();
     context.modifyUserConfig('entry', './src/temp')
     expect(context.userConfig).toEqual({ plugins: [], entry: './src/temp' })
+    expect(context.originalUserConfig).toEqual({ plugins: [] })
+  })
+
+  it('api merge config - object', async () => {
+    await context.resolveConfig();
+    context.modifyUserConfig('entry', { index: 'src/index' });
+    context.modifyUserConfig('entry', { add: 'src/add' }, { deepmerge: true });
+    expect(context.userConfig).toEqual({ plugins: [], entry: { index: 'src/index', add: 'src/add'} })
+  })
+
+  it('api merge config - array', async () => {
+    await context.resolveConfig();
+    context.modifyUserConfig('entry', ['index']);
+    context.modifyUserConfig('entry', ['add'], { deepmerge: true });
+    expect(context.userConfig).toEqual({ plugins: [], entry: ['index', 'add'] })
+  })
+
+  it('api merge config - overwrite', async () => {
+    await context.resolveConfig();
+    context.modifyUserConfig('entry', ['index']);
+    context.modifyUserConfig('entry', 'add', { deepmerge: true });
+    expect(context.userConfig).toEqual({ plugins: [], entry: 'add' });
   })
 
   it('api modifyUserConfig by function', async () => {
