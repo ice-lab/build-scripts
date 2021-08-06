@@ -29,8 +29,13 @@ async function loadConfig<T>(filePath: string, log: Logger): Promise<T|undefined
       const code = await buildConfig(filePath, true);
       const tempFile = `${filePath}.js`;
       fs.writeFileSync(tempFile, code);
-      // eslint-disable-next-line no-eval
-      userConfig = (await eval(`import(tempFile + '?t=${Date.now()}')`)).default;
+      try {
+        // eslint-disable-next-line no-eval
+        userConfig = (await eval(`import(tempFile + '?t=${Date.now()}')`)).default;
+      } catch(err) {
+        fs.unlinkSync(tempFile);
+        throw err;
+      }
       // delete the file after eval
       fs.unlinkSync(tempFile);
       log.verbose('[config]',`TS + native esm module loaded in ${Date.now() - start}ms, ${fileUrl}`);
@@ -67,14 +72,19 @@ async function loadConfig<T>(filePath: string, log: Logger): Promise<T|undefined
   if (!userConfig) {
     // if cjs module load failed, the config file is ts or using es import syntax
     // bundle config with cjs format
-    const code  = await buildConfig(filePath, false);
+    const code = await buildConfig(filePath, false);
     const tempFile = `${filePath}.js`;
     fs.writeFileSync(tempFile, code);
     delete require.cache[require.resolve(tempFile)];
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const raw = require(tempFile);
-    // eslint-disable-next-line no-underscore-dangle
-    userConfig = raw.__esModule ? raw.default : raw;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const raw = require(tempFile);
+      // eslint-disable-next-line no-underscore-dangle
+      userConfig = raw.__esModule ? raw.default : raw;
+    } catch (err) {
+      fs.unlinkSync(tempFile);
+      throw err;
+    }
     fs.unlinkSync(tempFile);
     log.verbose('[config]', `bundled module file loaded in ${Date.now() - start}m`);
   }
