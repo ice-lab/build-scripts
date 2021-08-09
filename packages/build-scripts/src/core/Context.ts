@@ -14,14 +14,15 @@ import {
   JsonArray,
 } from '../types';
 import hijackWebpackResolve from '../utils/hijackWebpack';
+import loadConfig from '../utils/loadConfig';
 
 import assert = require('assert');
 import _ = require('lodash');
 import camelCase = require('camelcase');
 import WebpackChain = require('webpack-chain');
 import WebpackDevServer = require('webpack-dev-server');
+import deepmerge = require('deepmerge');
 import log = require('../utils/log');
-import JSON5 = require('json5');
 
 const PKG_FILE = 'package.json';
 const USER_CONFIG_FILE = 'build.json';
@@ -30,6 +31,7 @@ const PLUGIN_CONTEXT_KEY = [
   'commandArgs' as 'commandArgs',
   'rootDir' as 'rootDir',
   'userConfig' as 'userConfig',
+  'originalUserConfig' as 'originalUserConfig',
   'pkg' as 'pkg',
   'webpack' as 'webpack',
 ];
@@ -163,7 +165,7 @@ export interface IModifyConfig {
 }
 
 export interface IModifyUserConfig {
-  (configKey: string | IModifyConfig, value?: any): void;
+  (configKey: string | IModifyConfig, value?: any, options?: { deepmerge: boolean }): void;
 }
 
 export interface IGetAllPlugin {
@@ -287,6 +289,17 @@ export type IRegistrationKey =
   | 'modifyConfigRegistrationCallbacks'
   | 'modifyCliRegistrationCallbacks';
 
+const mergeConfig = <T>(currentValue: T, newValue: T): T => {
+  // only merge when currentValue and newValue is object and array
+  const isBothArray = Array.isArray(currentValue) && Array.isArray(newValue);
+  const isBothObject = _.isPlainObject(currentValue) && _.isPlainObject(newValue);
+  if (isBothArray || isBothObject) {
+    return deepmerge(currentValue, newValue);
+  } else {
+    return newValue;
+  }
+};
+
 class Context {
   public command: CommandName;
 
@@ -300,7 +313,11 @@ class Context {
 
   public userConfig: IUserConfig;
 
+  public originalUserConfig: IUserConfig;
+
   public plugins: IPluginInfo[];
+
+  private options: IContextOptions;
 
   // 通过registerTask注册，存放初始的webpack-chain配置
   private configArr: ITaskConfig[];
@@ -329,13 +346,14 @@ class Context {
 
   public commandModules: ICommandModules = {};
 
-  constructor({
-    command,
-    rootDir = process.cwd(),
-    args = {},
-    plugins = [],
-    getBuiltInPlugins = () => [],
-  }: IContextOptions) {
+  constructor(options: IContextOptions) {
+    const {
+      command,
+      rootDir = process.cwd(),
+      args = {},
+    } = options || {};
+
+    this.options = options;
     this.command = command;
     this.commandArgs = args;
     this.rootDir = rootDir;
@@ -360,24 +378,8 @@ class Context {
     this.cancelTaskNames = [];
 
     this.pkg = this.getProjectFile(PKG_FILE);
-    this.userConfig = this.getUserConfig();
-    // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
-    const builtInPlugins: IPluginList = [
-      ...plugins,
-      ...getBuiltInPlugins(this.userConfig),
-    ];
-    // custom webpack
-    const webpackInstancePath = this.userConfig.customWebpack
-      ? require.resolve('webpack', { paths: [this.rootDir] })
-      : 'webpack';
-    this.webpack = require(webpackInstancePath);
-    if (this.userConfig.customWebpack) {
-      hijackWebpackResolve(this.webpack, this.rootDir);
-    }
-    // register buildin options
+    // register builtin options
     this.registerCliOption(BUILTIN_CLI_OPTIONS);
-    this.checkPluginValue(builtInPlugins); // check plugins property
-    this.plugins = this.resolvePlugins(builtInPlugins);
   }
 
   private registerConfig = (
@@ -455,7 +457,7 @@ class Context {
     return config;
   };
 
-  private getUserConfig = (): IUserConfig => {
+  private getUserConfig = async (): Promise<IUserConfig> => {
     const { config } = this.commandArgs;
     let configPath = '';
     if (config) {
@@ -468,12 +470,9 @@ class Context {
     let userConfig: IUserConfig = {
       plugins: [],
     };
-    const isJsFile = path.extname(configPath) === '.js';
     if (fs.existsSync(configPath)) {
       try {
-        userConfig = isJsFile
-          ? require(configPath)
-          : JSON5.parse(fs.readFileSync(configPath, 'utf-8')); // read build.json
+        userConfig = await loadConfig(configPath, log);
       } catch (err) {
         log.info(
           'CONFIG',
@@ -628,13 +627,17 @@ class Context {
     return !!this.methodRegistration[name];
   };
 
-  public modifyUserConfig: IModifyUserConfig = (configKey, value) => {
+  public modifyUserConfig: IModifyUserConfig = (configKey, value, options) => {
     const errorMsg = 'config plugins is not support to be modified';
+    const { deepmerge: mergeInDeep } = options || {};
     if (typeof configKey === 'string') {
       if (configKey === 'plugins') {
         throw new Error(errorMsg);
       }
-      this.userConfig[configKey] = value;
+      const configPath = configKey.split('.');
+      const originalValue = _.get(this.userConfig, configPath);
+      const newValue = typeof value !== 'function' ? value : value(originalValue);
+      _.set(this.userConfig, configPath, mergeInDeep ? mergeConfig<JsonValue>(originalValue, newValue): newValue);
     } else if (typeof configKey === 'function') {
       const modifiedValue = configKey(this.userConfig);
       if (_.isPlainObject(modifiedValue)) {
@@ -643,7 +646,8 @@ class Context {
         }
         delete modifiedValue.plugins;
         Object.keys(modifiedValue).forEach(modifiedConfigKey => {
-          this.userConfig[modifiedConfigKey] = modifiedValue[modifiedConfigKey];
+          const originalValue = this.userConfig[modifiedConfigKey];
+          this.userConfig[modifiedConfigKey] = mergeInDeep ? mergeConfig<JsonValue>(originalValue, modifiedValue[modifiedConfigKey]) : modifiedValue[modifiedConfigKey] ;
         });
       } else {
         throw new Error(`modifyUserConfig must return a plain object`);
@@ -718,6 +722,28 @@ class Context {
       return camelCase(name, { pascalCase: false });
     });
   };
+
+  public resolveConfig = async (): Promise<void> => {
+    this.userConfig = await this.getUserConfig();
+    // shallow copy of userConfig while userConfig may be modified
+    this.originalUserConfig = { ...this.userConfig };
+    const { plugins = [], getBuiltInPlugins = () => []} = this.options;
+    // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
+    const builtInPlugins: IPluginList = [
+      ...plugins,
+      ...getBuiltInPlugins(this.userConfig),
+    ];
+    // custom webpack
+    const webpackInstancePath = this.userConfig.customWebpack
+      ? require.resolve('webpack', { paths: [this.rootDir] })
+      : 'webpack';
+    this.webpack = require(webpackInstancePath);
+    if (this.userConfig.customWebpack) {
+      hijackWebpackResolve(this.webpack, this.rootDir);
+    }
+    this.checkPluginValue(builtInPlugins); // check plugins property
+    this.plugins = this.resolvePlugins(builtInPlugins);
+  }
 
   private runPlugins = async (): Promise<void> => {
     for (const pluginInfo of this.plugins) {
@@ -931,6 +957,7 @@ class Context {
   };
 
   public setUp = async (): Promise<ITaskConfig[]> => {
+    await this.resolveConfig();
     await this.runPlugins();
     await this.runConfigModification();
     await this.runUserConfig();
@@ -949,7 +976,6 @@ class Context {
 
   public run = async <T, P>(options?: T): Promise<P> => {
     const { command, commandArgs } = this;
-    const commandModule = this.getCommandModule({ command, commandArgs, userConfig: this.userConfig });
     log.verbose(
       'OPTIONS',
       `${command} cliOptions: ${JSON.stringify(commandArgs, null, 2)}`,
@@ -961,6 +987,7 @@ class Context {
       await this.applyHook(`error`, { err });
       throw err;
     }
+    const commandModule = this.getCommandModule({ command, commandArgs, userConfig: this.userConfig });
     return commandModule(this, options);
   }
 }
