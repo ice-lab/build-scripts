@@ -22,6 +22,10 @@
     "node": ">=8.6.0",
     "npm": ">=3.0.0"
   },
+  "repository": {
+    "type": "http",
+    "url": "https://github.com/ice-lab/build-scripts"
+  },
   "dependencies": {
     "address": "^1.1.0",
     "camelcase": "^5.3.1",
