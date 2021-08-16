@@ -594,6 +594,8 @@ class Context {
     this.registerConfig('userConfig', args);
   }
 
+  public hasConfigRegisterd = (type: 'userConfigRegistration' | 'cliOptionRegistration'): Function => (name: string): boolean => Object.keys(this[type]).includes(name);
+
   public registerCliOption = (args: MaybeArray<ICliOptionArgs>): void => {
     this.registerConfig('cliOption', args, (name) => {
       return camelCase(name, { pascalCase: false });
@@ -619,7 +621,9 @@ class Context {
         setValue: this.setValue,
         getValue: this.getValue,
         registerUserConfig: this.registerUserConfig,
+        hasUserConfigRegistered: this.hasConfigRegisterd('userConfigRegistration'),
         registerCliOption: this.registerCliOption,
+        hasCliOptionRegistered: this.hasConfigRegisterd('cliOptionRegistration'),
         registerMethod: this.registerMethod,
         applyMethod: this.applyMethod,
         hasMethod: this.hasMethod,
