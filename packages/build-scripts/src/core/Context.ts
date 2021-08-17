@@ -594,7 +594,9 @@ class Context {
     this.registerConfig('userConfig', args);
   }
 
-  public hasConfigRegisterd = (type: 'userConfigRegistration' | 'cliOptionRegistration'): Function => (name: string): boolean => Object.keys(this[type]).includes(name);
+  public hasConfigRegisterd = (type: 'userConfigRegistration' | 'cliOptionRegistration'): (name: string) => boolean => (name: string): boolean => {
+    return Object.keys(this[type]).includes(name);
+  };
 
   public registerCliOption = (args: MaybeArray<ICliOptionArgs>): void => {
     this.registerConfig('cliOption', args, (name) => {

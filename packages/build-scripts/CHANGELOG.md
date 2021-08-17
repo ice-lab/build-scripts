@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- [feat] support `hasCliOptionRegistered` and `hasUserConfigRegistered` apis
+
 ## 1.0.1
 
 - [chore] bump version because of 1.0.0 has been previously published
