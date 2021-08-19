@@ -1,11 +1,12 @@
-import { runCLI } from 'jest';
+import chalk from 'chalk';
 import Context, { IJestResult } from '../core/Context';
 
 import fs = require('fs-extra');
 import path = require('path');
 import log = require('../utils/log');
+import type { runCLI } from 'jest';
 
-export = async function(context?: Context): Promise<IJestResult> {
+export = async function(context?: Context): Promise<IJestResult|undefined> {
   const { command, commandArgs } = context;
   const { jestArgv = {} } = commandArgs || {};
   const { config, regexForTestFiles, ...restArgv } = jestArgv;
@@ -67,28 +68,40 @@ export = async function(context?: Context): Promise<IJestResult> {
     config: jestConfig,
   });
 
-  const result = await new Promise((resolve, reject): void => {
-    runCLI(
-      {
-        ...restArgv,
-        config: JSON.stringify(jestConfig),
-      },
-      [ctxRoot],
-    )
-      .then(data => {
-        const { results } = data;
-        if (results.success) {
-          resolve(data);
-        } else {
-          reject(new Error('Jest failed'));
-        }
-      })
-      .catch((err: Error) => {
-        log.error('JEST', err.stack || err.toString());
-      });
-  });
-
-  await applyHook(`after.${command}`, { result });
-
-  return result as IJestResult;
+  let run: typeof runCLI;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    run = require('jest').runCLI;
+  } catch (err) {
+    const message = [
+      'Cannot find module: jest. Make sure this package is installed.',
+      '',
+      `You can install this package by running: ${chalk.bold(`npm install jest -D`)}`,
+    ];
+    console.log(message);
+  }
+  if (run) {
+    const result = await new Promise((resolve, reject): void => {
+      (run as typeof runCLI)(
+        {
+          ...restArgv,
+          config: JSON.stringify(jestConfig),
+        },
+        [ctxRoot],
+      )
+        .then(data => {
+          const { results } = data;
+          if (results.success) {
+            resolve(data);
+          } else {
+            reject(new Error('Jest failed'));
+          }
+        })
+        .catch((err: Error) => {
+          log.error('JEST', err.stack || err.toString());
+        });
+    });
+    await applyHook(`after.${command}`, { result });
+    return result as IJestResult;
+  }
 };
