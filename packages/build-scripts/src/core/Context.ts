@@ -12,6 +12,7 @@ import {
   MaybeArray,
   MaybePromise,
   JsonArray,
+  WebpackDevServer,
 } from '../types';
 import hijackWebpackResolve from '../utils/hijackWebpack';
 import loadConfig from '../utils/loadConfig';
@@ -20,7 +21,6 @@ import assert = require('assert');
 import _ = require('lodash');
 import camelCase = require('camelcase');
 import WebpackChain = require('webpack-chain');
-import WebpackDevServer = require('webpack-dev-server');
 import deepmerge = require('deepmerge');
 import log = require('../utils/log');
 
