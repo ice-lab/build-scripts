@@ -73,12 +73,12 @@ export = async function(context?: Context): Promise<IJestResult|undefined> {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     run = require('jest').runCLI;
   } catch (err) {
-    const message = [
+    const messages = [
       'Cannot find module: jest. Make sure this package is installed.',
       '',
       `You can install this package by running: ${chalk.bold(`npm install jest -D`)}`,
     ];
-    console.log(message);
+    console.log(messages.join('\n'));
   }
   if (run) {
     const result = await new Promise((resolve, reject): void => {
