@@ -1,9 +1,8 @@
 import chalk from 'chalk';
+import type webpack from 'webpack';
 import Context, { ITaskConfig } from '../core/Context';
 import webpackStats from '../utils/webpackStats';
 import { IRunOptions } from '../types';
-
-import webpack = require('webpack');
 import fs = require('fs-extra');
 import path = require('path');
 import log = require('../utils/log');
