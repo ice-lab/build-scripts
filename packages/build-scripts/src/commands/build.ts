@@ -99,7 +99,9 @@ export = async function({
           stats,
         });
       } else {
-        reject(new Error('webpack compile error'));
+        const err = new Error('webpack compile error');
+        err.stats = stats;
+        reject(err);
       }
     });
   });
