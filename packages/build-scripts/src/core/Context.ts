@@ -594,8 +594,9 @@ class Context {
     this.registerConfig('userConfig', args);
   }
 
-  public hasConfigRegisterd = (type: 'userConfigRegistration' | 'cliOptionRegistration'): (name: string) => boolean => (name: string): boolean => {
-    return Object.keys(this[type]).includes(name);
+  public hasConfigRegisterd = (name: string, type: 'cliOption' | 'userConfig' = 'userConfig' ): boolean => {
+    const mappedType = type === 'cliOption' ? 'cliOptionRegistration' : 'userConfigRegistration';
+    return Object.keys(this[mappedType] || {}).includes(name);
   };
 
   public registerCliOption = (args: MaybeArray<ICliOptionArgs>): void => {
@@ -623,9 +624,8 @@ class Context {
         setValue: this.setValue,
         getValue: this.getValue,
         registerUserConfig: this.registerUserConfig,
-        hasUserConfigRegistered: this.hasConfigRegisterd('userConfigRegistration'),
+        hasConfigRegisterd: this.hasConfigRegisterd,
         registerCliOption: this.registerCliOption,
-        hasCliOptionRegistered: this.hasConfigRegisterd('cliOptionRegistration'),
         registerMethod: this.registerMethod,
         applyMethod: this.applyMethod,
         hasMethod: this.hasMethod,

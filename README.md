@@ -344,13 +344,17 @@ module.exports = ({ registerUserConfig }) => {
 }
 ```
 
-#### hasUserConfigRegistered
+#### hasConfigRegisterd
 
-判断 build.json 中的顶层配置字段是否已被注册：
+判断 build.json 中的顶层配置字段或者 cli 参数是否已经注册：
 
 ```js
-module.exports = ({ hasUserConfigRegistered }) => {
-  const hasEntryRegistered = hasUserConfigRegistered('entry');
+module.exports = ({ hasConfigRegisterd }) => {
+  // 判断 build.json 顶层配置字段 entry 是否已配置，默认判断 build.json 的顶层字段
+  const hasEntryRegistered = hasConfigRegisterd('entry');
+
+  // 判断 cli --https 参数是否已被注册
+  const hasHttpsRegistered = hasConfigRegisterd('https'， 'cliOption');
   ...
 }
 ```
@@ -403,17 +407,6 @@ module.exports = ({ registerCliOption }) => {
 ```
 
 > 注册函数执行周期，在 userConfig 相关注册函数执行之后。
-
-#### hasCliOptionRegistered
-
-判断 cli 参数是否已经注册：
-
-```js
-module.exports = ({ hasCliOptionRegistered }) => {
-  const hasHttpsRegistered = hasCliOptionRegistered('https');
-  ...
-}
-```
 
 #### modifyCliRegistration
 
