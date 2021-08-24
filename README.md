@@ -350,7 +350,7 @@ module.exports = ({ registerUserConfig }) => {
 
 ```js
 module.exports = ({ hasConfigRegisterd }) => {
-  // 判断 build.json 顶层配置字段 entry 是否已配置，默认判断 build.json 的顶层字段
+  // 判断 build.json 顶层配置字段 entry 是否已配置
   const hasEntryRegistered = hasConfigRegisterd('entry');
 
   // 判断 cli --https 参数是否已被注册

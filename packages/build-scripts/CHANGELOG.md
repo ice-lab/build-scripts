@@ -2,7 +2,7 @@
 
 ## 1.0.2
 
-- [feat] support `hasCliOptionRegistered` and `hasUserConfigRegistered` apis
+- [feat] support `hasConfigRegisterd` api
 
 ## 1.0.1
 
