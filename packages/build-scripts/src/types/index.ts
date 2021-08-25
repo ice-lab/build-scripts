@@ -1,5 +1,3 @@
-import type webpack from 'webpack';
-
 export interface IHash<T> {
   [name: string]: T;
 }
