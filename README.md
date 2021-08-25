@@ -371,6 +371,20 @@ module.exports = ({ registerCliOption }) => {
 
 > 注册函数执行周期，在 userConfig 相关注册函数执行之后。
 
+#### hasRegistration
+
+判断 build.json 中的顶层配置字段或者 cli 参数是否已经注册：
+
+```js
+module.exports = ({ hasRegistration }) => {
+  // 判断 build.json 顶层配置字段 entry 是否已配置
+  const hasEntryRegistered = hasRegistration('entry');
+  // 判断 cli --https 参数是否已被注册
+  const hasHttpsRegistered = hasRegistration('https'， 'cliOption');
+  ...
+}
+```
+
 #### getAllTask
 
 用于获取所有注入任务的名称：
