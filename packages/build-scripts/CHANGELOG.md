@@ -8,8 +8,8 @@
 - [feat] support deep merge of modifyUserConfig by options
 - [feat] enhance registerMethod API, make it possible to get plugin name when applyMethod
 - [feat] add `originalUserConfig` to plugin API
-- [fix] move webpack-dev-server to peerDependencies and migrate webpack-dev-server to 4.0.0
 - [feat] support `hasRegistration` api
+- [fix] move webpack-dev-server to peerDependencies and migrate webpack-dev-server to 4.0.0
 
 ## 1.0.1
 
