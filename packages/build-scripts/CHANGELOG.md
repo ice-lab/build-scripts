@@ -2,8 +2,13 @@
 
 ## 1.1.0
 
-- [fix] move webpack-dev-server to peerDependencies
-- [feat] enhance regsiterMethod API, make it possible to get plugin name when applyMethod
+- [refactor] support custom command by extend Context
+- [feat] support config written with typescript and es module
+- [feat] enhance API modifyUserConfig while modify userConfig by config path `modifyUserConfig('output.path', 'dir')`
+- [feat] support deep merge of modifyUserConfig by options
+- [feat] enhance registerMethod API, make it possible to get plugin name when applyMethod
+- [feat] add `originalUserConfig` to plugin API
+- [fix] move webpack-dev-server to peerDependencies and migrate webpack-dev-server to 4.0.0
 - [feat] support `hasRegistration` api
 
 ## 1.0.1

@@ -69,7 +69,7 @@ Options:
 
 build-scripts 本身不耦合具体的工程构建逻辑，所以如果希望上述的命令能够正常工作，需要在配置文件中指定对应的插件。插件内部将会设置具体的 webpack 配置和 jest 测试配置。
 
-`build.json` 作为 build-scripts 默认的工程配置，在 build-scripts 执行时会默认在根目录读取该文件。
+`build.json` 作为 build-scripts 默认的工程配置，在 build-scripts 执行时会默认在根目录读取该文件。如果存在复杂场景可以通过 cli 参数 `--config` 指定 js / ts 文件。
 
 配置方式：
 
@@ -171,7 +171,8 @@ context 参数包含运行时的各种环境信息：
 - `command` 当前运行命令 `start|build|test`
 - `commandArgs` script 命令执行时接受到的参数
 - `rootDir` 项目根目录
-- `userConfig` 用户在 build.json 中配置的内容
+- `originalUserConfig` 用户在 build.json 中配置的原始内容
+- `userConfig` 用户配置，包含被 modifyUserConfig 修改后的结果
 - `pkg 项目` package.json 中的内容
 - `webpack` webpack 实例，插件中针对 webpack 的逻辑均使用此方式引入
 
@@ -235,7 +236,7 @@ start 命令：
 | before.start.run       | { args: CommandArgs; webpackConfig: WebpackConfig[] }          | webpack 执行构建之前                          |
 | after.start.compile    | { url: string; stats: WebpackAssets; isFirstCompile: boolean } | 编译结束，每次重新编译都会执行                |
 | before.start.devServer | { url: string; devServer: WebpackDevServer }                   | server 中间件加载后，webpack devServer 启动前 |
-| after.start.devServer  | { url: string; devServer: WebpackDevServer; err: Error }       | webpack devServer 启动后                      |
+| after.start.devServer  | { url: string; devServer: WebpackDevServer }       | webpack devServer 启动后                      |
 
 build 命令：
 
@@ -369,7 +370,7 @@ module.exports = ({ modifyConfigRegistration }) => {
 
 #### modifyUserConfig
 
-通过 modifyUserConfig 可以修改通过 registerUserConfig 注册的基础配置，在插件中快速复用基础配置的处理逻辑。
+通过 modifyUserConfig 可以修改通过 registerUserConfig 注册的基础配置，在插件中快速复用基础配置的处理逻辑：
 
 ```js
 module.exports = ({ modifyUserConfig }) => {
@@ -377,6 +378,22 @@ module.exports = ({ modifyUserConfig }) => {
     // 通过函数返回批量修改
     return { ...originConfig, define: { target: 'xxxx' } };
   });
+};
+```
+
+通过指定具体修改的基础配置，快速完成配置的修改：
+
+```js
+module.exports = ({ modifyUserConfig }) => {
+  modifyUserConfig('entry', 'src/app');
+
+  // 通过对象路径修改，比如修改对象 { outputAssetsPath: { js: 'js-dist'} } 可通过以下方式
+  modifyUserConfig('outputAssetsPath.js', 'js');
+
+  // 支持深合并，默认情况下 modifyUserConfig 将覆盖原有配置，通过配置参数支持配置的合并
+  modifyUserConfig('outputAssetsPath', {
+    js: 'js-output'
+  }, { deepmerge: true });
 };
 ```
 
@@ -406,7 +423,7 @@ module.exports = ({ registerCliOption }) => {
 
 ```js
 module.exports = ({ modifyConfigRegistration }) => {
-  modifyConfigRegistration('https', cliRegistration => {
+  modifyCliRegistration('https', cliRegistration => {
     return {
       ...cliRegistration,
       // 修正 commands 字段
@@ -459,7 +476,7 @@ module.exports = ({ getValue }) => {
 
 #### registerMethod
 
-向工程核心注册相关方法，方便其他插件进行复用。
+向工程核心注册相关方法，方便其他插件进行复用：
 
 ```js
 module.exports = ({ registerMethod }) => {
@@ -468,6 +485,20 @@ module.exports = ({ registerMethod }) => {
     // 执行相关注册逻辑，可以返回相应的值
     return true;
   });
+};
+```
+
+registerMethod 注册方式时，通过参数指定可以获取调用该方法的具体插件名：
+
+```js
+module.exports = ({ registerMethod }) => {
+  // 注册方法
+  registerMethod('pipeAppRouterBefore', (pluginName) => (content) => {
+    console.log('plugin name', pluginName);
+    console.log('content', content);
+    // 执行相关注册逻辑，可以返回相应的值
+    return true;
+  }, { pluginName: true });
 };
 ```
 
@@ -485,7 +516,7 @@ module.exports = ({ applyMethod }) => {
 
 ## 升级到 1.x
 
-build-scripts 1.x 中不再耦合具体的 webpack 和 jest 版本，建议在基础插件中依赖 webpack 和 jest，并由具体插件根据具体的依赖版本进行基础链路的配置。
+build-scripts 1.x 中不再耦合具体的 webpack、webpack-dev-server 和 jest 版本，建议在基础插件中依赖 webpack 和 jest，并由具体插件根据具体的依赖版本进行基础链路的配置。
 
 如果历史项目升级，可以在 package.json 中增加依赖：
 
@@ -494,6 +525,7 @@ build-scripts 1.x 中不再耦合具体的 webpack 和 jest 版本，建议在�
   "devDependencies": {
 +    "jest": "^26.4.2",
 +    "webpack": "^4.27.1",
++    "webpack-dev-server": "^4.0.0",
 -    "@alib/build-scripts": "^0.1.0",
 +    "build-scripts": "^1.0.0",
   }
