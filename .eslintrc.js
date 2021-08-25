@@ -16,7 +16,6 @@ const jsRules = deepmerge(eslint, {
 const tsRules = deepmerge(tslint, {
   rules: {
     ...commonRules,
-    'no-useless-constructor': 0,
     '@typescript-eslint/explicit-function-return-type': [
       'warn',
       {
