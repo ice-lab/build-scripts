@@ -51,6 +51,7 @@
     "@types/semver": "^6.2.0",
     "@types/webpack": "^4.41.30",
     "@types/webpack-chain": "^5.2.0",
+    "@types/webpack-dev-server": "^4.0.0",
     "jest": "^27.0.6",
     "package-json": "^6.5.0",
     "ts-jest": "^27.0.3",

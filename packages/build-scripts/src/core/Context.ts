@@ -5,6 +5,7 @@ import webpack, { MultiStats } from 'webpack';
 import { Logger } from 'npmlog';
 import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
+import type WebpackDevServer from 'webpack-dev-server';
 import {
   IHash,
   Json,
@@ -12,7 +13,6 @@ import {
   MaybeArray,
   MaybePromise,
   JsonArray,
-  WebpackDevServer,
 } from '../types';
 import hijackWebpackResolve from '../utils/hijackWebpack';
 import loadConfig from '../utils/loadConfig';

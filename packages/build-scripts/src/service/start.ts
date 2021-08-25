@@ -2,7 +2,8 @@ import chalk from 'chalk';
 import { WebpackOptionsNormalized } from 'webpack';
 import Context, { ITaskConfig } from '../core/Context';
 import webpackStats from '../utils/webpackStats';
-import { IRunOptions, WebpackDevServer } from '../types';
+import type WebpackDevServer from 'webpack-dev-server';
+import { IRunOptions } from '../types';
 import deepmerge = require('deepmerge');
 import prepareURLs = require('../utils/prepareURLs');
 import log = require('../utils/log');
@@ -89,7 +90,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   // context may hijack webpack resolve
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const DevServer = require('webpack-dev-server');
-  const devServer = new DevServer(devServerConfig, compiler);
+  const devServer: WebpackDevServer = new DevServer(devServerConfig, compiler);
 
   await applyHook(`before.${command}.devServer`, {
     url: serverUrl,
@@ -98,20 +99,11 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   });
 
   devServer.startCallback(
-    async (err: Error) => {
-      if (err) {
-        log.info(
-          'WEBPACK',
-          chalk.red('[ERR]: Failed to start webpack dev server'),
-        );
-        log.error('WEBPACK', err.stack || err.toString());
-      }
-
-      await applyHook(`after.${command}.devServer`, {
+    () => {
+      applyHook(`after.${command}.devServer`, {
         url: serverUrl,
         urls,
         devServer,
-        err,
       });
     },
   );

@@ -1,6 +1,6 @@
 import WebpackService from '../service/WebpackService';
 import { IContextOptions, ITaskConfig } from '../core/Context';
-import { WebpackDevServer } from '../types';
+import type WebpackDevServer from 'webpack-dev-server';
 
 type StartResult = void | ITaskConfig[] | WebpackDevServer;
 
