@@ -8,8 +8,8 @@
 
 import chalk from 'chalk';
 
-import url = require('url')
-import address = require('address')
+import url = require('url');
+import address = require('address');
 
 interface IPrepareUrls {
   lanUrlForConfig: any;
@@ -19,7 +19,12 @@ interface IPrepareUrls {
   localUrlForBrowser: string;
 }
 
-export = function prepareUrls(protocol: string, host: string, port: number, pathname = '/'): IPrepareUrls {
+export = function prepareUrls(
+  protocol: string,
+  host: string,
+  port: number,
+  pathname = '/',
+): IPrepareUrls {
   const formatUrl = (hostname: string): string =>
     url.format({
       protocol,
@@ -51,7 +56,8 @@ export = function prepareUrls(protocol: string, host: string, port: number, path
         if (
           /^10[.]|^30[.]|^172[.](1[6-9]|2[0-9]|3[0-1])[.]|^192[.]168[.]/.test(
             lanUrlForConfig,
-          ) || process.env.USE_PUBLIC_IP
+          ) ||
+          process.env.USE_PUBLIC_IP
         ) {
           // Address is private, format it for later use
           lanUrlForTerminal = prettyPrintUrl(lanUrlForConfig);
@@ -76,4 +82,4 @@ export = function prepareUrls(protocol: string, host: string, port: number, path
     localUrlForTerminal,
     localUrlForBrowser,
   };
-}
+};

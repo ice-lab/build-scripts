@@ -39,7 +39,7 @@ const defaultPort = parseInt(DEFAULT_PORT || 3333, 10);
 
   process.env.NODE_ENV = 'development';
   rawArgv.port = parseInt(newPort, 10);
-  
+
   // ignore _ in rawArgv
   delete rawArgv._;
   try {

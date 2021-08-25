@@ -1,8 +1,7 @@
 import chalk from 'chalk';
-
-import webpack = require('webpack')
-import formatWebpackMessages = require('react-dev-utils/formatWebpackMessages')
-import log = require('./log')
+import { MultiStats, Stats } from 'webpack';
+import formatWebpackMessages from './formatWebpackMessages';
+import log = require('./log');
 
 interface IUrls {
   lanUrlForTerminal: string;
@@ -12,8 +11,8 @@ interface IUrls {
 }
 
 interface IWebpackStatsParams {
-  stats: webpack.Stats | webpack.compilation.MultiStats;
-  statsOptions?: webpack.Stats.ToJsonOptions;
+  stats: Stats | MultiStats;
+  statsOptions?: Record<string, string>;
   urls?: IUrls;
   isFirstCompile?: boolean;
 }
@@ -37,16 +36,17 @@ const defaultOptions = {
   modules: false,
 };
 
-const webpackStats: IWebpackStats = ({ urls, stats, statsOptions = defaultOptions, isFirstCompile }) => {
-  const statsJson = (stats as webpack.Stats).toJson({
+const webpackStats: IWebpackStats = ({
+  urls,
+  stats,
+  statsOptions = defaultOptions,
+  isFirstCompile,
+}) => {
+  const statsJson = stats.toJson({
     all: false,
     errors: true,
     warnings: true,
     timings: true,
-  });
-  // compatible with webpack 5
-  ['errors', 'warnings'].forEach((jsonKey: string) => {
-    (statsJson as any)[jsonKey] = ((statsJson as any)[jsonKey] || []).map((item: string | IJsonItem ) => ((item as IJsonItem).message || item));
   });
   const messages = formatWebpackMessages(statsJson);
   const isSuccessful = !messages.errors.length;
@@ -65,8 +65,14 @@ const webpackStats: IWebpackStats = ({ urls, stats, statsOptions = defaultOption
       if (isFirstCompile && urls) {
         console.log();
         log.info('WEBPACK', chalk.green('Starting the development server at:'));
-        log.info('   - Local  : ', chalk.underline.white(urls.localUrlForBrowser));
-        log.info('   - Network: ', chalk.underline.white(urls.lanUrlForTerminal));
+        log.info(
+          '   - Local  : ',
+          chalk.underline.white(urls.localUrlForBrowser),
+        );
+        log.info(
+          '   - Network: ',
+          chalk.underline.white(urls.lanUrlForTerminal),
+        );
         console.log();
       }
     } else if (messages.errors.length) {

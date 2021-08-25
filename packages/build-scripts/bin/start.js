@@ -28,8 +28,8 @@ async function modifyInspectArgv(execArgv, processArgv) {
       const [_, command, ip, port = 9229] = matchResult;
       const nPort = +port;
       const newPort = await detect(nPort);
-      return `--${command}=${ip ? `${ip}:` : ''}${newPort}`
-    })
+      return `--${command}=${ip ? `${ip}:` : ''}${newPort}`;
+    }),
   );
 
   /**
@@ -51,8 +51,10 @@ function restartProcess() {
     // remove the inspect related argv when passing to child process to avoid port-in-use error
     const execArgv = await modifyInspectArgv(process.execArgv, rawArgv);
 
-    // filter inspect in process argv, it has been comsumed 
-    const nProcessArgv = process.argv.slice(2).filter((arg) => arg.indexOf('--inspect') === -1);
+    // filter inspect in process argv, it has been comsumed
+    const nProcessArgv = process.argv
+      .slice(2)
+      .filter(arg => arg.indexOf('--inspect') === -1);
     child = fork(scriptPath, nProcessArgv, { execArgv });
     child.on('message', data => {
       if (process.send) {

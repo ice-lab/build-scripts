@@ -11,9 +11,7 @@ const test = require('./test');
   // finish check before run command
   checkNodeVersion(packageInfo.engines.node);
 
-  program
-    .version(packageInfo.version)
-    .usage('<command> [options]');
+  program.version(packageInfo.version).usage('<command> [options]');
 
   program
     .command('build')
