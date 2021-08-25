@@ -38,9 +38,9 @@ $ build-scripts start --help
 Usage: build-scripts start [options]
 
 Options:
-	--port <port>      服务端口号
-	--host <host>      服务主机名
-	--config <config>      自定义配置文件路径（支持 json 或者 js，推荐命名 build.config.js/build.json）
+  --port <port>      服务端口号
+  --host <host>      服务主机名
+  --config <config>      自定义配置文件路径（支持 json 或者 js，推荐命名 build.config.js/build.json）
 ```
 
 build 命令：
@@ -51,7 +51,7 @@ $ build-scripts build --help
 Usage: build-scripts build [options]
 
 Options:
-	--config <config>      同 start
+  --config <config>      同 start
 ```
 
 test 命令：
@@ -335,6 +335,21 @@ module.exports = ({ registerUserConfig }) => {
     },
   });
 };
+```
+
+#### hasRegistration
+
+判断 build.json 中的顶层配置字段或者 cli 参数是否已经注册：
+
+```js
+module.exports = ({ hasRegistration }) => {
+  // 判断 build.json 顶层配置字段 entry 是否已配置
+  const hasEntryRegistered = hasRegistration('entry');
+
+  // 判断 cli --https 参数是否已被注册
+  const hasHttpsRegistered = hasRegistration('https'， 'cliOption');
+  ...
+}
 ```
 
 #### modifyConfigRegistration
