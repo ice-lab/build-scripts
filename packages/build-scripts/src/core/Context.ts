@@ -5,6 +5,7 @@ import webpack, { MultiStats } from 'webpack';
 import { Logger } from 'npmlog';
 import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
+import type WebpackDevServer from 'webpack-dev-server';
 import {
   IHash,
   Json,
@@ -20,7 +21,6 @@ import assert = require('assert');
 import _ = require('lodash');
 import camelCase = require('camelcase');
 import WebpackChain = require('webpack-chain');
-import WebpackDevServer = require('webpack-dev-server');
 import deepmerge = require('deepmerge');
 import log = require('../utils/log');
 

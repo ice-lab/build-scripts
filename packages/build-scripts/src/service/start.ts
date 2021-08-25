@@ -2,13 +2,13 @@ import chalk from 'chalk';
 import { WebpackOptionsNormalized } from 'webpack';
 import Context, { ITaskConfig } from '../core/Context';
 import webpackStats from '../utils/webpackStats';
+import type WebpackDevServer from 'webpack-dev-server';
 import { IRunOptions } from '../types';
 import deepmerge = require('deepmerge');
-import WebpackDevServer = require('webpack-dev-server');
 import prepareURLs = require('../utils/prepareURLs');
 import log = require('../utils/log');
 
-type DevServer = Record<string, any>;
+type DevServerConfig = Record<string, any>;
 
 export = async function(context: Context, options?: IRunOptions): Promise<void | ITaskConfig[] | WebpackDevServer> {
   const { eject } = options || {};
@@ -28,7 +28,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   }
   
   let serverUrl = '';
-  let devServerConfig: DevServer = {
+  let devServerConfig: DevServerConfig = {
     port: commandArgs.port || 3333,
     host: commandArgs.host || '0.0.0.0',
     https: commandArgs.https || false,
@@ -90,7 +90,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   // context may hijack webpack resolve
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const DevServer = require('webpack-dev-server');
-  const devServer = new DevServer(compiler, devServerConfig);
+  const devServer: WebpackDevServer = new DevServer(devServerConfig, compiler);
 
   await applyHook(`before.${command}.devServer`, {
     url: serverUrl,
@@ -98,23 +98,12 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
     devServer,
   });
 
-  devServer.listen(
-    devServerConfig.port,
-    devServerConfig.host,
-    async (err: Error) => {
-      if (err) {
-        log.info(
-          'WEBPACK',
-          chalk.red('[ERR]: Failed to start webpack dev server'),
-        );
-        log.error('WEBPACK', err.stack || err.toString());
-      }
-
-      await applyHook(`after.${command}.devServer`, {
+  devServer.startCallback(
+    () => {
+      applyHook(`after.${command}.devServer`, {
         url: serverUrl,
         urls,
         devServer,
-        err,
       });
     },
   );
