@@ -1,8 +1,10 @@
 # Changelog
 
-## 1.0.2
+## 1.1.0
 
-- [feat] support `hasConfigRegisterd` api
+- [fix] move webpack-dev-server to peerDependencies
+- [feat] enhance regsiterMethod API, make it possible to get plugin name when applyMethod
+- [feat] support `hasRegistration` api
 
 ## 1.0.1
 

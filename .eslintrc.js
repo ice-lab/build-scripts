@@ -16,9 +16,12 @@ const jsRules = deepmerge(eslint, {
 const tsRules = deepmerge(tslint, {
   rules: {
     ...commonRules,
-    '@typescript-eslint/explicit-function-return-type': ['warn', {
-      allowTypedFunctionExpressions: true,
-    }],
+    '@typescript-eslint/explicit-function-return-type': [
+      'warn',
+      {
+        allowTypedFunctionExpressions: true,
+      },
+    ],
   },
 });
 
