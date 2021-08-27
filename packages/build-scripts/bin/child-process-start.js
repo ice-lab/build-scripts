@@ -48,8 +48,12 @@ const defaultPort = parseInt(DEFAULT_PORT || 3333, 10);
     });
 
     ['SIGINT', 'SIGTERM'].forEach(function(sig) {
-      process.on(sig, function() {
-        devServer.close();
+      process.on(sig, async function() {
+        if (devServer.close) {
+          devServer.close();
+        } else if (devServer.stop) {
+          await devServer.stop();
+        }
         process.exit(0);
       });
     });
