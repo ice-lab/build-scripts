@@ -86,27 +86,50 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
       stats,
     });
   });
+
+  let devServer: WebpackDevServer;
   // require webpack-dev-server after context setup
   // context may hijack webpack resolve
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const DevServer = require('webpack-dev-server');
-  const devServer: WebpackDevServer = new DevServer(devServerConfig, compiler);
+
+  // static method getFreePort in v4
+  if (DevServer.getFreePort) {
+    devServer = new DevServer(devServerConfig, compiler);
+  } else {
+    devServer = new DevServer(compiler, devServerConfig);
+  }
 
   await applyHook(`before.${command}.devServer`, {
     url: serverUrl,
     urls,
     devServer,
   });
-
-  devServer.startCallback(
-    () => {
-      applyHook(`after.${command}.devServer`, {
+  if (devServer.startCallback) {
+    devServer.startCallback(
+      () => {
+        applyHook(`after.${command}.devServer`, {
+          url: serverUrl,
+          urls,
+          devServer,
+        });
+      },
+    );
+  } else {
+    devServer.listen(devServerConfig.port, devServerConfig.host, async (err: Error) => {
+      if (err) {
+        log.info('WEBPACK',chalk.red('[ERR]: Failed to start webpack dev server'));
+        log.error('WEBPACK', (err.stack || err.toString()));
+      }
+      await applyHook(`after.${command}.devServer`, {
         url: serverUrl,
         urls,
         devServer,
+        err,
       });
-    },
-  );
+    });
+  }
+  
 
   return devServer;
 };

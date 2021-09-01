@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- [fix] compatible with webpack-dev-server v3
+
 ## 1.1.0
 
 - [refactor] support custom command by extend Context
