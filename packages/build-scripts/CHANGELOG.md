@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- [fix] missing dependency of inquirer
+
 ## 1.1.1
 
 - [fix] compatible with webpack-dev-server v3
