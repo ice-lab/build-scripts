@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.32
+
+- [feat] support `hasRegistration` api
+
 ## 0.1.31
 
 - [feat] keep same reference of userConfig after modifyUserConfig

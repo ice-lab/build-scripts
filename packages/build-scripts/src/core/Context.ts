@@ -544,6 +544,11 @@ class Context {
     });
   }
 
+  public hasRegistration = (name: string, type: 'cliOption' | 'userConfig' = 'userConfig' ): boolean => {
+    const mappedType = type === 'cliOption' ? 'cliOptionRegistration' : 'userConfigRegistration';
+    return Object.keys(this[mappedType] || {}).includes(name);
+  };
+
   private runPlugins = async (): Promise<void> => {
     for (const pluginInfo of this.plugins) {
       const { fn, options } = pluginInfo;
@@ -564,6 +569,7 @@ class Context {
         getValue: this.getValue,
         registerUserConfig: this.registerUserConfig,
         registerCliOption: this.registerCliOption,
+        hasRegistration: this.hasRegistration,
         registerMethod: this.registerMethod,
         applyMethod: this.applyMethod,
         hasMethod: this.hasMethod,
