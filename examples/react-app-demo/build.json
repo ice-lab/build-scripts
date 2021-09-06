@@ -1,0 +1,7 @@
+{
+  "entry": "./index.js",
+  "outputDir": "dist",
+  "plugins": [
+    "build-plugin-react-demo"
+  ]
+}

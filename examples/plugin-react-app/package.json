@@ -1,0 +1,26 @@
+{
+  "name": "build-plugin-react-demo",
+  "version": "1.0.1",
+  "description": "build-scripts plugin template for developers",
+  "main": "lib/index.js",
+  "files": [
+    "src",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "start": "tsc -w",
+    "build": "rm -rf lib && tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "webpack": "^5.52.0",
+    "webpack-chain": "^6.5.1"
+  },
+  "devDependencies": {
+    "build-scripts": "^1.0.0",
+    "@types/webpack-chain": "^5.2.0",
+    "typescript": "^4.0.0"
+  }
+}

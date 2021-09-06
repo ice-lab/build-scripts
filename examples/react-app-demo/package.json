@@ -1,0 +1,16 @@
+{
+  "name": "custom-react",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "build-scripts build"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "build-scripts": "^1.1.1",
+    "webpack": "^5.52.0",
+    "build-plugin-react-demo": "^1.0.0"
+  }
+}

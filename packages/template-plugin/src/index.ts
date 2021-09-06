@@ -1,4 +1,4 @@
-import { IPlugin } from '@alib/build-scripts';
+import { IPlugin } from 'build-scripts';
 
 const plugin: IPlugin = ({ onGetWebpackConfig }) => {
   onGetWebpackConfig((config) => {
