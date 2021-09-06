@@ -5,13 +5,13 @@
 [![NPM version](https://img.shields.io/npm/v/@alib/build-scripts.svg?style=flat)](https://npmjs.org/package/build-scripts)
 [![NPM downloads](https://img.shields.io/npm/dm/@alib/build-scripts.svg?style=flat)](https://npmjs.org/package/@alib/build-scripts)
 
-> build-scripts 基于 webpack 提供高可配置的工程构建工具，依赖强大的插件系统和生态支持不同类型的项目开发
-> build-scripts 目前已支持 React 和 Rax 的项目和组件构建
+基于 webpack 和 webpack-chain 的高可配置的工程构建工具，具备强大的插件系统。使用 build-scripts 可以快速构建出开箱即用的工程解决方案。
 
 ## 目录
 
 - [特性](#特性)
 - [常见问题](#常见问题)
+- [使用场景](#使用场景)
 - [能力介绍](#能力介绍)
   - [命令行能力](#命令行能力)
   - [配置文件](#配置文件)
@@ -48,7 +48,7 @@
 
 多个项目共享 Webpack 以及其他工程能力，同时支持插件扩展&修改配置。
 
-## 多种场景
+## 使用场景
 
 基于 build-scripts 目前已支持多种场景，覆盖大多数的研发场景，当然你可以完全自定义一套工程能力。
 

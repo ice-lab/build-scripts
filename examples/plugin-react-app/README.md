@@ -17,7 +17,7 @@ build-scripts 自定义工程示例
 
 ## 3. 项目使用
 
-[示例项目](../react-app-demo)中安装 `build-scripts` 以及对应插件，同时配置 build.json 命令，接下来即可通过 `build-scripts build` 进行构建：
+[示例项目](../react-app-demo)中安装 `build-scripts` 以及对应插件，同时配置 build.json 内容，接下来即可通过 `build-scripts build` 进行构建：
 
 ```json
 {
