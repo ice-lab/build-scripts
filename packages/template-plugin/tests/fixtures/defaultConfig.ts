@@ -1,6 +1,6 @@
 import path = require('path');
 import Config = require('webpack-chain');
-import { IPlugin } from '@alib/build-scripts/lib';
+import { IPlugin } from 'build-scripts';
 
 const plugin: IPlugin = ({ registerTask, context }) => {
   const { rootDir } = context;
@@ -10,8 +10,6 @@ const plugin: IPlugin = ({ registerTask, context }) => {
   config.output.path(path.join(rootDir, 'build'));
   config.merge({
     devServer: {
-      logLevel: 'silent',
-      clientLogLevel: 'none',
     },
   });
   registerTask('web', config);

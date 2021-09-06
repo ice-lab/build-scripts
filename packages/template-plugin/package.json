@@ -22,13 +22,15 @@
     "@types/fs-extra": "^8.1.0",
     "@types/jest": "^25.2.1",
     "@types/webpack-chain": "^5.2.0",
-    "@types/webpack-dev-server": "^3.10.1",
+    "@types/webpack-dev-server": "^4.0.0",
     "fs-extra": "^9.0.0",
     "got": "^11.0.2",
     "jest": "^25.4.0",
     "ts-jest": "^25.4.0",
     "typescript": "^3.8.3",
-    "webpack-chain": "^6.4.0"
+    "webpack": "^5.0.0",
+    "webpack-chain": "^6.4.0",
+    "webpack-dev-server": "^4.0.0"
   },
   "jest": {
     "coverageDirectory": "./coverage/",

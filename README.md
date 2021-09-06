@@ -566,7 +566,7 @@ module.exports = ({ applyMethod }) => {
 1.x 核心变化：
 
 - 包名由 `@alib/build-scripts` 切换为 `build-scripts`
-- 不再依赖 webpack&jest，建议由基础插件或项目自身依赖
+- 不再依赖 webpack&jest&webpack-dev-server，建议由基础插件或项目自身依赖
 - 插件上下文 context 增加 originalUserConfig 字段，用于读取用户原始配置
 - userConfig 类型校验增强，支持 `string | object | array` 校验
 
@@ -581,6 +581,7 @@ module.exports = ({ applyMethod }) => {
   "devDependencies": {
 +    "jest": "^26.4.2",
 +    "webpack": "^4.27.1",
++    "webpack-dev-server": "^4.0.0",
 -    "@alib/build-scripts": "^0.1.0",
 +    "build-scripts": "^1.0.0",
   }
