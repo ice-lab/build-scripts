@@ -1,36 +1,87 @@
-build-scripts 1.x | [build-scripts 0.x](https://github.com/ice-lab/build-scripts/blob/stable/0.x/README.md)
+1.x | [0.x](https://github.com/ice-lab/build-scripts/blob/stable/0.x)
 
 # build-scripts
 
-[![NPM version](https://img.shields.io/npm/v/@alib/build-scripts.svg?style=flat)](https://npmjs.org/package/@alib/build-scripts)
+[![NPM version](https://img.shields.io/npm/v/@alib/build-scripts.svg?style=flat)](https://npmjs.org/package/build-scripts)
 [![NPM downloads](https://img.shields.io/npm/dm/@alib/build-scripts.svg?style=flat)](https://npmjs.org/package/@alib/build-scripts)
 
-> build-scripts 基于 webpack 提供高可配置的工程构建工具，依赖强大的插件系统和生态支持不同类型的项目开发
-> build-scripts 目前已支持 React 和 Rax 的项目和组件构建
+基于 webpack 和 webpack-chain 的高可配置的工程构建工具，具备强大的插件系统。使用 build-scripts 可以快速构建出开箱即用的工程解决方案。
+
+## 目录
+
+- [特性](#特性)
+- [常见问题](#常见问题)
+- [使用场景](#使用场景)
+- [能力介绍](#能力介绍)
+  - [命令行能力](#命令行能力)
+  - [配置文件](#配置文件)
+  - [配置插件](#配置插件)
+  - [本地自定义配置](#本地自定义配置)
+- [插件开发](#插件开发)
+  - [插件 API](#插件-API)
+  - [插件间通信](#插件间通信)
+- [版本升级](#版本升级)
 
 ## 特性
 
 - 完善灵活的插件能力，帮助扩展不同工程构建的场景
-- 丰富的插件生态，提供 React 和 Rax 体系下开箱即用的工程能力
 - 提供多构建任务机制，支持同时构建多份产物
 - 基于 webpack-chain 提供灵活的自定义 webpack 配置能力
-- 支持基于 Jest 的测试能力
+- 标准化构建&调试的完整流程，同时提供 Hook 能力进行定制
+- 已支持多种场景：
+  - React 项目开发
+  - Rax 项目开发
+  - NPM 包开发
+  - 天马模块开发
 
-## 场景支持
+## 常见问题
 
-build-scripts 目前支持以下五种场景，每个场景在能力和体验上都努力做到极致：
+### NPM 包名是 `build-scripts` 还是 `@alib/build-scripts`？
 
-- [React 项目开发](https://ice.work/docs/guide/basic/build)
-- [React 组件开发](https://ice.work/docs/materials/guide/component)
-- [Rax 项目开发](https://rax.js.org/docs/guide/getting-start)
-- [Rax 组件开发](https://rax.js.org/docs/guide/build-plugin-rax-component)
-- API 类 npm 包开发
+1.x 以及未来都以 `build-scripts` 为准，0.x 版本当时因为命名被占用只能使用 `@alib/build-scripts` 这个包名。
 
-## 快速上手
+### 1.x 相比 0.x 有什么变化？
+
+参考 [版本升级](#版本升级) 章节。
+
+### 何时使用 build-scripts？
+
+多个项目共享 Webpack 以及其他工程能力，同时支持插件扩展&修改配置。
+
+## 使用场景
+
+基于 build-scripts 目前已支持多种场景，覆盖大多数的研发场景，当然你可以完全自定义一套工程能力。
+
+### React 项目开发
+
+- [icejs](https://ice.work/docs/guide/about)
+- [代码](https://github.com/alibaba/ice)
+
+### Rax 项目开发
+
+- [rax-app](https://rax.js.org/docs/guide/getting-start)
+- [代码](https://github.com/raxjs/rax-app)
+
+### 天马模块
+
+> 仅阿里内部
+
+### NPM 包开发
+
+- [build-plugin-component](https://github.com/ice-lab/iceworks-cli/tree/master/packages/build-plugin-component)
+- [文档](https://appworks.site/materials/guide/component.html)
+
+### 自定义工程
+
+如果不想使用上述官方提供的解决方案，也可以基于 build-scripts 自定义完整的工程能力，具体请参考 [example](/examples/plugin-react-app/README.md) 。
+
+## 能力介绍
+
+### 命令行能力
 
 build-scripts 核心支持了 start、build 和 test 三个命令。
 
-start 命令：
+#### 启动调试
 
 ```bash
 $ build-scripts start --help
@@ -43,7 +94,7 @@ Options:
   --config <config>      自定义配置文件路径（支持 json 或者 js，推荐命名 build.config.js/build.json）
 ```
 
-build 命令：
+#### 执行构建
 
 ```bash
 $ build-scripts build --help
@@ -54,7 +105,7 @@ Options:
   --config <config>      同 start
 ```
 
-test 命令：
+#### 运行单测
 
 ```bash
 $ build-scripts test --help
@@ -67,9 +118,7 @@ Options:
 
 ### 配置文件
 
-build-scripts 本身不耦合具体的工程构建逻辑，所以如果希望上述的命令能够正常工作，需要在配置文件中指定对应的插件。插件内部将会设置具体的 webpack 配置和 jest 测试配置。
-
-`build.json` 作为 build-scripts 默认的工程配置，在 build-scripts 执行时会默认在根目录读取该文件。如果存在复杂场景可以通过 cli 参数 `--config` 指定 js / ts 文件。
+build-scripts 默认将 `build.json` 作为工程配置文件，运行 build-scripts 命令时会默认读取当前目录的 `build.json` 文件。
 
 配置方式：
 
@@ -78,61 +127,65 @@ build-scripts 本身不耦合具体的工程构建逻辑，所以如果希望上
   "externals": {
     "react": "React"
   },
-  "plugins": ["build-plugin-component", "./build.plugin.js"]
+  "plugins": [
+    "build-plugin-component",
+    "./build.plugin.js"
+  ]
 }
 ```
 
 build.json 中核心包括两部分内容：
 
-- 基础配置（比如 entry、alias 等能力）：每种模式都有差别，请具体看各个模式的使用文档
+- 基础配置：比如示例的 `externals` 字段，**默认情况下不支持任何字段，由基础插件通过 `registerUserConfig` API 注册扩展**
 - 插件配置：二三方插件，以及针对单个项目通过本地插件实现 webpack config 的更改
 
-> build-scripts 1.x 中不在耦合具体的 webpack 和 jest 版本，建议在基础插件比如 build-plugin-component 中依赖 webpack 和 jest。并由插件根据具体的依赖版本进行基础链路的配置
+除了 json 类型以外，build-scripts 也支持 js 类型的配置文件：
 
-### 插件配置
-
-通过 build.json 中提供的 plugins 字段可配置插件列表。
-
-插件数组项每一项代表一个插件，build-scripts 将按顺序执行插件列表，插件配置形式如下：
-
-```json
-{
-  "plugins": ["build-plugin-component"]
+```js
+// build.plugin.js
+module.exports = {
+  plugins: []
 }
 ```
 
-如果插件包含自定义配置参数，则可以通过数组的形式配置：
+然后通过 `--config` 参数指定即可 `build-scripts start --config build.config.js`。
+
+### 配置插件
+
+通过 `build.json` 中提供的 plugins 字段可配置插件列表，插件数组项每一项代表一个插件，build-scripts 将按顺序执行插件列表，插件配置形式如下：
 
 ```json
 {
   "plugins": [
     // 数组第一项为插件名，第二项为插件参数
-    [
-      "build-plugin-fusion",
-      {
-        "themePackage": "@icedesign/theme"
-      }
-    ]
+    ["build-plugin-fusion", {
+      "themePackage": "@icedesign/theme"
+    }]
   ]
 }
 ```
 
 ### 本地自定义配置
 
-如果基础配置和插件都无法支持业务需求，可以通过自定义配置来实现，自定义配置同时也是通过插件能力来实现。新建 `build.plugin.js` 文件作为一个自定义插件，然后写入以下代码：
+如果基础配置和已有插件都无法支持业务需求，可以通过本地插件自定义配置来实现，新建 `build.plugin.js` 文件作为一个自定义插件，然后写入以下代码：
 
 ```js
 module.exports = ({ context, onGetWebpackConfig }) => {
   // 这里面可以写哪些，具体请查看插件开发章节
-  onGetWebpackConfig(config => {});
-};
+  onGetWebpackConfig((config) => {
+  });
+}
 ```
 
 最后在 `build.json` 里引入自定义插件即可：
 
 ```json
+
 {
-  "plugins": ["build-plugin-component", "./build.plugin.js"]
+  "plugins": [
+    "build-plugin-component",
+    "./build.plugin.js"
+  ]
 }
 ```
 
@@ -148,7 +201,7 @@ $ cd <pluginName>
 插件本质上是一个 Node.js 模块，入口如下：
 
 ```js
-module.exports = ({ context, onGetWebpackConfig, log, onHook, ... }, options) => {
+module.exports = ({ context, onGetWebpackConfig, log, onHook, ...rest }, options) => {
   // 第一项参数为插件 API 提供的能力
   // options：插件自定义参数
 };
@@ -156,13 +209,9 @@ module.exports = ({ context, onGetWebpackConfig, log, onHook, ... }, options) =>
 
 插件方法会收到两个参数，第一个参数是插件提供的 API 接口和能力，推荐解构方式按需使用 API，第二个参数 options 是插件自定义的参数，由插件开发者决定提供哪些选项给用户自定义。
 
-### 插件开发 API
+### 插件 API
 
 插件可以方便扩展和自定义工程能力，这一切都基于 build-scripts 提供的插件 API。
-
-#### 常用 API
-
-常用的插件 API 包括：context、onGetWebpackConfig、onHook 和 log。
 
 #### context
 
@@ -173,7 +222,7 @@ context 参数包含运行时的各种环境信息：
 - `rootDir` 项目根目录
 - `originalUserConfig` 用户在 build.json 中配置的原始内容
 - `userConfig` 用户配置，包含被 modifyUserConfig 修改后的结果
-- `pkg 项目` package.json 中的内容
+- `pkg` 项目 package.json 的内容
 - `webpack` webpack 实例，插件中针对 webpack 的逻辑均使用此方式引入
 
 ```js
@@ -267,32 +316,6 @@ module.exports = ({ log }) => {
 };
 ```
 
-### 进阶 API
-
-除了基础 API 之外，在插件开发过程中可能需要注册一些独立的 webpack 任务或者扩展基础配置，这便需要使用一些进阶 API
-
-#### registerTask
-
-用于注册多 webpack 任务，比如 build-plugin-react-app 上已完整支持 React 链路开发，大部分情况下在默认 webpack 任务上拓展即可，无需额外注册.
-
-```js
-// 注册的 config 必须是以 webpack-chain 形式组织
-module.exports = ({ registerTask }) => {
-  registerTask('web', webpackConfigWeb);
-  registerTask('component', webpackConfigComponent);
-};
-```
-
-#### cancelTask
-
-用于取消已注册任务
-
-```js
-module.exports = ({ cancelTask }) => {
-  cancelTask('web');
-};
-```
-
 #### registerUserConfig
 
 通过 registerUserConfig 注册 build.json 中的顶层配置字段，注册是可以进行用户字段校验，支持传入单个配置对象或者包含多个配置对象的数组。
@@ -334,6 +357,28 @@ module.exports = ({ registerUserConfig }) => {
       config.mode(value);
     },
   });
+};
+```
+
+#### registerTask
+
+用于注册多 webpack 任务，比如 build-plugin-react-app 上已完整支持 React 链路开发，大部分情况下在默认 webpack 任务上拓展即可，无需额外注册.
+
+```js
+// 注册的 config 必须是以 webpack-chain 形式组织
+module.exports = ({ registerTask }) => {
+  registerTask('web', webpackConfigWeb);
+  registerTask('component', webpackConfigComponent);
+};
+```
+
+#### cancelTask
+
+用于取消已注册任务
+
+```js
+module.exports = ({ cancelTask }) => {
+  cancelTask('web');
 };
 ```
 
@@ -444,7 +489,7 @@ module.exports = ({ getAllTask }) => {
 };
 ```
 
-### 插件通信
+### 插件间通信
 
 在一些业务场景下，插件间需要进行通信：
 
@@ -514,11 +559,22 @@ module.exports = ({ applyMethod }) => {
 };
 ```
 
-## 升级到 1.x
+## 版本升级
 
-build-scripts 1.x 中不再耦合具体的 webpack、webpack-dev-server 和 jest 版本，建议在基础插件中依赖 webpack 和 jest，并由具体插件根据具体的依赖版本进行基础链路的配置。
+### 0.x -> 1.x
 
-如果历史项目升级，可以在 package.json 中增加依赖：
+1.x 核心变化：
+
+- 包名由 `@alib/build-scripts` 切换为 `build-scripts`
+- 不再依赖 webpack&jest&webpack-dev-server，建议由基础插件或项目自身依赖
+- 插件上下文 context 增加 originalUserConfig 字段，用于读取用户原始配置
+- userConfig 类型校验增强，支持 `string | object | array` 校验
+
+除了前两点属于不兼容改动，其他能力都保持向前兼容。
+
+#### 自定义工程
+
+在 package.json 中增加依赖：
 
 ```diff
 {
@@ -532,24 +588,36 @@ build-scripts 1.x 中不再耦合具体的 webpack、webpack-dev-server 和 jest
 }
 ```
 
-> build-scripts 1.x 新增的 API 增强了对已注册配置的自定义能力，具体请参考 `进阶 API` 部分文档
-> build-scripts 1.x 的包名从 @alib/build-scripts 升级为 build-scripts
+其中 jest 可按需判断是否需要安装，webpack 版本按需选择。修改完成后重装依赖然后重启即可。
 
-## 工程生态
+#### React 项目（icejs）
 
-| Project       | Version                                      | Docs                     | Description                                            |
-| ------------- | -------------------------------------------- | ------------------------ | ------------------------------------------------------ |
-| [icejs]       | [![icejs-status]][icejs-package]             | [docs][icejs-docs]       | A universal framework based on react                   |
-| [rax-scripts] | [![rax-scripts-status]][rax-scripts-package] | [docs][rax-scripts-docs] | Rax official engineering tools use @alib/build-scripts |
+升级 icejs 2.0. 即可。
 
-[icejs]: https://github.com/alibaba/ice
-[rax-scripts]: https://github.com/raxjs/rax-scripts
-[icejs-status]: https://img.shields.io/npm/v/ice.js.svg
-[rax-scripts-status]: https://img.shields.io/npm/v/build-plugin-rax-app.svg
-[icejs-package]: https://npmjs.com/package/ice.js
-[rax-scripts-package]: https://npmjs.com/package/build-plugin-rax-app
-[icejs-docs]: https://ice.work/docs/guide/intro
-[rax-scripts-docs]: https://rax.js.org/
+#### Rax 项目（rax-app）
+
+待支持
+
+#### 业务组件（build-plugin-component）
+
+在 package.json 中升级依赖：
+
+```diff
+{
+  "devDependencies": {
+-    "@alib/build-scripts": "^0.1.0",
++    "build-scripts": "^1.0.0",
+-    "build-plugin-component": "^1.0.0",
++    "build-plugin-component": "^1.6.5",
+  }
+}
+```
+
+> build-plugin-component 从 1.6.5 开始同时兼容 build-scripts 0.x 和 1.x 两个版本
+
+#### 天马模块（@ali/build-plugin-pegasus-base）
+
+待支持
 
 ## License
 
