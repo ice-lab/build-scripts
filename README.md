@@ -2,10 +2,10 @@
 
 # build-scripts
 
-[![NPM version](https://img.shields.io/npm/v/@alib/build-scripts.svg?style=flat)](https://npmjs.org/package/build-scripts)
+[![NPM version](https://img.shields.io/npm/v/build-scripts.svg?style=flat)](https://npmjs.org/package/build-scripts)
 [![NPM downloads](https://img.shields.io/npm/dm/@alib/build-scripts.svg?style=flat)](https://npmjs.org/package/@alib/build-scripts)
 
-基于 webpack 和 webpack-chain 的高可配置的工程构建工具，具备强大的插件系统。使用 build-scripts 可以快速构建出开箱即用的工程解决方案。
+基于 Webpack 的插件化工程构建工具，支持快速建设一套开箱即用的工程方案。
 
 ## 目录
 
