@@ -184,6 +184,7 @@ export interface IPluginAPI {
   setValue: <T>(name: string, value: T) => void;
   getValue: <T>(name: string) => T;
   registerUserConfig: (args: MaybeArray<IUserConfigArgs>) => void;
+  hasRegistration: (name: string, type?: 'cliOption' | 'userConfig') => boolean;
   registerCliOption: (args: MaybeArray<ICliOptionArgs>) => void;
   registerMethod: IRegisterMethod;
   applyMethod: IApplyMethodAPI;
