@@ -1,5 +1,5 @@
 import path = require('path');
-import Context from '@alib/build-scripts/lib/core/Context';
+import Context from 'build-scripts/lib/core/Context';
 
 describe('simple test suite', () => {
   const context = new Context({

@@ -2,6 +2,7 @@
 
 ## 1.1.2
 
+- [fix] missing type of hasRegistration
 - [fix] missing dependency of inquirer
 
 ## 1.1.1

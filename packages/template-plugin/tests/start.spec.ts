@@ -1,7 +1,7 @@
 import path = require('path');
 import got from 'got';
 import WebpackDevServer = require('webpack-dev-server');
-import { start } from '@alib/build-scripts';
+import { start } from 'build-scripts';
 
 describe('simple build test suite', () => {
   let server: WebpackDevServer = null;
