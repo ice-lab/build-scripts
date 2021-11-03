@@ -651,9 +651,10 @@ class Context {
       const modifiedValue = configKey(this.userConfig);
       if (_.isPlainObject(modifiedValue)) {
         if (Object.prototype.hasOwnProperty.call(modifiedValue, 'plugins')) {
-          log.warn('[waring]', errorMsg);
+          // remove plugins while it is not support to be modified
+          log.verbose('[modifyUserConfig]', 'delete plugins of user config while it is not support to be modified');
+          delete modifiedValue.plugins;
         }
-        delete modifiedValue.plugins;
         Object.keys(modifiedValue).forEach(modifiedConfigKey => {
           const originalValue = this.userConfig[modifiedConfigKey];
           this.userConfig[modifiedConfigKey] = mergeInDeep ? mergeConfig<JsonValue>(originalValue, modifiedValue[modifiedConfigKey]) : modifiedValue[modifiedConfigKey] ;
