@@ -8,7 +8,9 @@
     "setup": "npm run clean && yarn install --registry=https://registry.npm.taobao.org && lerna bootstrap --registry=https://registry.npm.taobao.org",
     "lint": "eslint --cache --quiet --ext .js,.ts ./",
     "lint-fix": "eslint --cache --ext .js,.ts ./ --fix",
-    "prettier": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'"
+    "prettier": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'",
+    "test": "cd packages/build-scripts && npm run test",
+    "publish": "cd packages/build-scripts && npm run build && npm publish"
   },
   "husky": {
     "hooks": {
