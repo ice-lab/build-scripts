@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+
+- [feat] auto load config of `build.config.(js|ts)`
+- [fix] exit process when config is not found
+- [chore] upgrade version of esbuild (up to `^0.13.12`)
+- [chore] optimize message, add verbose message when modify user config
+
 ## 1.1.2
 
 - [fix] missing type of hasRegistration
