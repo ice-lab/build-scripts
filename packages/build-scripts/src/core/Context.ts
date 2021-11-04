@@ -5,6 +5,7 @@ import webpack, { MultiStats } from 'webpack';
 import { Logger } from 'npmlog';
 import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
+import * as fg from 'fast-glob';
 import type WebpackDevServer from 'webpack-dev-server';
 import {
   IHash,
@@ -25,7 +26,7 @@ import deepmerge = require('deepmerge');
 import log = require('../utils/log');
 
 const PKG_FILE = 'package.json';
-const USER_CONFIG_FILE = 'build.json';
+const USER_CONFIG_FILE = ['build.json', 'build.config.(js|ts)'];
 const PLUGIN_CONTEXT_KEY = [
   'command' as 'command',
   'commandArgs' as 'commandArgs',
@@ -466,22 +467,29 @@ class Context {
         ? config
         : path.resolve(this.rootDir, config);
     } else {
-      configPath = path.resolve(this.rootDir, USER_CONFIG_FILE);
+      const [defaultUserConfig] = await fg(USER_CONFIG_FILE, { cwd: this.rootDir, absolute: true });
+      configPath = defaultUserConfig;
     }
     let userConfig: IUserConfig = {
       plugins: [],
     };
-    if (fs.existsSync(configPath)) {
+    if (configPath && fs.existsSync(configPath)) {
       try {
         userConfig = await loadConfig(configPath, log);
       } catch (err) {
         log.info(
           'CONFIG',
-          `Fail to load config file ${configPath}, use default config instead`,
+          `Fail to load config file ${configPath}`,
         );
         log.error('CONFIG', err.stack || err.toString());
         process.exit(1);
       }
+    } else {
+      log.error(
+        'CONFIG',
+        `config file${`(${configPath})` || ''} is not exist`,
+      );
+      process.exit(1);
     }
 
     return this.mergeModeConfig(userConfig);
@@ -643,9 +651,10 @@ class Context {
       const modifiedValue = configKey(this.userConfig);
       if (_.isPlainObject(modifiedValue)) {
         if (Object.prototype.hasOwnProperty.call(modifiedValue, 'plugins')) {
-          log.warn('[waring]', errorMsg);
+          // remove plugins while it is not support to be modified
+          log.verbose('[modifyUserConfig]', 'delete plugins of user config while it is not support to be modified');
+          delete modifiedValue.plugins;
         }
-        delete modifiedValue.plugins;
         Object.keys(modifiedValue).forEach(modifiedConfigKey => {
           const originalValue = this.userConfig[modifiedConfigKey];
           this.userConfig[modifiedConfigKey] = mergeInDeep ? mergeConfig<JsonValue>(originalValue, modifiedValue[modifiedConfigKey]) : modifiedValue[modifiedConfigKey] ;
