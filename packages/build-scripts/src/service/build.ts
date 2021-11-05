@@ -65,6 +65,9 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
         stats,
       });
       if (isSuccessful) {
+        // https://github.com/webpack/webpack/issues/12345#issuecomment-755273757
+        // run `compiler.close()` to start to store cache
+        compiler?.close?.(()=>{});
         resolve({
           stats,
         });

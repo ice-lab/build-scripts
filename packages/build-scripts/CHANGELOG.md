@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- [fix] run `compiler.close()` for store cache after build
+
 ## 1.2.0
 
 - [feat] auto load config of `build.config.(js|ts)`
