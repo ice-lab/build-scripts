@@ -48,28 +48,37 @@
 
 多个项目共享 Webpack 以及其他工程能力，同时支持插件扩展&修改配置。
 
+### 使用 build-scripts 的项目如何修改工程配置？
+
+build-scripts 核心是提供一套完善的工程插件设计，本身不耦合任何工程配置，也不具备任何工程调试构建能力，具体的工程配置都是由插件提供的，因此此类问题建议查阅下方对应场景的文档。
+
 ## 使用场景
 
 基于 build-scripts 目前已支持多种场景，覆盖大多数的研发场景，当然你可以完全自定义一套工程能力。
 
 ### React 项目开发
 
-- [icejs](https://ice.work/docs/guide/about)
-- [代码](https://github.com/alibaba/ice)
+- 方案：icejs
+- 文档：https://ice.work/docs/guide/about
+- 代码：https://github.com/alibaba/ice
 
 ### Rax 项目开发
 
-- [rax-app](https://rax.js.org/docs/guide/getting-start)
-- [代码](https://github.com/raxjs/rax-app)
+- 方案：rax-app
+- 文档：https://rax.js.org/docs/guide/getting-start
+- 代码：https://github.com/raxjs/rax-app
 
 ### 天马模块
 
-> 仅阿里内部
+- 方案：build-plugin-pegasus-base
+- 文档：仅阿里内部
+- 代码：仅阿里内部
 
 ### NPM 包开发
 
-- [build-plugin-component](https://github.com/ice-lab/iceworks-cli/tree/master/packages/build-plugin-component)
-- [文档](https://appworks.site/materials/guide/component.html)
+- 方案：build-plugin-component
+- 文档：https://github.com/ice-lab/iceworks-cli/tree/master/packages/build-plugin-component#readme
+- 代码：https://github.com/ice-lab/iceworks-cli/tree/master/packages/build-plugin-component
 
 ### 自定义工程
 
@@ -592,11 +601,11 @@ module.exports = ({ applyMethod }) => {
 
 #### React 项目（icejs）
 
-升级 icejs 2.0. 即可。
+升级 icejs 2.0 即可。
 
 #### Rax 项目（rax-app）
 
-待支持
+rax-app 3.8.0 以上已升级。
 
 #### 业务组件（build-plugin-component）
 
