@@ -22,7 +22,10 @@ class Service<T, U = any> {
 
   public run = async (options: IContextOptions<U>): Promise<void> => {
     const { command } = options;
-    const ctx = createContext<T, U>(options);
+    const ctx = createContext<T, U>({
+      resolver: this.serviceConfig.resolver,
+      ...options,
+    });
 
     const hasCommandImplement = Object.keys(this.serviceConfig).includes(command);
 
