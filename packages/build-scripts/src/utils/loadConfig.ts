@@ -9,51 +9,7 @@ import JSON5 = require('json5');
 import type { IUserConfig, IModeConfig, CommandArgs } from '../core/Context';
 import type { CreateLoggerReturns } from './logger';
 
-export const getUserConfig = async ({
-  rootDir,
-  commandArgs,
-  logger,
-}: {
-  rootDir: string;
-  commandArgs: CommandArgs;
-  logger: CreateLoggerReturns;
-}): Promise<IUserConfig> => {
-  const { config } = commandArgs;
-  let configPath = '';
-  if (config) {
-    configPath = path.isAbsolute(config)
-      ? config
-      : path.resolve(rootDir, config);
-  } else {
-    const [defaultUserConfig] = await fg(USER_CONFIG_FILE, { cwd: rootDir, absolute: true });
-    configPath = defaultUserConfig;
-  }
-  let userConfig: IUserConfig = {
-    plugins: [],
-  };
-  if (configPath && fs.existsSync(configPath)) {
-    try {
-      userConfig = await loadConfig(configPath, logger as any);
-    } catch (err) {
-      logger.info(
-        'CONFIG',
-        `Fail to load config file ${configPath}`,
-      );
-      logger.error('CONFIG', err.stack || err.toString());
-      process.exit(1);
-    }
-  } else {
-    logger.error(
-      'CONFIG',
-      `config file${`(${configPath})` || ''} is not exist`,
-    );
-    process.exit(1);
-  }
-
-  return mergeModeConfig(commandArgs.mode, userConfig);
-};
-
-export const mergeModeConfig = (mode, userConfig: IUserConfig): IUserConfig => {
+export const mergeModeConfig = (mode: string, userConfig: IUserConfig): IUserConfig => {
   // modify userConfig by userConfig.modeConfig
   if (
     userConfig.modeConfig &&
@@ -86,6 +42,52 @@ export const mergeModeConfig = (mode, userConfig: IUserConfig): IUserConfig => {
     return { ...userConfig, ...basicConfig, plugins: userPlugins };
   }
   return userConfig;
+};
+
+export const getUserConfig = async ({
+  rootDir,
+  commandArgs,
+  logger,
+}: {
+  rootDir: string;
+  commandArgs: CommandArgs;
+  logger: CreateLoggerReturns;
+}): Promise<IUserConfig> => {
+  const { config } = commandArgs;
+  let configPath = '';
+  if (config) {
+    configPath = path.isAbsolute(config)
+      ? config
+      : path.resolve(rootDir, config);
+  } else {
+    const [defaultUserConfig] = await fg(USER_CONFIG_FILE, { cwd: rootDir, absolute: true });
+    configPath = defaultUserConfig;
+  }
+  let userConfig: IUserConfig = {
+    plugins: [],
+  };
+  if (configPath && fs.existsSync(configPath)) {
+    try {
+      userConfig = await loadConfig(configPath, logger as any);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        logger.info(
+          'CONFIG',
+          `Fail to load config file ${configPath}`,
+        );
+        logger.error('CONFIG', err.stack || err.toString());
+        process.exit(1);
+      }
+    }
+  } else {
+    logger.error(
+      'CONFIG',
+      `config file${`(${configPath})` || ''} is not exist`,
+    );
+    process.exit(1);
+  }
+
+  return mergeModeConfig(commandArgs.mode, userConfig);
 };
 
 export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|undefined> {
@@ -132,19 +134,21 @@ export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|un
       delete require.cache[require.resolve(filePath)];
       userConfig = require(filePath);
       log.verbose('[config]', `cjs module loaded in ${Date.now() - start}ms`);
-    } catch (e) {
-      const ignored = new RegExp(
-        [
-          `Cannot use import statement`,
-          `Must use import to load ES Module`,
-          // #1635, #2050 some Node 12.x versions don't have esm detection
-          // so it throws normal syntax errors when encountering esm syntax
-          `Unexpected token`,
-          `Unexpected identifier`,
-        ].join('|'),
-      );
-      if (!ignored.test(e.message)) {
-        throw e;
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        const ignored = new RegExp(
+          [
+            `Cannot use import statement`,
+            `Must use import to load ES Module`,
+            // #1635, #2050 some Node 12.x versions don't have esm detection
+            // so it throws normal syntax errors when encountering esm syntax
+            `Unexpected token`,
+            `Unexpected identifier`,
+          ].join('|'),
+        );
+        if (!ignored.test(e.message)) {
+          throw e;
+        }
       }
     }
   }

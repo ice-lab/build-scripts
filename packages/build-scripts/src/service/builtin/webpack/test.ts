@@ -27,8 +27,8 @@ export = async function(context?: Context<WebpackChain>): Promise<IJestResult|un
 
   // get webpack.resolve.alias
   const alias: { [key: string]: string } = configArr.reduce(
-    (acc, { chainConfig }) => {
-      const webpackConfig = chainConfig.toConfig();
+    (acc, { config }) => {
+      const webpackConfig = config.toConfig();
       if (webpackConfig.resolve && webpackConfig.resolve.alias) {
         return {
           ...acc,

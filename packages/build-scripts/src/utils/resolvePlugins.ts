@@ -3,15 +3,15 @@ import _ from 'lodash';
 import type { IPluginList, IPluginInfo, IPluginOptions } from '../core/Context';
 import type { CreateLoggerReturns } from './logger';
 
-const resolvePlugins = <T> (allPlugins: IPluginList, {
+const resolvePlugins = <T, U> (allPlugins: IPluginList, {
   rootDir,
   logger,
 }: {
   rootDir: string;
   logger: CreateLoggerReturns;
-}): IPluginInfo<T>[] => {
+}): IPluginInfo<T, U>[] => {
   const userPlugins = allPlugins.map(
-    (pluginInfo): IPluginInfo<T> => {
+    (pluginInfo): IPluginInfo<T, U> => {
       let fn;
       if (_.isFunction(pluginInfo)) {
         return {
@@ -32,10 +32,12 @@ const resolvePlugins = <T> (allPlugins: IPluginList, {
 
       try {
         fn = require(pluginPath); // eslint-disable-line
-      } catch (err) {
-        logger.error('CONFIG', `Fail to load plugin ${pluginPath}`);
-        logger.error('CONFIG', err.stack || err.toString());
-        process.exit(1);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          logger.error('CONFIG', `Fail to load plugin ${pluginPath}`);
+          logger.error('CONFIG', err.stack || err.toString());
+          process.exit(1);
+        }
       }
 
       return {

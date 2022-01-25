@@ -1,4 +1,4 @@
-import { WebpackOptionsNormalized } from 'webpack';
+import { WebpackOptionsNormalized, MultiStats} from 'webpack';
 import Context, { ITaskConfig } from '../../../core/Context';
 import webpackStats from '../../../utils/webpackStats';
 import type WebpackDevServer from 'webpack-dev-server';
@@ -69,7 +69,7 @@ const start = async (context: Context<WebpackChain>, options?: IRunOptions): Pro
 
   let isFirstCompile = true;
   // typeof(stats) is webpack.compilation.MultiStats
-  compiler.hooks.done.tap('compileHook', async stats => {
+  compiler.hooks.done.tap('compileHook', async (stats: MultiStats) => {
     const isSuccessful = webpackStats({
       urls,
       stats,

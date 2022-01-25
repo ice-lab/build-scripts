@@ -23,28 +23,28 @@ import assert = require('assert');
 import camelCase = require('camelcase');
 import deepmerge = require('deepmerge');
 
-export interface IPluginAPI <T> {
+export interface IPluginAPI <T, U> {
   log: CreateLoggerReturns;
-  context: PluginContext<T>;
+  context: PluginContext<T, U>;
   registerTask: IRegisterTask<T>;
   getAllTask: () => string[];
-  getAllPlugin: IGetAllPlugin<T>;
+  getAllPlugin: IGetAllPlugin<T, U>;
   onGetConfig: IOnGetConfig<T>;
   onGetJestConfig: IOnGetJestConfig;
   onHook: IOnHook;
   setValue: <T>(name: string, value: T) => void;
   getValue: <T>(name: string) => T;
-  registerUserConfig: (args: MaybeArray<IUserConfigArgs<T>>) => void;
+  registerUserConfig: (args: MaybeArray<IUserConfigArgs<T, U>>) => void;
   hasRegistration: (name: string, type?: 'cliOption' | 'userConfig') => boolean;
-  registerCliOption: (args: MaybeArray<ICliOptionArgs<T>>) => void;
+  registerCliOption: (args: MaybeArray<ICliOptionArgs<T, U>>) => void;
   registerMethod: IRegisterMethod;
   applyMethod: IApplyMethodAPI;
   modifyUserConfig: IModifyUserConfig;
 }
 
-export type PluginContext<T> = Pick<Context<T>, typeof PLUGIN_CONTEXT_KEY[number]>;
+export type PluginContext<T, U> = Pick<Context<T, U>, typeof PLUGIN_CONTEXT_KEY[number]>;
 
-export type UserConfigContext<T> = PluginContext<T> & {
+export type UserConfigContext<T, U> = PluginContext<T, U> & {
   taskName: string;
 };
 
@@ -78,25 +78,25 @@ export interface IPluginConfig<T> {
   (config: T): Promise<void> | void;
 }
 
-export interface IUserConfigWebpack<T> {
-  (config: T, value: JsonValue, context: UserConfigContext<T>): Promise<void> | void;
+export interface IUserConfigWebpack<T, U> {
+  (config: T, value: JsonValue, context: UserConfigContext<T, U>): Promise<void> | void;
 }
 
 export interface IValidation {
   (value: any): boolean;
 }
 
-export interface IUserConfigArgs<T> {
+export interface IUserConfigArgs<T, U> {
   name: string;
-  setConfig?: IUserConfigWebpack<T>;
+  setConfig?: IUserConfigWebpack<T, U>;
   defaultValue?: any;
   validation?: ValidationKey | IValidation;
   ignoreTasks?: string[];
 }
 
-export interface ICliOptionArgs<T> {
+export interface ICliOptionArgs<T, U> {
   name: string;
-  setConfig?: IUserConfigWebpack<T>;
+  setConfig?: IUserConfigWebpack<T, U>;
   commands?: string[];
   ignoreTasks?: string[];
 }
@@ -158,12 +158,12 @@ export interface IModifyUserConfig {
   (configKey: string | IModifyConfig, value?: any, options?: { deepmerge: boolean }): void;
 }
 
-export interface IGetAllPlugin<T> {
-  (dataKeys?: string[]): Partial<IPluginInfo<T>>[];
+export interface IGetAllPlugin<T, U> {
+  (dataKeys?: string[]): Partial<IPluginInfo<T, U>>[];
 }
 
-export interface IPluginInfo<T> {
-  fn: IPlugin<T>;
+export interface IPluginInfo<T, U> {
+  fn: IPlugin<T, U>;
   name?: string;
   pluginPath?: string;
   options: IPluginOptions;
@@ -171,8 +171,8 @@ export interface IPluginInfo<T> {
 
 export type IPluginOptions = Json | JsonArray;
 
-export interface IPlugin<T> {
-  (api: IPluginAPI<T>, options?: IPluginOptions): MaybePromise<void>;
+export interface IPlugin<T, U> {
+  (api: IPluginAPI<T, U>, options?: IPluginOptions): MaybePromise<void>;
 }
 
 export type CommandName = 'start' | 'build' | 'test';
@@ -187,13 +187,13 @@ export type CommandModule<T> = (context: Context<T>, options: any) => Promise<T>
 
 export type RegisterCommandModules = (key: string, module: CommandModule<any>) => void;
 
-export interface IContextOptions {
+export interface IContextOptions<U> {
   command: CommandName;
   rootDir?: string;
   args: CommandArgs;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
-  resolver?: any;
+  resolver?: U;
 }
 
 export interface ITaskConfig<T> {
@@ -218,31 +218,31 @@ export interface IModifyRegisteredConfigCallbacks<T> {
   (configArgs: T): T;
 }
 
-export type IUserConfigRegistration<T> = Record<string, IUserConfigArgs<T>>;
-export type ICliOptionRegistration<T> = Record<string, ICliOptionArgs<T>>;
+export type IUserConfigRegistration<T, U> = Record<string, IUserConfigArgs<T, U>>;
+export type ICliOptionRegistration<T, U> = Record<string, ICliOptionArgs<T, U>>;
 
-export interface IModifyConfigRegistration<T> {
-  (configFunc: IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>): void;
+export interface IModifyConfigRegistration<T, U> {
+  (configFunc: IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T, U>>): void;
   (
     configName: string,
-    configFunc: IModifyRegisteredConfigCallbacks<IUserConfigArgs<T>>,
+    configFunc: IModifyRegisteredConfigCallbacks<IUserConfigArgs<T, U>>,
   ): void;
 }
 
-export interface IModifyCliRegistration<T> {
-  (configFunc: IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T>>): void;
+export interface IModifyCliRegistration<T, U> {
+  (configFunc: IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T, U>>): void;
   (
     configName: string,
-    configFunc: IModifyRegisteredConfigCallbacks<ICliOptionArgs<T>>,
+    configFunc: IModifyRegisteredConfigCallbacks<ICliOptionArgs<T, U>>,
   ): void;
 }
 
-export type IModifyRegisteredConfigArgs<T> =
-  | [string, IModifyRegisteredConfigCallbacks<IUserConfigArgs<T>>]
-  | [IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>];
-export type IModifyRegisteredCliArgs<T> =
-  | [string, IModifyRegisteredConfigCallbacks<ICliOptionArgs<T>>]
-  | [IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T>>];
+export type IModifyRegisteredConfigArgs<T, U> =
+  | [string, IModifyRegisteredConfigCallbacks<IUserConfigArgs<T, U>>]
+  | [IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T, U>>];
+export type IModifyRegisteredCliArgs<T, U> =
+  | [string, IModifyRegisteredConfigCallbacks<ICliOptionArgs<T, U>>]
+  | [IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T, U>>];
 
 export type IOnGetConfigArgs<T> =
   | [string, IPluginConfig<T>]
@@ -263,12 +263,12 @@ const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   }
 };
 
-class Context<T> {
+class Context<T, U = any> {
   public command: CommandName;
 
   public commandArgs: CommandArgs;
 
-  public resolver: any;
+  public resolver: U;
 
   public rootDir: string;
 
@@ -278,11 +278,11 @@ class Context<T> {
 
   public originalUserConfig: IUserConfig;
 
-  public plugins: IPluginInfo<T>[];
+  public plugins: IPluginInfo<T, U>[];
 
   public logger = createLogger();
 
-  private options: IContextOptions;
+  private options: IContextOptions<U>;
 
   // 存放 config 配置的数组
   private configArr: ITaskConfig<T>[] = [];
@@ -291,9 +291,9 @@ class Context<T> {
 
   private modifyJestConfig: IJestConfigFunction[] = [];
 
-  private modifyConfigRegistrationCallbacks: IModifyRegisteredConfigArgs<T>[] = [];
+  private modifyConfigRegistrationCallbacks: IModifyRegisteredConfigArgs<T, U>[] = [];
 
-  private modifyCliRegistrationCallbacks: IModifyRegisteredConfigArgs<T>[] = [];
+  private modifyCliRegistrationCallbacks: IModifyRegisteredConfigArgs<T, U>[] = [];
 
   private eventHooks: {
     [name: string]: IOnHookCallback[];
@@ -301,15 +301,15 @@ class Context<T> {
 
   private internalValue: IHash<any> = {};
 
-  private userConfigRegistration: IUserConfigRegistration<T> = {};
+  private userConfigRegistration: IUserConfigRegistration<T, U> = {};
 
-  private cliOptionRegistration: ICliOptionRegistration<T> = {};
+  private cliOptionRegistration: ICliOptionRegistration<T, U> = {};
 
   private methodRegistration: { [name: string]: [IMethodFunction, any] } = {};
 
   private cancelTaskNames: string[] = [];
 
-  constructor(options: IContextOptions) {
+  constructor(options: IContextOptions<U>) {
     const {
       command,
       rootDir = process.cwd(),
@@ -330,7 +330,7 @@ class Context<T> {
 
   private registerConfig = (
     type: string,
-    args: MaybeArray<IUserConfigArgs<T>> | MaybeArray<ICliOptionArgs<T>>,
+    args: MaybeArray<IUserConfigArgs<T, U>> | MaybeArray<ICliOptionArgs<T, U>>,
     parseName?: (name: string) => string,
   ): void => {
     const registerKey = `${type}Registration` as
@@ -356,7 +356,7 @@ class Context<T> {
         _.isUndefined(this.userConfig[confName]) &&
         Object.prototype.hasOwnProperty.call(conf, 'defaultValue')
       ) {
-        this.userConfig[confName] = (conf as IUserConfigArgs).defaultValue;
+        this.userConfig[confName] = (conf as IUserConfigArgs<T, U>).defaultValue;
       }
     });
   };
@@ -470,8 +470,8 @@ class Context<T> {
     ];
     callbackRegistrations.forEach(registrationKey => {
       const registrations = this[registrationKey as IRegistrationKey] as (
-        | IModifyRegisteredConfigArgs<T>
-        | IModifyRegisteredConfigArgs<T>
+        | IModifyRegisteredConfigArgs<T, U>
+        | IModifyRegisteredConfigArgs<T, U>
       )[];
       registrations.forEach(([name, callback]) => {
         const modifyAll = _.isFunction(name);
@@ -481,7 +481,7 @@ class Context<T> {
             : 'cliOptionRegistration'
         ];
         if (modifyAll) {
-          const modifyFunction = name as IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>;
+          const modifyFunction = name as IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T, U>>;
           const modifiedResult = modifyFunction(configRegistrations);
           Object.keys(modifiedResult).forEach(configKey => {
             configRegistrations[configKey] = {
@@ -608,11 +608,11 @@ class Context<T> {
   //   }
   // };
 
-  public getAllPlugin: IGetAllPlugin<T> = (
+  public getAllPlugin: IGetAllPlugin<T, U> = (
     dataKeys = ['pluginPath', 'options', 'name'],
   ) => {
     return this.plugins.map(
-      (pluginInfo): Partial<IPluginInfo<T>> => {
+      (pluginInfo): Partial<IPluginInfo<T, U>> => {
         // filter fn to avoid loop
         return _.pick(pluginInfo, dataKeys);
       },
@@ -698,14 +698,14 @@ class Context<T> {
     }
   };
 
-  public modifyConfigRegistration: IModifyConfigRegistration<T> = (
-    ...args: IModifyRegisteredConfigArgs
+  public modifyConfigRegistration: IModifyConfigRegistration<T, U> = (
+    ...args: IModifyRegisteredConfigArgs<T, U>
   ) => {
     this.modifyConfigRegistrationCallbacks.push(args);
   };
 
-  public modifyCliRegistration: IModifyCliRegistration<T> = (
-    ...args: IModifyRegisteredCliArgs
+  public modifyCliRegistration: IModifyCliRegistration<T, U> = (
+    ...args: IModifyRegisteredCliArgs<T, U>
   ) => {
     this.modifyCliRegistrationCallbacks.push(args);
   };
@@ -749,7 +749,7 @@ class Context<T> {
     return this.internalValue[key];
   };
 
-  public registerUserConfig = (args: MaybeArray<IUserConfigArgs<T>>): void => {
+  public registerUserConfig = (args: MaybeArray<IUserConfigArgs<T, U>>): void => {
     this.registerConfig('userConfig', args);
   };
 
@@ -758,7 +758,7 @@ class Context<T> {
     return Object.keys(this[mappedType] || {}).includes(name);
   };
 
-  public registerCliOption = (args: MaybeArray<ICliOptionArgs<T>>): void => {
+  public registerCliOption = (args: MaybeArray<ICliOptionArgs<T, U>>): void => {
     this.registerConfig('cliOption', args, name => {
       return camelCase(name, { pascalCase: false });
     });
@@ -806,6 +806,6 @@ class Context<T> {
 
 export default Context;
 
-export const createContext = <T> (args: IContextOptions): Context<T> => {
+export const createContext = <T, U> (args: IContextOptions<U>): Context<T, U> => {
   return new Context(args);
 };

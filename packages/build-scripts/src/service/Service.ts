@@ -4,23 +4,25 @@ export interface ICommandFn <T> {
   (ctx: Context<T>): void | Promise<void> | any;
 }
 
-export interface IServiceOptions<T> {
+export interface IServiceOptions<T, U> {
   /** Name of service */
   name: string;
 
   command: Partial<Record<'start' | 'build' | 'test', ICommandFn<T>>>;
+
+  resolver?: U;
 }
 
-class Service<T> {
-  private serviceConfig: IServiceOptions<T>;
+class Service<T, U = any> {
+  private serviceConfig: IServiceOptions<T, U>;
 
-  constructor (serviceConfig: IServiceOptions<T>) {
+  constructor (serviceConfig: IServiceOptions<T, U>) {
     this.serviceConfig = serviceConfig;
   }
 
-  public run = async (options: IContextOptions): Promise<void> => {
+  public run = async (options: IContextOptions<U>): Promise<void> => {
     const { command } = options;
-    const ctx = createContext<T>(options);
+    const ctx = createContext<T, U>(options);
 
     const hasCommandImplement = Object.keys(this.serviceConfig).includes(command);
 
