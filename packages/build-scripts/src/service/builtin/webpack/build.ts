@@ -1,16 +1,15 @@
-import chalk from 'chalk';
 import type webpack from 'webpack';
-import Context, { ITaskConfig } from '../core/Context';
-import webpackStats from '../utils/webpackStats';
-import { IRunOptions } from '../types';
+import Context, { ITaskConfig } from '../../../core/Context';
+import webpackStats from '../../../utils/webpackStats';
+import { IRunOptions } from '../../../types';
 import fs = require('fs-extra');
 import path = require('path');
-import log = require('../utils/log');
+import WebpackChain from 'webpack-chain';
 
-export = async function(context: Context, options?: IRunOptions): Promise<void | ITaskConfig[]> {
+export = async function(context: Context<WebpackChain>, options?: IRunOptions): Promise<void | ITaskConfig<WebpackChain>[]> {
   const { eject } = options || {};
-  const configArr = context.getWebpackConfig();
-  const { command, commandArgs, applyHook, rootDir, webpack: webpackInstance } = context;
+  const configArr = context.getConfig();
+  const { command, commandArgs, applyHook, rootDir, resolver: webpackInstance, logger } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });
   // eject config
   if (eject) {
@@ -19,7 +18,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
 
   if (!configArr.length) {
     const errorMsg = 'No webpack config found.';
-    log.warn('CONFIG', errorMsg);
+    logger.warn('CONFIG', errorMsg);
     await applyHook(`error`, { err: new Error(errorMsg) });
     return;
   }
@@ -27,7 +26,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   const defaultPath = path.resolve(rootDir, 'build');
   configArr.forEach(v => {
     try {
-      const userBuildPath = v.chainConfig.output.get('path');
+      const userBuildPath = v.config.output.get('path');
       const buildPath = path.resolve(rootDir, userBuildPath);
       fs.emptyDirSync(buildPath);
     } catch (e) {
@@ -37,7 +36,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
     }
   });
 
-  const webpackConfig = configArr.map(v => v.chainConfig.toConfig());
+  const webpackConfig = configArr.map(v => v.config.toConfig());
   await applyHook(`before.${command}.run`, {
     args: commandArgs,
     config: webpackConfig,
@@ -47,7 +46,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   try {
     compiler = webpackInstance(webpackConfig);
   } catch (err) {
-    log.error('CONFIG', chalk.red('Failed to load webpack config.'));
+    logger.error('CONFIG', 'Failed to load webpack config.');
     await applyHook(`error`, { err });
     throw err;
   }
@@ -56,7 +55,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
     // typeof(stats) is webpack.compilation.MultiStats
     compiler.run((err, stats) => {
       if (err) {
-        log.error('WEBPACK', err.stack || err.toString());
+        logger.error('WEBPACK', err.stack || err.toString());
         reject(err);
         return;
       }

@@ -1,32 +1,31 @@
-import chalk from 'chalk';
 import { WebpackOptionsNormalized } from 'webpack';
-import Context, { ITaskConfig } from '../core/Context';
-import webpackStats from '../utils/webpackStats';
+import Context, { ITaskConfig } from '../../../core/Context';
+import webpackStats from '../../../utils/webpackStats';
 import type WebpackDevServer from 'webpack-dev-server';
-import { IRunOptions } from '../types';
+import { IRunOptions } from '../../../types';
 import deepmerge = require('deepmerge');
-import prepareURLs = require('../utils/prepareURLs');
-import log = require('../utils/log');
+import WebpackChain from 'webpack-chain';
+import prepareURLs = require('../../../utils/prepareURLs');
 
 type DevServerConfig = Record<string, any>;
 
-export = async function(context: Context, options?: IRunOptions): Promise<void | ITaskConfig[] | WebpackDevServer> {
+const start = async (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | ITaskConfig<WebpackChain>[] | WebpackDevServer> => {
   const { eject } = options || {};
-  const configArr = context.getWebpackConfig();
-  const { command, commandArgs, webpack, applyHook } = context;
+  const configArr = context.getConfig();
+  const { command, commandArgs, resolver: webpack, applyHook, logger } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });
-  // eject config
+
   if (eject) {
     return configArr;
   }
 
   if (!configArr.length) {
     const errorMsg = 'No webpack config found.';
-    log.warn('CONFIG', errorMsg);
+    logger.warn('CONFIG', errorMsg);
     await applyHook(`error`, { err: new Error(errorMsg) });
     return;
   }
-  
+
   let serverUrl = '';
   let devServerConfig: DevServerConfig = {
     port: commandArgs.port || 3333,
@@ -35,7 +34,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   };
 
   for (const item of configArr) {
-    const { chainConfig } = item;
+    const { config: chainConfig } = item;
     const config = chainConfig.toConfig() as WebpackOptionsNormalized;
     if (config.devServer) {
       devServerConfig = deepmerge(devServerConfig, config.devServer);
@@ -46,7 +45,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
     }
   }
 
-  const webpackConfig = configArr.map(v => v.chainConfig.toConfig());
+  const webpackConfig = configArr.map(v => v.config.toConfig());
   await applyHook(`before.${command}.run`, {
     args: commandArgs,
     config: webpackConfig,
@@ -56,7 +55,7 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   try {
     compiler = webpack(webpackConfig);
   } catch (err) {
-    log.error('CONFIG', chalk.red('Failed to load webpack config.'));
+    logger.error('CONFIG', 'Failed to load webpack config.');
     await applyHook(`error`, { err });
     throw err;
   }
@@ -118,8 +117,8 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
   } else {
     devServer.listen(devServerConfig.port, devServerConfig.host, async (err: Error) => {
       if (err) {
-        log.info('WEBPACK',chalk.red('[ERR]: Failed to start webpack dev server'));
-        log.error('WEBPACK', (err.stack || err.toString()));
+        logger.info('WEBPACK', '[ERR]: Failed to start webpack dev server');
+        logger.error('WEBPACK', (err.stack || err.toString()));
       }
       await applyHook(`after.${command}.devServer`, {
         url: serverUrl,
@@ -129,7 +128,8 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
       });
     });
   }
-  
 
   return devServer;
 };
+
+export default start;

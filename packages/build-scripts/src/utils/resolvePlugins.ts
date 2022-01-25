@@ -1,0 +1,53 @@
+import * as path from 'path';
+import _ from 'lodash';
+import type { IPluginList, IPluginInfo, IPluginOptions } from '../core/Context';
+import type { CreateLoggerReturns } from './logger';
+
+const resolvePlugins = <T> (allPlugins: IPluginList, {
+  rootDir,
+  logger,
+}: {
+  rootDir: string;
+  logger: CreateLoggerReturns;
+}): IPluginInfo<T>[] => {
+  const userPlugins = allPlugins.map(
+    (pluginInfo): IPluginInfo<T> => {
+      let fn;
+      if (_.isFunction(pluginInfo)) {
+        return {
+          fn: pluginInfo,
+          options: {},
+        };
+      }
+      const plugins: [string, IPluginOptions] = Array.isArray(pluginInfo)
+        ? pluginInfo
+        : [pluginInfo, undefined];
+      const pluginResolveDir = process.env.EXTRA_PLUGIN_DIR
+        ? [process.env.EXTRA_PLUGIN_DIR, rootDir]
+        : [rootDir];
+      const pluginPath = path.isAbsolute(plugins[0])
+        ? plugins[0]
+        : require.resolve(plugins[0], { paths: pluginResolveDir });
+      const options = plugins[1];
+
+      try {
+        fn = require(pluginPath); // eslint-disable-line
+      } catch (err) {
+        logger.error('CONFIG', `Fail to load plugin ${pluginPath}`);
+        logger.error('CONFIG', err.stack || err.toString());
+        process.exit(1);
+      }
+
+      return {
+        name: plugins[0],
+        pluginPath,
+        fn: fn.default || fn || ((): void => {}),
+        options,
+      };
+    },
+  );
+
+  return userPlugins;
+};
+
+export default resolvePlugins;

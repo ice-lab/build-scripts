@@ -6,5 +6,5 @@
     "types": ["node", "jest"],
     "typeRoots": ["./types", "./node_modules/@types"]
   },
-  "exclude": ["test", "lib"]
+  "exclude": ["test", "lib", "bin", "commands", "service"]
 }

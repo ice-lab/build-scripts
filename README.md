@@ -26,7 +26,6 @@
 
 - 完善灵活的插件能力，帮助扩展不同工程构建的场景
 - 提供多构建任务机制，支持同时构建多份产物
-- 基于 webpack-chain 提供灵活的自定义 webpack 配置能力
 - 标准化构建&调试的完整流程，同时提供 Hook 能力进行定制
 - 已支持多种场景：
   - React 项目开发
@@ -232,7 +231,6 @@ context 参数包含运行时的各种环境信息：
 - `originalUserConfig` 用户在 build.json 中配置的原始内容
 - `userConfig` 用户配置，包含被 modifyUserConfig 修改后的结果
 - `pkg` 项目 package.json 的内容
-- `webpack` webpack 实例，插件中针对 webpack 的逻辑均使用此方式引入
 
 ```js
 module.exports = ({ context }) => {
@@ -242,9 +240,9 @@ module.exports = ({ context }) => {
 };
 ```
 
-#### onGetWebpackConfig
+#### onGetConfig
 
-通过 `onGetWebpackConfig` 获取 [webpack-chain](https://github.com/neutrinojs/webpack-chain) 形式的配置，并对配置进行自定义修改：
+通过 `onGetConfig` 获取通过 [registerTask](#registerTask) 注册的配置，并对配置进行自定义修改：
 
 ```js
 // 场景一：修改所有 webpack 配置
@@ -255,15 +253,15 @@ module.exports = ({ onGetWebpackConfig }) => {
 }
 
 // 场景二：多 webpack 任务情况下，修改指定任务配置
-module.exports = ({onGetWebpackConfig, registerTask}) => {
+module.exports = ({onGetConfig, registerTask}) => {
   registerTask('web', webpackConfigWeb);
   registerTask('weex', webpackConfigWeex);
 
-  onGetWebpackConfig('web'，(config) => {
+  onGetConfig('web'，(config) => {
     config.entry('src/index');
   });
 
-  onGetWebpackConfig('weex'，(config) => {
+  onGetConfig('weex'，(config) => {
     config.entry('src/app');
   });
 }
@@ -329,7 +327,7 @@ module.exports = ({ log }) => {
 
 通过 registerUserConfig 注册 build.json 中的顶层配置字段，注册是可以进行用户字段校验，支持传入单个配置对象或者包含多个配置对象的数组。
 
-方法生效的生命周期，在 registerTask 和 onGetWebpackConfig 之间。
+方法生效的生命周期，在 registerTask 和 onGetConfig 之间。
 
 配置对象字段如下：
 
@@ -346,11 +344,11 @@ module.exports = ({ log }) => {
 
 配置忽略指定 webpack 任务
 
-- configWebpack(function)
+- setConfig(function)
 
 字段效果，具体作用到 webpack 配置上，接收参数：
 
-- config：webpack-chain 形式的配置
+- config：通过 registerTask 注册的配置
 - value: build.json 中的字段值
 - context：与外部 context 相同，新增字段 taskName 表现当前正在修改的 task
 
@@ -569,6 +567,12 @@ module.exports = ({ applyMethod }) => {
 ```
 
 ## 版本升级
+
+### 1.x -> 2.x
+
+2.x 的核心变化：
+
+- 与 webpack 整体解耦，沉淀为插件开发服务
 
 ### 0.x -> 1.x
 

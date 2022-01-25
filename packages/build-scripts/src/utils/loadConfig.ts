@@ -1,14 +1,94 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { Logger } from 'npmlog';
+import * as fg from 'fast-glob';
 import buildConfig from './buildConfig';
+import { USER_CONFIG_FILE } from './constant';
 import JSON5 = require('json5');
 
-interface INodeModuleWithCompile extends NodeModule {
-  _compile(code: string, filename: string): any;
-}
+import type { IUserConfig, IModeConfig, CommandArgs } from '../core/Context';
+import type { CreateLoggerReturns } from './logger';
 
-async function loadConfig<T>(filePath: string, log: Logger): Promise<T|undefined> {
+export const getUserConfig = async ({
+  rootDir,
+  commandArgs,
+  logger,
+}: {
+  rootDir: string;
+  commandArgs: CommandArgs;
+  logger: CreateLoggerReturns;
+}): Promise<IUserConfig> => {
+  const { config } = commandArgs;
+  let configPath = '';
+  if (config) {
+    configPath = path.isAbsolute(config)
+      ? config
+      : path.resolve(rootDir, config);
+  } else {
+    const [defaultUserConfig] = await fg(USER_CONFIG_FILE, { cwd: rootDir, absolute: true });
+    configPath = defaultUserConfig;
+  }
+  let userConfig: IUserConfig = {
+    plugins: [],
+  };
+  if (configPath && fs.existsSync(configPath)) {
+    try {
+      userConfig = await loadConfig(configPath, logger as any);
+    } catch (err) {
+      logger.info(
+        'CONFIG',
+        `Fail to load config file ${configPath}`,
+      );
+      logger.error('CONFIG', err.stack || err.toString());
+      process.exit(1);
+    }
+  } else {
+    logger.error(
+      'CONFIG',
+      `config file${`(${configPath})` || ''} is not exist`,
+    );
+    process.exit(1);
+  }
+
+  return mergeModeConfig(commandArgs.mode, userConfig);
+};
+
+export const mergeModeConfig = (mode, userConfig: IUserConfig): IUserConfig => {
+  // modify userConfig by userConfig.modeConfig
+  if (
+    userConfig.modeConfig &&
+    mode &&
+    (userConfig.modeConfig as IModeConfig)[mode]
+  ) {
+    const {
+      plugins,
+      ...basicConfig
+    } = (userConfig.modeConfig as IModeConfig)[mode] as IUserConfig;
+    const userPlugins = [...userConfig.plugins];
+    if (Array.isArray(plugins)) {
+      const pluginKeys = userPlugins.map(pluginInfo => {
+        return Array.isArray(pluginInfo) ? pluginInfo[0] : pluginInfo;
+      });
+      plugins.forEach(pluginInfo => {
+        const [pluginName] = Array.isArray(pluginInfo)
+          ? pluginInfo
+          : [pluginInfo];
+        const pluginIndex = pluginKeys.indexOf(pluginName);
+        if (pluginIndex > -1) {
+          // overwrite plugin info by modeConfig
+          userPlugins[pluginIndex] = pluginInfo;
+        } else {
+          // push new plugin added by modeConfig
+          userPlugins.push(pluginInfo);
+        }
+      });
+    }
+    return { ...userConfig, ...basicConfig, plugins: userPlugins };
+  }
+  return userConfig;
+};
+
+export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|undefined> {
   const start = Date.now();
   const isJson = filePath.endsWith('.json');
   const isTS = filePath.endsWith('.ts');
@@ -90,5 +170,3 @@ async function loadConfig<T>(filePath: string, log: Logger): Promise<T|undefined
   }
   return userConfig;
 }
-
-export default loadConfig;
