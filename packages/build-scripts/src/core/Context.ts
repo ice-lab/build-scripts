@@ -1,7 +1,6 @@
 import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
 import _ from 'lodash';
-import type WebpackDevServer from 'webpack-dev-server';
 import {
   IHash,
   Json,
