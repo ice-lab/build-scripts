@@ -7,7 +7,7 @@ import log = require('../../../utils/log');
 import type { runCLI } from 'jest';
 import WebpackChain from 'webpack-chain';
 
-export = async function(context?: Context<WebpackChain>): Promise<IJestResult|undefined> {
+export = async function (context?: Context<WebpackChain>): Promise<IJestResult|undefined> {
   const { command, commandArgs } = context;
   const { jestArgv = {} } = commandArgs || {};
   const { config, regexForTestFiles, ...restArgv } = jestArgv;
@@ -27,8 +27,8 @@ export = async function(context?: Context<WebpackChain>): Promise<IJestResult|un
 
   // get webpack.resolve.alias
   const alias: { [key: string]: string } = configArr.reduce(
-    (acc, { config }) => {
-      const webpackConfig = config.toConfig();
+    (acc, { config: webpackChainConfig }) => {
+      const webpackConfig = webpackChainConfig.toConfig();
       if (webpackConfig.resolve && webpackConfig.resolve.alias) {
         return {
           ...acc,
@@ -42,7 +42,7 @@ export = async function(context?: Context<WebpackChain>): Promise<IJestResult|un
   );
 
   const aliasModuleNameMapper: { [key: string]: string } = {};
-  Object.keys(alias || {}).forEach(key => {
+  Object.keys(alias || {}).forEach((key) => {
     const aliasPath = alias[key];
     // check path if it is a directory
     if (fs.existsSync(aliasPath) && fs.statSync(aliasPath).isDirectory()) {
@@ -77,7 +77,7 @@ export = async function(context?: Context<WebpackChain>): Promise<IJestResult|un
     const messages = [
       'Cannot find module: jest. Make sure this package is installed.',
       '',
-      `You can install this package by running: ${chalk.bold(`npm install jest -D`)}`,
+      `You can install this package by running: ${chalk.bold('npm install jest -D')}`,
     ];
     console.log(messages.join('\n'));
   }
@@ -90,7 +90,7 @@ export = async function(context?: Context<WebpackChain>): Promise<IJestResult|un
         },
         [ctxRoot],
       )
-        .then(data => {
+        .then((data) => {
           const { results } = data;
           if (results.success) {
             resolve(data);

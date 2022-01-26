@@ -1,20 +1,20 @@
 export const USER_CONFIG_FILE = ['build.json', 'build.config.(js|ts)'];
 
 export const PLUGIN_CONTEXT_KEY = [
-  'command' as 'command',
-  'commandArgs' as 'commandArgs',
-  'rootDir' as 'rootDir',
-  'userConfig' as 'userConfig',
-  'originalUserConfig' as 'originalUserConfig',
-  'pkg' as 'pkg',
+  'command' as const,
+  'commandArgs' as const,
+  'rootDir' as const,
+  'userConfig' as const,
+  'originalUserConfig' as const,
+  'pkg' as const,
 ];
 
 export const VALIDATION_MAP = {
-  string: 'isString' as 'isString',
-  number: 'isNumber' as 'isNumber',
-  array: 'isArray' as 'isArray',
-  object: 'isObject' as 'isObject',
-  boolean: 'isBoolean' as 'isBoolean',
+  string: 'isString' as const,
+  number: 'isNumber' as const,
+  array: 'isArray' as const,
+  object: 'isObject' as const,
+  boolean: 'isBoolean' as const,
 };
 
 export const BUILTIN_CLI_OPTIONS = [

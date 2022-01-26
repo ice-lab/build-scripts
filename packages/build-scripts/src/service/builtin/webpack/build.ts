@@ -6,7 +6,7 @@ import fs = require('fs-extra');
 import path = require('path');
 import WebpackChain from 'webpack-chain';
 
-export = async function(context: Context<WebpackChain>, options?: IRunOptions): Promise<void | ITaskConfig<WebpackChain>[]> {
+export = async function (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>>> {
   const { eject } = options || {};
   const configArr = context.getConfig();
   const { command, commandArgs, applyHook, rootDir, resolver: webpackInstance, logger } = context;
@@ -19,12 +19,12 @@ export = async function(context: Context<WebpackChain>, options?: IRunOptions): 
   if (!configArr.length) {
     const errorMsg = 'No webpack config found.';
     logger.warn('CONFIG', errorMsg);
-    await applyHook(`error`, { err: new Error(errorMsg) });
+    await applyHook('error', { err: new Error(errorMsg) });
     return;
   }
   // clear build directory
   const defaultPath = path.resolve(rootDir, 'build');
-  configArr.forEach(v => {
+  configArr.forEach((v) => {
     try {
       const userBuildPath = v.config.output.get('path');
       const buildPath = path.resolve(rootDir, userBuildPath);
@@ -36,7 +36,7 @@ export = async function(context: Context<WebpackChain>, options?: IRunOptions): 
     }
   });
 
-  const webpackConfig = configArr.map(v => v.config.toConfig());
+  const webpackConfig = configArr.map((v) => v.config.toConfig());
   await applyHook(`before.${command}.run`, {
     args: commandArgs,
     config: webpackConfig,
@@ -47,7 +47,7 @@ export = async function(context: Context<WebpackChain>, options?: IRunOptions): 
     compiler = webpackInstance(webpackConfig);
   } catch (err) {
     logger.error('CONFIG', 'Failed to load webpack config.');
-    await applyHook(`error`, { err });
+    await applyHook('error', { err });
     throw err;
   }
 
@@ -66,7 +66,7 @@ export = async function(context: Context<WebpackChain>, options?: IRunOptions): 
       if (isSuccessful) {
         // https://github.com/webpack/webpack/issues/12345#issuecomment-755273757
         // run `compiler.close()` to start to store cache
-        compiler?.close?.(()=>{});
+        compiler?.close?.(() => {});
         resolve({
           stats,
         });

@@ -22,10 +22,10 @@ export const mergeModeConfig = (mode: string, userConfig: IUserConfig): IUserCon
     } = (userConfig.modeConfig as IModeConfig)[mode] as IUserConfig;
     const userPlugins = [...userConfig.plugins];
     if (Array.isArray(plugins)) {
-      const pluginKeys = userPlugins.map(pluginInfo => {
+      const pluginKeys = userPlugins.map((pluginInfo) => {
         return Array.isArray(pluginInfo) ? pluginInfo[0] : pluginInfo;
       });
-      plugins.forEach(pluginInfo => {
+      plugins.forEach((pluginInfo) => {
         const [pluginName] = Array.isArray(pluginInfo)
           ? pluginInfo
           : [pluginInfo];
@@ -114,17 +114,17 @@ export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|un
       try {
         // eslint-disable-next-line no-eval
         userConfig = (await eval(`import(tempFile + '?t=${Date.now()}')`)).default;
-      } catch(err) {
+      } catch (err) {
         fs.unlinkSync(tempFile);
         throw err;
       }
       // delete the file after eval
       fs.unlinkSync(tempFile);
-      log.verbose('[config]',`TS + native esm module loaded in ${Date.now() - start}ms, ${fileUrl}`);
+      log.verbose('[config]', `TS + native esm module loaded in ${Date.now() - start}ms, ${fileUrl}`);
     } else {
       // eslint-disable-next-line no-eval
       userConfig = (await eval(`import(fileUrl + '?t=${Date.now()}')`)).default;
-      log.verbose('[config]',`native esm config loaded in ${Date.now() - start}ms, ${fileUrl}`);
+      log.verbose('[config]', `native esm config loaded in ${Date.now() - start}ms, ${fileUrl}`);
     }
   }
 
@@ -138,12 +138,12 @@ export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|un
       if (e instanceof Error) {
         const ignored = new RegExp(
           [
-            `Cannot use import statement`,
-            `Must use import to load ES Module`,
+            'Cannot use import statement',
+            'Must use import to load ES Module',
             // #1635, #2050 some Node 12.x versions don't have esm detection
             // so it throws normal syntax errors when encountering esm syntax
-            `Unexpected token`,
-            `Unexpected identifier`,
+            'Unexpected token',
+            'Unexpected identifier',
           ].join('|'),
         );
         if (!ignored.test(e.message)) {

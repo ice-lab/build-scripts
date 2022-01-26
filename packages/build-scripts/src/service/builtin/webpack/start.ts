@@ -1,4 +1,4 @@
-import { WebpackOptionsNormalized, MultiStats} from 'webpack';
+import { WebpackOptionsNormalized, MultiStats } from 'webpack';
 import Context, { ITaskConfig } from '../../../core/Context';
 import webpackStats from '../../../utils/webpackStats';
 import type WebpackDevServer from 'webpack-dev-server';
@@ -9,7 +9,7 @@ import prepareURLs = require('../../../utils/prepareURLs');
 
 type DevServerConfig = Record<string, any>;
 
-const start = async (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | ITaskConfig<WebpackChain>[] | WebpackDevServer> => {
+const start = async (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>> | WebpackDevServer> => {
   const { eject } = options || {};
   const configArr = context.getConfig();
   const { command, commandArgs, resolver: webpack, applyHook, logger } = context;
@@ -22,7 +22,7 @@ const start = async (context: Context<WebpackChain>, options?: IRunOptions): Pro
   if (!configArr.length) {
     const errorMsg = 'No webpack config found.';
     logger.warn('CONFIG', errorMsg);
-    await applyHook(`error`, { err: new Error(errorMsg) });
+    await applyHook('error', { err: new Error(errorMsg) });
     return;
   }
 
@@ -45,7 +45,7 @@ const start = async (context: Context<WebpackChain>, options?: IRunOptions): Pro
     }
   }
 
-  const webpackConfig = configArr.map(v => v.config.toConfig());
+  const webpackConfig = configArr.map((v) => v.config.toConfig());
   await applyHook(`before.${command}.run`, {
     args: commandArgs,
     config: webpackConfig,
@@ -56,7 +56,7 @@ const start = async (context: Context<WebpackChain>, options?: IRunOptions): Pro
     compiler = webpack(webpackConfig);
   } catch (err) {
     logger.error('CONFIG', 'Failed to load webpack config.');
-    await applyHook(`error`, { err });
+    await applyHook('error', { err });
     throw err;
   }
   const protocol = devServerConfig.https ? 'https' : 'http';

@@ -1,4 +1,4 @@
-import * as path from 'path';
+import { isAbsolute } from 'path';
 import _ from 'lodash';
 import type { IPluginList, IPluginInfo, IPluginOptions } from '../core/Context';
 import type { CreateLoggerReturns } from './logger';
@@ -9,7 +9,7 @@ const resolvePlugins = <T, U> (allPlugins: IPluginList, {
 }: {
   rootDir: string;
   logger: CreateLoggerReturns;
-}): IPluginInfo<T, U>[] => {
+}): Array<IPluginInfo<T, U>> => {
   const userPlugins = allPlugins.map(
     (pluginInfo): IPluginInfo<T, U> => {
       let fn;
@@ -25,7 +25,7 @@ const resolvePlugins = <T, U> (allPlugins: IPluginList, {
       const pluginResolveDir = process.env.EXTRA_PLUGIN_DIR
         ? [process.env.EXTRA_PLUGIN_DIR, rootDir]
         : [rootDir];
-      const pluginPath = path.isAbsolute(plugins[0])
+      const pluginPath = isAbsolute(plugins[0])
         ? plugins[0]
         : require.resolve(plugins[0], { paths: pluginResolveDir });
       const options = plugins[1];

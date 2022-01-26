@@ -16,11 +16,11 @@ export interface IServiceOptions<T, U> {
 class Service<T, U = any> {
   private serviceConfig: IServiceOptions<T, U>;
 
-  constructor (serviceConfig: IServiceOptions<T, U>) {
+  constructor(serviceConfig: IServiceOptions<T, U>) {
     this.serviceConfig = serviceConfig;
   }
 
-  public run = async (options: IContextOptions<U>): Promise<void> => {
+  run = async (options: IContextOptions<U>): Promise<void> => {
     const { command } = options;
     const ctx = createContext<T, U>({
       resolver: this.serviceConfig.resolver,
@@ -36,7 +36,7 @@ class Service<T, U = any> {
     }
 
     return this.serviceConfig.command[command](ctx);
-  }
+  };
 }
 
 export default Service;

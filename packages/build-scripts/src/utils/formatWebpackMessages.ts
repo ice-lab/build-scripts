@@ -4,18 +4,18 @@ import { StatsCompilation } from 'webpack';
 const friendlySyntaxErrorLabel = 'Syntax error:';
 
 type IsLikelyASyntaxError = (message: string) => boolean;
-type Message = string | { message: string } | { message: string }[];
+type Message = string | { message: string } | Array<{ message: string }>;
 type FormatMessage = (message: Message) => string;
 type FormatWebpackMessages = (
   json: StatsCompilation,
 ) => { errors: string[]; warnings: string[] };
 
-const isLikelyASyntaxError: IsLikelyASyntaxError = message => {
+const isLikelyASyntaxError: IsLikelyASyntaxError = (message) => {
   return message.indexOf(friendlySyntaxErrorLabel) !== -1;
 };
 
 // Cleans up webpack error messages.
-const formatMessage: FormatMessage = message => {
+const formatMessage: FormatMessage = (message) => {
   let formattedMessage = message;
   let lines: string[] = [];
 
@@ -24,7 +24,7 @@ const formatMessage: FormatMessage = message => {
   } else if ('message' in formattedMessage) {
     lines = formattedMessage.message?.split('\n');
   } else if (Array.isArray(formattedMessage)) {
-    formattedMessage.forEach(messageData => {
+    formattedMessage.forEach((messageData) => {
       if ('message' in messageData) {
         lines = messageData.message?.split('\n');
       }
@@ -33,11 +33,11 @@ const formatMessage: FormatMessage = message => {
 
   // Strip webpack-added headers off errors/warnings
   // https://github.com/webpack/webpack/blob/master/lib/ModuleError.js
-  lines = lines.filter(line => !/Module [A-z ]+\(from/.test(line));
+  lines = lines.filter((line) => !/Module [A-z ]+\(from/.test(line));
 
   // Transform parsing error into syntax error
   // TODO: move this to our ESLint formatter?
-  lines = lines.map(line => {
+  lines = lines.map((line) => {
     const parsingError = /Line (\d+):(?:(\d+):)?\s*Parsing error: (.+)$/.exec(
       line,
     );
@@ -57,15 +57,15 @@ const formatMessage: FormatMessage = message => {
   // Clean up export errors
   formattedMessage = formattedMessage.replace(
     /^.*export '(.+?)' was not found in '(.+?)'.*$/gm,
-    `Attempted import error: '$1' is not exported from '$2'.`,
+    'Attempted import error: \'$1\' is not exported from \'$2\'.',
   );
   formattedMessage = formattedMessage.replace(
     /^.*export 'default' \(imported as '(.+?)'\) was not found in '(.+?)'.*$/gm,
-    `Attempted import error: '$2' does not contain a default export (imported as '$1').`,
+    'Attempted import error: \'$2\' does not contain a default export (imported as \'$1\').',
   );
   formattedMessage = formattedMessage.replace(
     /^.*export '(.+?)' \(imported as '(.+?)'\) was not found in '(.+?)'.*$/gm,
-    `Attempted import error: '$1' is not exported from '$3' (imported as '$2').`,
+    'Attempted import error: \'$1\' is not exported from \'$3\' (imported as \'$2\').',
   );
   lines = formattedMessage.split('\n');
 
@@ -122,7 +122,7 @@ const formatMessage: FormatMessage = message => {
   return formattedMessage.trim();
 };
 
-const formatWebpackMessages: FormatWebpackMessages = json => {
+const formatWebpackMessages: FormatWebpackMessages = (json) => {
   const formattedErrors = json.errors.map(formatMessage);
   const formattedWarnings = json.warnings.map(formatMessage);
   const result = { errors: formattedErrors, warnings: formattedWarnings };

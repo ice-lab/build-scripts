@@ -10,7 +10,7 @@ function hijackWebpackResolve(webpack: any, rootDir: string): void {
   const originalResolver = (Module as any)._resolveFilename;
 
   // eslint-disable-next-line no-underscore-dangle
-  (Module as any)._resolveFilename = function(
+  (Module as any)._resolveFilename = function (
     request: string,
     parent: string,
     isMain: boolean,
@@ -37,7 +37,7 @@ function hijackWebpackResolve(webpack: any, rootDir: string): void {
   // eslint-disable-next-line no-underscore-dangle
   const originalLoader = (Module as any)._load;
   // eslint-disable-next-line no-underscore-dangle
-  (Module as any)._load = function(request: string, parent: object) {
+  (Module as any)._load = function (request: string, parent: object) {
     let moduleRequest = request;
     // ignore case which pass parent
     if (parent) {

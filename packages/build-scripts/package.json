@@ -1,13 +1,10 @@
 {
   "name": "build-scripts",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "license": "MIT",
   "description": "scripts core",
   "main": "lib/index.js",
   "types": "lib",
-  "bin": {
-    "build-scripts": "./bin/build-scripts.js"
-  },
   "files": [
     "lib",
     "bin"
@@ -17,10 +14,6 @@
     "prepublishOnly": "npm run build",
     "start": "tsc -w",
     "test": "jest --runInBand"
-  },
-  "engines": {
-    "node": ">=8.6.0",
-    "npm": ">=3.0.0"
   },
   "repository": {
     "type": "http",
