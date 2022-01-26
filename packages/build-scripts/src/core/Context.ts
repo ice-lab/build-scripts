@@ -61,9 +61,10 @@ export interface IOnHookCallbackArg {
   // FIXME: 这里应该是什么类型
   // stats?: MultiStats;
   url?: string;
-  devServer?: WebpackDevServer;
+  // devServer?: WebpackDevServer;
   config?: any;
   result?: IJestResult;
+  [other: string]: unknown;
 }
 
 export interface IOnHookCallback {
@@ -577,31 +578,31 @@ class Context<T, U = any> {
     }
   };
 
-  // private runWebpackFunctions = async (): Promise<void> => {
-  //   this.modifyConfigFns.forEach(([name, func]) => {
-  //     const isAll = _.isFunction(name);
-  //     if (isAll) {
-  //       // modify all
-  //       this.configArr.forEach(config => {
-  //         config.modifyFunctions.push(name as IPluginConfig);
-  //       });
-  //     } else {
-  //       // modify named config
-  //       this.configArr.forEach(config => {
-  //         if (config.name === name) {
-  //           config.modifyFunctions.push(func);
-  //         }
-  //       });
-  //     }
-  //   });
+  private runOnGetConfigFn = async (): Promise<void> => {
+    this.modifyConfigFns.forEach(([name, func]) => {
+      const isAll = _.isFunction(name);
+      if (isAll) {
+        // modify all
+        this.configArr.forEach(config => {
+          config.modifyFunctions.push(name as IPluginConfig<T>);
+        });
+      } else {
+        // modify named config
+        this.configArr.forEach(config => {
+          if (config.name === name) {
+            config.modifyFunctions.push(func);
+          }
+        });
+      }
+    });
 
-  //   for (const configInfo of this.configArr) {
-  //     for (const func of configInfo.modifyFunctions) {
-  //       // eslint-disable-next-line no-await-in-loop
-  //       await func(configInfo.chainConfig);
-  //     }
-  //   }
-  // };
+    for (const configInfo of this.configArr) {
+      for (const func of configInfo.modifyFunctions) {
+        // eslint-disable-next-line no-await-in-loop
+        await func(configInfo.config);
+      }
+    }
+  };
 
   getAllPlugin: IGetAllPlugin<T, U> = (
     dataKeys = ['pluginPath', 'options', 'name'],
@@ -773,8 +774,7 @@ class Context<T, U = any> {
     await this.runPlugins();
     await this.runConfigModification();
     await this.validateUserConfig();
-    // FIXME: how to implment this
-    // await this.runWebpackFunctions();
+    await this.runOnGetConfigFn();
     await this.runCliOption();
     // filter webpack config by cancelTaskNames
     this.configArr = this.configArr.filter(
