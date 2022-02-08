@@ -582,12 +582,12 @@ class Context<T, U = any> {
       const isAll = _.isFunction(name);
       if (isAll) {
         // modify all
-        this.configArr.forEach(config => {
+        this.configArr.forEach((config) => {
           config.modifyFunctions.push(name as IPluginConfig<T>);
         });
       } else {
         // modify named config
-        this.configArr.forEach(config => {
+        this.configArr.forEach((config) => {
           if (config.name === name) {
             config.modifyFunctions.push(func);
           }

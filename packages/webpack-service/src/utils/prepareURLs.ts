@@ -6,10 +6,10 @@
  * https://github.com/facebookincubator/create-react-app/blob/master/LICENSE
  */
 
-import chalk from 'chalk';
+import picocolors from 'picocolors';
 
-import url = require('url');
-import address = require('address');
+import url from 'url';
+import address from 'address';
 
 interface IPrepareUrls {
   lanUrlForConfig: any;
@@ -19,7 +19,7 @@ interface IPrepareUrls {
   localUrlForBrowser: string;
 }
 
-export = function prepareUrls(
+export default function prepareUrls(
   protocol: string,
   host: string,
   port: number,
@@ -36,7 +36,7 @@ export = function prepareUrls(
     url.format({
       protocol,
       hostname,
-      port: chalk.bold(port.toString()),
+      port: picocolors.bold(port.toString()),
       pathname,
     });
 
@@ -82,4 +82,4 @@ export = function prepareUrls(
     localUrlForTerminal,
     localUrlForBrowser,
   };
-};
+}

@@ -41,3 +41,4 @@ examples/react-component/es
 packages/template-component-demo/lib
 packages/template-component-demo/es
 
+.pnpm-debug.log

@@ -1,13 +1,12 @@
 {
-  "name": "build-scripts",
-  "version": "2.0.0",
+  "name": "@build-scripts/webpack-service",
+  "version": "1.0.0",
   "license": "MIT",
-  "description": "scripts core",
+  "description": "Builtin webpack service for build-scripts",
   "main": "lib/index.js",
   "types": "lib",
   "files": [
-    "lib",
-    "bin"
+    "lib"
   ],
   "scripts": {
     "build": "tsc",
@@ -20,29 +19,25 @@
     "url": "https://github.com/ice-lab/build-scripts"
   },
   "dependencies": {
-    "@jest/test-result": "^27.0.0",
-    "@jest/types": "^27.0.0",
-    "camelcase": "^5.3.1",
-    "commander": "^2.19.0",
+    "address": "^1.1.0",
+    "build-scripts": "^2.0.0",
     "deepmerge": "^4.0.0",
-    "esbuild": "~0.14.0",
-    "fast-glob": "^3.2.7",
     "fs-extra": "^8.1.0",
-    "json5": "^2.1.3",
-    "lodash": "^4.17.15",
     "npmlog": "^4.1.2",
-    "picocolors": "^1.0.0",
-    "semver": "^7.3.2"
+    "picocolors": "^1.0.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^8.0.1",
     "@types/jest": "^27.0.6",
-    "@types/json5": "^0.0.30",
-    "@types/lodash": "^4.14.147",
     "@types/npmlog": "^4.1.2",
-    "@types/semver": "^6.2.0",
+    "@types/webpack": "^4.41.30",
+    "@types/webpack-chain": "^5.2.0",
+    "@types/webpack-dev-server": "^4.0.0",
     "jest": "^27.0.6",
     "ts-jest": "^27.0.3",
-    "typescript": "^4"
+    "typescript": "^4",
+    "webpack": "^5.0.0",
+    "webpack-dev-server": "^4.0.0",
+    "webpack-chain": "^6.4.0"
   }
 }

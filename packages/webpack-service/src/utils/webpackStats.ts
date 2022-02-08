@@ -1,7 +1,7 @@
-import chalk from 'chalk';
+import picocolors from 'picocolors';
 import { MultiStats, Stats } from 'webpack';
 import formatWebpackMessages from './formatWebpackMessages';
-import log = require('./log');
+import log from './log';
 
 interface IUrls {
   lanUrlForTerminal: string;
@@ -19,10 +19,6 @@ interface IWebpackStatsParams {
 
 interface IWebpackStats {
   (options: IWebpackStatsParams): boolean;
-}
-
-interface IJsonItem {
-  message: string;
 }
 
 const defaultOptions = {
@@ -64,14 +60,14 @@ const webpackStats: IWebpackStats = ({
       }
       if (isFirstCompile && urls) {
         console.log();
-        log.info('WEBPACK', chalk.green('Starting the development server at:'));
+        log.info('WEBPACK', picocolors.green('Starting the development server at:'));
         log.info(
           '   - Local  : ',
-          chalk.underline.white(urls.localUrlForBrowser),
+          picocolors.underline(picocolors.white(urls.localUrlForBrowser)),
         );
         log.info(
           '   - Network: ',
-          chalk.underline.white(urls.lanUrlForTerminal),
+          picocolors.underline(picocolors.white(urls.lanUrlForTerminal)),
         );
         console.log();
       }

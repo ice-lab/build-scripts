@@ -1,4 +1,4 @@
-import Service from '../../../Service';
+import { Service } from 'build-scripts';
 import start from './start';
 import build from './build';
 import WebpackChain from 'webpack-chain';

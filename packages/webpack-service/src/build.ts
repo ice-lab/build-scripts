@@ -1,10 +1,11 @@
-import type webpack from 'webpack';
-import Context, { ITaskConfig } from '../../../Context';
-import webpackStats from '../../../utils/webpackStats';
-import { IRunOptions } from '../../../types';
-import fs = require('fs-extra');
-import path = require('path');
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import { Context, ITaskConfig } from 'build-scripts';
+import webpackStats from './utils/webpackStats';
+import { IRunOptions } from './types';
+
 import WebpackChain from 'webpack-chain';
+import type webpack from 'webpack';
 
 export = async function (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>>> {
   const { eject } = options || {};

@@ -1,11 +1,11 @@
-import chalk from 'chalk';
-import Context, { IJestResult } from '../../../Context';
-
-import fs = require('fs-extra');
-import path = require('path');
-import log = require('../../../utils/log');
-import type { runCLI } from 'jest';
+import * as path from 'path';
+import fs from 'fs-extra';
+import picocolors from 'picocolors';
+import log from './utils/log';
 import WebpackChain from 'webpack-chain';
+
+import type { runCLI } from 'jest';
+import type { Context, IJestResult } from 'build-scripts';
 
 export = async function (context?: Context<WebpackChain>): Promise<IJestResult|undefined> {
   const { command, commandArgs } = context;
@@ -77,7 +77,7 @@ export = async function (context?: Context<WebpackChain>): Promise<IJestResult|u
     const messages = [
       'Cannot find module: jest. Make sure this package is installed.',
       '',
-      `You can install this package by running: ${chalk.bold('npm install jest -D')}`,
+      `You can install this package by running: ${picocolors.bold('npm install jest -D')}`,
     ];
     console.log(messages.join('\n'));
   }

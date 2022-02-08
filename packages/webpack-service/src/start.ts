@@ -1,11 +1,12 @@
-import { WebpackOptionsNormalized, MultiStats } from 'webpack';
-import Context, { ITaskConfig } from '../../../Context';
-import webpackStats from '../../../utils/webpackStats';
-import type WebpackDevServer from 'webpack-dev-server';
-import { IRunOptions } from '../../../types';
-import deepmerge = require('deepmerge');
+import prepareURLs from './utils/prepareURLs';
+import { Context, ITaskConfig } from 'build-scripts';
+import webpackStats from './utils/webpackStats';
+import deepmerge from 'deepmerge';
 import WebpackChain from 'webpack-chain';
-import prepareURLs = require('../../../utils/prepareURLs');
+
+import type { IRunOptions } from './types';
+import type WebpackDevServer from 'webpack-dev-server';
+import type { WebpackOptionsNormalized, MultiStats } from 'webpack';
 
 type DevServerConfig = Record<string, any>;
 
