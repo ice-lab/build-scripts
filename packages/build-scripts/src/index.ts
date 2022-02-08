@@ -1,11 +1,9 @@
-import webpackStart = require('./service/builtin/webpack/start');
-import webpackBuild = require('./service/builtin/webpack/build');
-import jestTest = require('./service/builtin/webpack/test');
-
-export * from './core/Context';
+import Service from './Service';
+import Context, { createContext } from './Context';
 export * from './types';
+
 export {
-  webpackStart,
-  webpackBuild,
-  jestTest,
-};
+  Service,
+  Context,
+  createContext,
+}

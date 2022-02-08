@@ -1,4 +1,4 @@
-import Context, { createContext, IContextOptions } from '../core/Context';
+import Context, { createContext, IContextOptions } from './Context';
 
 export interface ICommandFn <T> {
   (ctx: Context<T>): void | Promise<void> | any;
@@ -8,7 +8,7 @@ export interface IServiceOptions<T, U> {
   /** Name of service */
   name: string;
 
-  command: Partial<Record<'start' | 'build' | 'test', ICommandFn<T>>>;
+  command: Partial<Record<'start' | 'build' | 'test' | string, ICommandFn<T>>>;
 
   resolver?: U;
 }

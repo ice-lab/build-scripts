@@ -1,5 +1,5 @@
 import type webpack from 'webpack';
-import Context, { ITaskConfig } from '../../../core/Context';
+import Context, { ITaskConfig } from '../../../Context';
 import webpackStats from '../../../utils/webpackStats';
 import { IRunOptions } from '../../../types';
 import fs = require('fs-extra');

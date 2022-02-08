@@ -1,5 +1,5 @@
 import { WebpackOptionsNormalized, MultiStats } from 'webpack';
-import Context, { ITaskConfig } from '../../../core/Context';
+import Context, { ITaskConfig } from '../../../Context';
 import webpackStats from '../../../utils/webpackStats';
 import type WebpackDevServer from 'webpack-dev-server';
 import { IRunOptions } from '../../../types';

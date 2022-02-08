@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import Context, { IJestResult } from '../../../core/Context';
+import Context, { IJestResult } from '../../../Context';
 
 import fs = require('fs-extra');
 import path = require('path');

@@ -6,7 +6,7 @@ import buildConfig from './buildConfig';
 import { USER_CONFIG_FILE } from './constant';
 import JSON5 = require('json5');
 
-import type { IUserConfig, IModeConfig, CommandArgs } from '../core/Context';
+import type { IUserConfig, IModeConfig, CommandArgs } from '../Context';
 import type { CreateLoggerReturns } from './logger';
 
 export const mergeModeConfig = (mode: string, userConfig: IUserConfig): IUserConfig => {

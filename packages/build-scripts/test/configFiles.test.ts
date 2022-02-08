@@ -1,4 +1,4 @@
-import Context from '../src/core/Context'
+import Context from '../src/Context'
 import path = require('path')
 
 describe('load js config', () => {

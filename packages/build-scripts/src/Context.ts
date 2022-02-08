@@ -8,15 +8,15 @@ import {
   MaybeArray,
   MaybePromise,
   JsonArray,
-} from '../types';
+} from './types';
 // import hijackWebpackResolve from '../utils/hijackWebpack';
-import { getUserConfig } from '../utils/loadConfig';
-import loadPkg from '../utils/loadPkg';
-import { createLogger, CreateLoggerReturns } from '../utils/logger';
-import resolvePlugins from '../utils/resolvePlugins';
-import checkPlugin from '../utils/checkPlugin';
+import { getUserConfig } from './utils/loadConfig';
+import loadPkg from './utils/loadPkg';
+import { createLogger, CreateLoggerReturns } from './utils/logger';
+import resolvePlugins from './utils/resolvePlugins';
+import checkPlugin from './utils/checkPlugin';
 
-import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP, BUILTIN_CLI_OPTIONS } from '../utils/constant';
+import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP, BUILTIN_CLI_OPTIONS } from './utils/constant';
 
 import assert = require('assert');
 import camelCase = require('camelcase');
@@ -325,7 +325,7 @@ class Context<T, U = any> {
     this.resolver = resolver;
 
     this.pkg = loadPkg(rootDir);
-    this.setUp();
+    this.setup();
   }
 
   private registerConfig = (
@@ -765,7 +765,7 @@ class Context<T, U = any> {
     return this.configArr;
   };
 
-  setUp = async (): Promise<Array<ITaskConfig<T>>> => {
+  setup = async (): Promise<Array<ITaskConfig<T>>> => {
     // Register built-in command
     await this.registerCliOption(BUILTIN_CLI_OPTIONS);
 

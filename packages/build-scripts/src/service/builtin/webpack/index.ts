@@ -1,4 +1,4 @@
-import Service from '../../Service';
+import Service from '../../../Service';
 import start from './start';
 import build from './build';
 import WebpackChain from 'webpack-chain';
@@ -11,6 +11,10 @@ const webpackService = new Service<WebpackChain, typeof webpack>({
     build,
   },
   resolver: webpack,
+  // bundlers: {
+  //   webpack,
+  //   vite,
+  // }
 });
 
 export default webpackService;
