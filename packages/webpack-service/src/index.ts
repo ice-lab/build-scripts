@@ -4,17 +4,15 @@ import build from './build';
 import WebpackChain from 'webpack-chain';
 import webpack from 'webpack';
 
-const webpackService = new Service<WebpackChain, typeof webpack>({
+const webpackService = new Service<WebpackChain, Record<'webpack', typeof webpack>>({
   name: 'webpack',
   command: {
     start,
     build,
   },
-  resolver: webpack,
-  // bundlers: {
-  //   webpack,
-  //   vite,
-  // }
+  bundlers: {
+    webpack,
+  },
 });
 
 export default webpackService;

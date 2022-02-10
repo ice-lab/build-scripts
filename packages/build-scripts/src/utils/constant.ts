@@ -23,3 +23,5 @@ export const BUILTIN_CLI_OPTIONS = [
   { name: 'disableAsk', commands: ['start'] },
   { name: 'config', commands: ['start', 'build', 'test'] },
 ];
+
+export const IGNORED_USE_CONFIG_KEY = ['plugins'];

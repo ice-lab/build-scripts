@@ -10,7 +10,7 @@ export interface IServiceOptions<T, U> {
 
   command: Partial<Record<'start' | 'build' | 'test' | string, ICommandFn<T>>>;
 
-  resolver?: U;
+  bundlers?: U;
 }
 
 class Service<T, U = any> {
@@ -23,7 +23,7 @@ class Service<T, U = any> {
   run = async (options: IContextOptions<U>): Promise<void> => {
     const { command } = options;
     const ctx = createContext<T, U>({
-      resolver: this.serviceConfig.resolver,
+      bundlers: this.serviceConfig.bundlers,
       ...options,
     });
 
