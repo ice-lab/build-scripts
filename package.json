@@ -5,7 +5,7 @@
   ],
   "scripts": {
     "clean": "rm -rf node_modules ./packages/*/node_modules",
-    "setup": "npm run clean && yarn install --registry=https://registry.npm.taobao.org && lerna bootstrap --registry=https://registry.npm.taobao.org",
+    "setup": "npm run clean && yarn install --registry=https://registry.npmmirror.com && lerna bootstrap --registry=https://registry.npmmirror.com",
     "lint": "eslint --cache --quiet --ext .js,.ts ./",
     "lint-fix": "eslint --cache --ext .js,.ts ./ --fix",
     "prettier": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'",
