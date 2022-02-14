@@ -1,4 +1,4 @@
-import Context, { createContext } from '../src/Context'
+import { createContext } from '../src/Context'
 import path = require('path')
 
 describe('load js config', () => {
@@ -13,28 +13,24 @@ describe('load js config', () => {
   });
 });
 
-// describe('load ts config', () => {
-//   const context = new Context({
-//     args: {},
-//     command: 'start',
-//     rootDir: path.join(__dirname, 'fixtures/tsConfig/')
-//   });
+describe('load ts config', () => {
+  it('combine basic config', async () => {
+    const context = await createContext({
+      args: {},
+      command: 'start',
+      rootDir: path.join(__dirname, 'fixtures/tsConfig/')
+    });
+    expect(context.userConfig.entry).toEqual('src/index');
+  });
+});
 
-//   it('combine basic config', async () => {
-//     await context.resolveConfig();
-//     expect(context.userConfig.entry).toEqual('src/index');
-//   });
-// });
-
-// describe('load mix config', () => {
-//   const context = new Context({
-//     args: {},
-//     command: 'start',
-//     rootDir: path.join(__dirname, 'fixtures/mixConfig/')
-//   });
-
-//   it('combine basic config', async () => {
-//     await context.resolveConfig();
-//     expect(context.userConfig.entry).toEqual('src/index.ts');
-//   });
-// });
+describe('load mix config', () => {
+  it('combine basic config', async () => {
+    const context = await createContext({
+      args: {},
+      command: 'start',
+      rootDir: path.join(__dirname, 'fixtures/mixConfig/')
+    });
+    expect(context.userConfig.entry).toEqual('src/index.ts');
+  });
+});

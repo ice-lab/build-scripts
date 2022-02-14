@@ -1,9 +1,9 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fg from 'fast-glob';
+import * as JSON5 from 'json5';
 import buildConfig from './buildConfig';
 import { USER_CONFIG_FILE } from './constant';
-import JSON5 = require('json5');
 
 import type { IUserConfig, IModeConfig, CommandArgs } from '../Context';
 import type { CreateLoggerReturns } from './logger';

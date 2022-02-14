@@ -1,4 +1,6 @@
 {
-  // some comment
-  "plugins": []
+  "entry": "src/index",
+  "plugins": [
+    "./plugin.js"
+  ]
 }
