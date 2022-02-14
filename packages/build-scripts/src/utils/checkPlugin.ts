@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import * as _ from 'lodash';
 import type { IPluginList } from '../Context';
 
 const checkPluginValue = (plugins: IPluginList): void => {

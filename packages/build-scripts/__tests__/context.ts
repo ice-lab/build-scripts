@@ -9,12 +9,10 @@ describe('merge modeConfig', () => {
   });
   
   it('combine basic config', async () => {
-    await context.resolveConfig();
     expect(context.userConfig.entry).toEqual('src/test');
   });
 
   it('combine plugins', async () => {
-    await context.resolveConfig();
     expect(context.userConfig.plugins).toEqual([['./a.plugin.js', { name: 'test'}], './b.plugin.js']);
   });
 });

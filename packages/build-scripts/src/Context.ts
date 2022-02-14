@@ -3,8 +3,8 @@ import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
 import deepmerge from 'deepmerge';
 import camelCase from 'camelcase';
-import assert from 'assert';
-import _ from 'lodash';
+import * as assert from 'assert';
+import * as _ from 'lodash';
 import {
   IHash,
   Json,
@@ -323,7 +323,6 @@ class Context<T, U = any> {
     this.bundlers = bundlers;
 
     this.pkg = loadPkg(rootDir);
-    this.setup();
   }
 
   runJestConfig = (jestConfig: Json): Json => {
@@ -444,10 +443,10 @@ class Context<T, U = any> {
 
     checkPlugin(builtInPlugins); // check plugins property
     this.plugins = resolvePlugins(
-      {
+      [
         ...builtInPlugins,
         ...(this.userConfig.plugins || []),
-      },
+      ],
       {
         rootDir: this.rootDir,
         logger: this.logger,
@@ -772,27 +771,14 @@ class Context<T, U = any> {
       return camelCase(name, { pascalCase: false });
     });
   };
-
-  // public run = async <T, P>(options?: T): Promise<P> => {
-  //   const { command, commandArgs } = this;
-  //   log.verbose(
-  //     'OPTIONS',
-  //     `${command} cliOptions: ${JSON.stringify(commandArgs, null, 2)}`,
-  //   );
-  //   try {
-  //     await this.setUp();
-  //   } catch (err) {
-  //     log.error('CONFIG', picocolors.red('Failed to get config.'));
-  //     await this.applyHook(`error`, { err });
-  //     throw err;
-  //   }
-  //   const commandModule = this.getCommandModule({ command, commandArgs, userConfig: this.userConfig });
-  //   return commandModule(this, options);
-  // }
 }
 
 export default Context;
 
-export const createContext = <T, U> (args: IContextOptions<U>): Context<T, U> => {
-  return new Context(args);
+export const createContext = async <T, U> (args: IContextOptions<U>): Promise<Context<T, U>> => {
+  const ctx = new Context<T, U>(args);
+
+  await ctx.setup();
+
+  return ctx;
 };

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable no-nested-ternary */
-import picocolors from 'picocolors';
+import * as picocolors from 'picocolors';
 
 export type LOG_LEVEL = 'info' | 'success' | 'error' | 'warn';
 

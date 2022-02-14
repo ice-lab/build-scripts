@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { Logger } from 'npmlog';
 import * as fg from 'fast-glob';
 import buildConfig from './buildConfig';
 import { USER_CONFIG_FILE } from './constant';
@@ -68,7 +67,7 @@ export const getUserConfig = async ({
   };
   if (configPath && fs.existsSync(configPath)) {
     try {
-      userConfig = await loadConfig(configPath, logger as any);
+      userConfig = await loadConfig(configPath, logger);
     } catch (err: unknown) {
       if (err instanceof Error) {
         logger.info(
@@ -90,7 +89,7 @@ export const getUserConfig = async ({
   return mergeModeConfig(commandArgs.mode, userConfig);
 };
 
-export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|undefined> {
+export async function loadConfig<T>(filePath: string, log: CreateLoggerReturns): Promise<T|undefined> {
   const start = Date.now();
   const isJson = filePath.endsWith('.json');
   const isTS = filePath.endsWith('.ts');
@@ -120,11 +119,11 @@ export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|un
       }
       // delete the file after eval
       fs.unlinkSync(tempFile);
-      log.verbose('[config]', `TS + native esm module loaded in ${Date.now() - start}ms, ${fileUrl}`);
+      log.info('[config]', `TS + native esm module loaded in ${Date.now() - start}ms, ${fileUrl}`);
     } else {
       // eslint-disable-next-line no-eval
       userConfig = (await eval(`import(fileUrl + '?t=${Date.now()}')`)).default;
-      log.verbose('[config]', `native esm config loaded in ${Date.now() - start}ms, ${fileUrl}`);
+      log.info('[config]', `native esm config loaded in ${Date.now() - start}ms, ${fileUrl}`);
     }
   }
 
@@ -133,7 +132,7 @@ export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|un
     try {
       delete require.cache[require.resolve(filePath)];
       userConfig = require(filePath);
-      log.verbose('[config]', `cjs module loaded in ${Date.now() - start}ms`);
+      log.info('[config]', `cjs module loaded in ${Date.now() - start}ms`);
     } catch (e: unknown) {
       if (e instanceof Error) {
         const ignored = new RegExp(
@@ -170,7 +169,7 @@ export async function loadConfig<T>(filePath: string, log: Logger): Promise<T|un
       throw err;
     }
     fs.unlinkSync(tempFile);
-    log.verbose('[config]', `bundled module file loaded in ${Date.now() - start}m`);
+    log.info('[config]', `bundled module file loaded in ${Date.now() - start}m`);
   }
   return userConfig;
 }

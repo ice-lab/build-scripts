@@ -1,3 +1,6 @@
 module.exports = {
-  entry: 'src/index'
+  entry: 'src/index',
+  plugins: [
+    './plugin.js'
+  ]
 };

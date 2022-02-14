@@ -22,7 +22,7 @@ class Service<T, U = any> {
 
   run = async (options: IContextOptions<U>): Promise<void> => {
     const { command } = options;
-    const ctx = createContext<T, U>({
+    const ctx = await createContext<T, U>({
       bundlers: this.serviceConfig.bundlers,
       ...options,
     });
