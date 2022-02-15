@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- [chore] bump version of `esbuild`(^0.14.14)
+
 ## 1.2.1
 
 - [fix] run `compiler.close()` for store cache after build
