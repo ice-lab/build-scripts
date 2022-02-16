@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- [fix] add `webpack` to peerDeps
+
 ## 1.2.1
 
 - [fix] run `compiler.close()` for store cache after build
