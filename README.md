@@ -1,4 +1,4 @@
-1.x | [0.x](https://github.com/ice-lab/build-scripts/blob/stable/0.x)
+1.x | [0.x](https://github.com/ice-lab/build-scripts/tree/stable/0.x)
 
 # build-scripts
 
