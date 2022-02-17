@@ -1,6 +1,6 @@
 import { isAbsolute } from 'path';
 import * as _ from 'lodash';
-import type { IPluginList, IPluginInfo, IPluginOptions } from '../Context';
+import type { IPluginList, IPluginInfo, IPluginOptions } from '../types';
 import type { CreateLoggerReturns } from './logger';
 
 const resolvePlugins = <T, U> (allPlugins: IPluginList, {

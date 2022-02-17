@@ -1,4 +1,5 @@
-import Context, { createContext, IContextOptions } from './Context';
+import Context, { createContext } from './Context';
+import type { IContextOptions } from './types';
 
 export interface ICommandFn <T> {
   (ctx: Context<T>): void | Promise<void> | any;

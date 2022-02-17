@@ -4,7 +4,10 @@ import * as picocolors from 'picocolors';
 
 export type LOG_LEVEL = 'info' | 'success' | 'error' | 'warn';
 
-let silent = false;
+let logLevel = 'info';
+
+const envs = ['verbose', 'info', 'warn', 'error'];
+logLevel = envs.indexOf(process.env.LOG_LEVEL) !== -1 ? process.env.LOG_LEVEL : 'info';
 
 const colorize = (type: LOG_LEVEL) => (msg: string) => {
   const color =
@@ -32,7 +35,7 @@ function colorizeLabel(
 }
 
 export function setSlient() {
-  silent = true;
+  logLevel = 'error';
 }
 
 /**
@@ -47,20 +50,20 @@ export function createLogger(name?: string) {
       label: string,
       msg: string,
     ) {
-      switch (type) {
-        case 'error':
-          console.error(
-            colorizeLabel(name, label, 'error'),
-            colorize('error')(msg),
-          );
-          break;
-        default:
-          if (!silent) {
+      if (envs.indexOf(type) >= envs.indexOf(logLevel)) {
+        switch (type) {
+          case 'error':
+            console.error(
+              colorizeLabel(name, label, 'error'),
+              colorize('error')(msg),
+            );
+            break;
+          default:
             console.log(
               colorizeLabel(name, label, type),
               colorize(type)(msg),
             );
-          }
+        }
       }
     },
     success(label: string, msg: string) {

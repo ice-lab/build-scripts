@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import type { IPluginList } from '../Context';
+import type { IPluginList } from '../types';
 
 const checkPluginValue = (plugins: IPluginList): void => {
   let flag;
