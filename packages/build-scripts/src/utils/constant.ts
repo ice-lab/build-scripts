@@ -7,6 +7,7 @@ export const PLUGIN_CONTEXT_KEY = [
   'userConfig' as const,
   'originalUserConfig' as const,
   'pkg' as const,
+  'bundlers' as const,
 ];
 
 export const VALIDATION_MAP = {

@@ -13,7 +13,7 @@ type DevServerConfig = Record<string, any>;
 const start = async (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>> | WebpackDevServer> => {
   const { eject } = options || {};
   const configArr = context.getConfig();
-  const { command, commandArgs, bundlers: webpack, applyHook, logger } = context;
+  const { command, commandArgs, bundlers: { webpack }, applyHook, logger } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });
 
   if (eject) {

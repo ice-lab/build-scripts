@@ -7,10 +7,10 @@ import { IRunOptions } from './types';
 import WebpackChain from 'webpack-chain';
 import type webpack from 'webpack';
 
-export = async function (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>>> {
+const build = async function (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>>> {
   const { eject } = options || {};
   const configArr = context.getConfig();
-  const { command, commandArgs, applyHook, rootDir, bundlers: webpackInstance, logger } = context;
+  const { command, commandArgs, applyHook, rootDir, bundlers: { webpack: webpackInstance }, logger } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });
   // eject config
   if (eject) {
@@ -79,3 +79,5 @@ export = async function (context: Context<WebpackChain>, options?: IRunOptions):
 
   await applyHook(`after.${command}.compile`, result);
 };
+
+export default build;

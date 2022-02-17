@@ -27,7 +27,7 @@ class Service<T, U = any> {
       ...options,
     });
 
-    const hasCommandImplement = Object.keys(this.serviceConfig).includes(command);
+    const hasCommandImplement = Object.keys(this.serviceConfig.command).includes(command);
 
     if (!hasCommandImplement) {
       const errMsg = `No command that corresponds to ${command}`;
