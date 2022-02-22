@@ -10,10 +10,12 @@ import type { WebpackOptionsNormalized, MultiStats } from 'webpack';
 
 type DevServerConfig = Record<string, any>;
 
-const start = async (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>> | WebpackDevServer> => {
+const start = async (context: Context<WebpackChain, {
+  webpack: any;
+}>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>> | WebpackDevServer> => {
   const { eject } = options || {};
   const configArr = context.getConfig();
-  const { command, commandArgs, extendsPluginAPI: { webpack }, applyHook, logger } = context;
+  const { command, commandArgs, extendsPluginAPI, applyHook, logger } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });
 
   if (eject) {

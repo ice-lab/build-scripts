@@ -118,19 +118,22 @@ class Context<T = {}, U = EmptyObject> {
     const {
       command,
       rootDir = process.cwd(),
-      args = {},
+      commandArgs = {},
       extendsPluginAPI,
     } = options || {};
 
     this.options = options;
     this.command = command;
 
-    this.commandArgs = args;
+    this.commandArgs = commandArgs;
     this.rootDir = rootDir;
 
     this.extendsPluginAPI = extendsPluginAPI;
 
     this.pkg = loadPkg(rootDir, this.logger);
+
+    // Register built-in command
+    this.registerCliOption(BUILTIN_CLI_OPTIONS);
   }
 
   runJestConfig = (jestConfig: Json): Json => {
@@ -146,13 +149,11 @@ class Context<T = {}, U = EmptyObject> {
   };
 
   setup = async (): Promise<Array<ITaskConfig<T>>> => {
-    // Register built-in command
-    await this.registerCliOption(BUILTIN_CLI_OPTIONS);
-
     await this.resolveConfig();
     await this.runPlugins();
     await this.runConfigModification();
     await this.validateUserConfig();
+    // userconifg
     await this.runOnGetConfigFn();
     await this.runCliOption();
     // filter webpack config by cancelTaskNames
@@ -160,6 +161,49 @@ class Context<T = {}, U = EmptyObject> {
       (config) => !this.cancelTaskNames.includes(config.name),
     );
     return this.configArr;
+  };
+
+  getAllTask = (): string[] => {
+    return this.configArr.map((v) => v.name);
+  };
+
+  getAllPlugin: IGetAllPlugin<T, U> = (
+    dataKeys = ['pluginPath', 'options', 'name'],
+  ) => {
+    return this.plugins.map(
+      (pluginInfo): Partial<IPluginInfo<T, U>> => {
+        // filter fn to avoid loop
+        return _.pick(pluginInfo, dataKeys);
+      },
+    );
+  };
+
+  resolveConfig = async (): Promise<void> => {
+    this.userConfig = await getUserConfig({
+      rootDir: this.rootDir,
+      commandArgs: this.commandArgs,
+      logger: this.logger,
+    });
+    // shallow copy of userConfig while userConfig may be modified
+    this.originalUserConfig = { ...this.userConfig };
+    const { plugins = [], getBuiltInPlugins = () => [] } = this.options;
+    // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
+    const builtInPlugins: IPluginList = [
+      ...plugins,
+      ...getBuiltInPlugins(this.userConfig),
+    ];
+
+    checkPlugin(builtInPlugins); // check plugins property
+    this.plugins = resolvePlugins(
+      [
+        ...builtInPlugins,
+        ...(this.userConfig.plugins || []),
+      ],
+      {
+        rootDir: this.rootDir,
+        logger: this.logger,
+      },
+    );
   };
 
   applyHook = async (key: string, opts = {}): Promise<void> => {
@@ -232,34 +276,6 @@ class Context<T = {}, U = EmptyObject> {
       this.eventHooks[key] = [];
     }
     this.eventHooks[key].push(fn);
-  };
-
-  private resolveConfig = async (): Promise<void> => {
-    this.userConfig = await getUserConfig({
-      rootDir: this.rootDir,
-      commandArgs: this.commandArgs,
-      logger: this.logger,
-    });
-    // shallow copy of userConfig while userConfig may be modified
-    this.originalUserConfig = { ...this.userConfig };
-    const { plugins = [], getBuiltInPlugins = () => [] } = this.options;
-    // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
-    const builtInPlugins: IPluginList = [
-      ...plugins,
-      ...getBuiltInPlugins(this.userConfig),
-    ];
-
-    checkPlugin(builtInPlugins); // check plugins property
-    this.plugins = resolvePlugins(
-      [
-        ...builtInPlugins,
-        ...(this.userConfig.plugins || []),
-      ],
-      {
-        rootDir: this.rootDir,
-        logger: this.logger,
-      },
-    );
   };
 
   private runPlugins = async (): Promise<void> => {
@@ -439,17 +455,6 @@ class Context<T = {}, U = EmptyObject> {
     }
   };
 
-  private getAllPlugin: IGetAllPlugin<T, U> = (
-    dataKeys = ['pluginPath', 'options', 'name'],
-  ) => {
-    return this.plugins.map(
-      (pluginInfo): Partial<IPluginInfo<T, U>> => {
-        // filter fn to avoid loop
-        return _.pick(pluginInfo, dataKeys);
-      },
-    );
-  };
-
   private registerTask: IRegisterTask<T> = (name, config) => {
     const exist = this.configArr.find((v): boolean => v.name === name);
     if (!exist) {
@@ -541,10 +546,6 @@ class Context<T = {}, U = EmptyObject> {
     ...args: IModifyRegisteredCliArgs<T, U>
   ) => {
     this.modifyCliRegistrationCallbacks.push(args);
-  };
-
-  private getAllTask = (): string[] => {
-    return this.configArr.map((v) => v.name);
   };
 
   private onGetConfig: IOnGetConfig<T> = (

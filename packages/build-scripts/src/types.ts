@@ -181,7 +181,7 @@ export interface IPlugin<T, U = EmptyObject> {
     options?: IPluginOptions): MaybePromise<void>;
 }
 
-export type CommandName = 'start' | 'build' | 'test';
+export type CommandName = 'start' | 'build' | 'test' | string;
 
 export type CommandArgs = IHash<any>;
 
@@ -196,7 +196,7 @@ export type RegisterCommandModules = (key: string, module: CommandModule<any>) =
 export interface IContextOptions<U> {
   command: CommandName;
   rootDir?: string;
-  args: CommandArgs;
+  commandArgs: CommandArgs;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
   extendsPluginAPI?: U;
