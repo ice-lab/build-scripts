@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import deepmerge from 'deepmerge';
+import * as deepmerge from 'deepmerge';
 import camelCase from 'camelcase';
 import * as assert from 'assert';
 import * as _ from 'lodash';
