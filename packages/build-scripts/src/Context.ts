@@ -48,8 +48,6 @@ import {
   IModifyCliRegistration,
   IModifyRegisteredCliArgs,
   EmptyObject,
-  IPluginAPI,
-  A,
 } from './types';
 import { getUserConfig } from './utils/loadConfig';
 import loadPkg from './utils/loadPkg';

@@ -1,15 +1,16 @@
 import Context, { createContext } from './Context';
+import consola from 'consola';
 import type { IContextOptions } from './types';
 
-export interface ICommandFn <T> {
-  (ctx: Context<T>): void | Promise<void> | any;
+export interface ICommandFn <T, U> {
+  (ctx: Context<T, U>): void | Promise<void> | any;
 }
 
 export interface IServiceOptions<T, U> {
   /** Name of service */
   name: string;
 
-  command: Partial<Record<'start' | 'build' | 'test' | string, ICommandFn<T>>>;
+  command: Partial<Record<'start' | 'build' | 'test' | string, ICommandFn<T, U>>>;
 
   extendsPluginAPI?: U;
 }
@@ -32,7 +33,7 @@ class Service<T, U = any> {
 
     if (!hasCommandImplement) {
       const errMsg = `No command that corresponds to ${command}`;
-      ctx.logger.error('run', errMsg);
+      consola.error(errMsg);
       return Promise.reject(errMsg);
     }
 
