@@ -18,8 +18,8 @@ export type MaybeArray<T> = T | T[];
 export type MaybePromise<T> = T | Promise<T>;
 
 
-export interface IPluginAPI <T, U> {
-  context: PluginContext<T>;
+export interface IDefaultPluginAPI <T, U> {
+  context: PluginContext;
   registerTask: IRegisterTask<T>;
   getAllTask: () => string[];
   getAllPlugin: IGetAllPlugin<T, U>;
@@ -43,9 +43,9 @@ export interface IPluginAPI <T, U> {
 
 export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 
-export type PluginContext<T> = Pick<Context<T>, typeof PLUGIN_CONTEXT_KEY[number]>;
+export type PluginContext = Pick<Context, typeof PLUGIN_CONTEXT_KEY[number]>;
 
-export type UserConfigContext<T> = PluginContext<T> & {
+export type UserConfigContext<T> = PluginContext & {
   taskName: string;
 };
 
@@ -173,13 +173,13 @@ export interface IPluginInfo<T, U> {
 export type IPluginOptions = Json | JsonArray;
 
 export interface IPlugin<T, U = EmptyObject> {
-  (api: IPluginAPI<T, U>
-  & Omit<U, 'context'>
-  & {
-    context: PluginContext<T> & ('context' extends keyof U ? PropType<U, 'context'> : {});
-  },
-    options?: IPluginOptions): MaybePromise<void>;
+  (api: IPluginAPI<T, U>, options?: IPluginOptions): MaybePromise<void>;
 }
+
+export type IPluginAPI <T, U = EmptyObject> = IDefaultPluginAPI<T, U> & Omit<U, 'context'>
+& {
+  context: PluginContext & ('context' extends keyof U ? U['context'] : {});
+};
 
 export type CommandName = 'start' | 'build' | 'test' | string;
 
