@@ -47,6 +47,9 @@ import {
   IOnGetJestConfig,
   IModifyCliRegistration,
   IModifyRegisteredCliArgs,
+  EmptyObject,
+  IPluginAPI,
+  A,
 } from './types';
 import { getUserConfig } from './utils/loadConfig';
 import loadPkg from './utils/loadPkg';
@@ -67,12 +70,12 @@ const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   }
 };
 
-class Context<T, U = any> {
+class Context<T = {}, U = EmptyObject> {
   command: CommandName;
 
   commandArgs: CommandArgs;
 
-  bundlers: U;
+  extendsPluginAPI: U;
 
   rootDir: string;
 
@@ -105,9 +108,9 @@ class Context<T, U = any> {
 
   private internalValue: IHash<any> = {};
 
-  private userConfigRegistration: IUserConfigRegistration<T, U> = {};
+  private userConfigRegistration: IUserConfigRegistration<T> = {};
 
-  private cliOptionRegistration: ICliOptionRegistration<T, U> = {};
+  private cliOptionRegistration: ICliOptionRegistration<T> = {};
 
   private methodRegistration: { [name: string]: [IMethodFunction, any] } = {};
 
@@ -118,15 +121,16 @@ class Context<T, U = any> {
       command,
       rootDir = process.cwd(),
       args = {},
-      bundlers,
+      extendsPluginAPI,
     } = options || {};
 
     this.options = options;
     this.command = command;
+
     this.commandArgs = args;
     this.rootDir = rootDir;
 
-    this.bundlers = bundlers;
+    this.extendsPluginAPI = extendsPluginAPI;
 
     this.pkg = loadPkg(rootDir, this.logger);
   }
@@ -171,7 +175,7 @@ class Context<T, U = any> {
 
   private registerConfig = (
     type: string,
-    args: MaybeArray<IUserConfigArgs<T, U>> | MaybeArray<ICliOptionArgs<T, U>>,
+    args: MaybeArray<IUserConfigArgs<T>> | MaybeArray<ICliOptionArgs<T>>,
     parseName?: (name: string) => string,
   ): void => {
     const registerKey = `${type}Registration` as
@@ -197,13 +201,13 @@ class Context<T, U = any> {
         _.isUndefined(this.userConfig[confName]) &&
         Object.prototype.hasOwnProperty.call(conf, 'defaultValue')
       ) {
-        this.userConfig[confName] = (conf as IUserConfigArgs<T, U>).defaultValue;
+        this.userConfig[confName] = (conf as IUserConfigArgs<T>).defaultValue;
       }
     });
   };
 
   private async runSetConfig(
-    fn: ISetConfig<T, U>,
+    fn: ISetConfig<T>,
     configValue: JsonValue,
     ignoreTasks: string[] | null,
   ): Promise<void> {
@@ -215,7 +219,7 @@ class Context<T, U = any> {
           new RegExp(ignoreTask).exec(taskName));
       }
       if (!ignoreConfig) {
-        const userConfigContext: UserConfigContext<T, U> = {
+        const userConfigContext: UserConfigContext<T> = {
           ..._.pick(this, PLUGIN_CONTEXT_KEY),
           taskName,
         };
@@ -268,8 +272,7 @@ class Context<T, U = any> {
       const applyMethod: IApplyMethodAPI = (methodName, ...args) => {
         return this.applyMethod([methodName, pluginName], ...args);
       };
-      const pluginAPI = {
-        log: this.logger,
+      const pluginAPI = deepmerge({
         context: pluginContext,
         registerTask: this.registerTask,
         getAllTask: this.getAllTask,
@@ -289,9 +292,10 @@ class Context<T, U = any> {
         modifyUserConfig: this.modifyUserConfig,
         modifyConfigRegistration: this.modifyConfigRegistration,
         modifyCliRegistration: this.modifyCliRegistration,
-      };
+      }, this.extendsPluginAPI);
+
       // eslint-disable-next-line no-await-in-loop
-      await fn(pluginAPI, options);
+      await fn(pluginAPI as any, options);
     }
   };
 
@@ -311,7 +315,7 @@ class Context<T, U = any> {
             : 'cliOptionRegistration'
         ];
         if (modifyAll) {
-          const modifyFunction = name as IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T, U>>;
+          const modifyFunction = name as IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>;
           const modifiedResult = modifyFunction(configRegistrations);
           Object.keys(modifiedResult).forEach((configKey) => {
             configRegistrations[configKey] = {
@@ -529,13 +533,13 @@ class Context<T, U = any> {
     }
   };
 
-  private modifyConfigRegistration: IModifyConfigRegistration<T, U> = (
+  private modifyConfigRegistration: IModifyConfigRegistration<T> = (
     ...args: IModifyRegisteredConfigArgs<T, U>
   ) => {
     this.modifyConfigRegistrationCallbacks.push(args);
   };
 
-  private modifyCliRegistration: IModifyCliRegistration<T, U> = (
+  private modifyCliRegistration: IModifyCliRegistration<T> = (
     ...args: IModifyRegisteredCliArgs<T, U>
   ) => {
     this.modifyCliRegistrationCallbacks.push(args);
@@ -563,7 +567,7 @@ class Context<T, U = any> {
     return this.internalValue[key];
   };
 
-  private registerUserConfig = (args: MaybeArray<IUserConfigArgs<T, U>>): void => {
+  private registerUserConfig = (args: MaybeArray<IUserConfigArgs<T>>): void => {
     this.registerConfig('userConfig', args);
   };
 
@@ -572,7 +576,7 @@ class Context<T, U = any> {
     return Object.keys(this[mappedType] || {}).includes(name);
   };
 
-  private registerCliOption = (args: MaybeArray<ICliOptionArgs<T, U>>): void => {
+  private registerCliOption = (args: MaybeArray<ICliOptionArgs<T>>): void => {
     this.registerConfig('cliOption', args, (name) => {
       return camelCase(name, { pascalCase: false });
     });

@@ -11,7 +11,7 @@ export interface IServiceOptions<T, U> {
 
   command: Partial<Record<'start' | 'build' | 'test' | string, ICommandFn<T>>>;
 
-  bundlers?: U;
+  extendsPluginAPI?: U;
 }
 
 class Service<T, U = any> {
@@ -24,7 +24,7 @@ class Service<T, U = any> {
   run = async (options: IContextOptions<U>): Promise<void> => {
     const { command } = options;
     const ctx = await createContext<T, U>({
-      bundlers: this.serviceConfig.bundlers,
+      extendsPluginAPI: this.serviceConfig.extendsPluginAPI,
       ...options,
     });
 

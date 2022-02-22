@@ -1,7 +1,6 @@
 import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
 import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP } from './utils/constant';
-import type { CreateLoggerReturns } from './utils/logger';
 import type { Context } from '.';
 
 export interface IHash<T> {
@@ -20,27 +19,33 @@ export type MaybePromise<T> = T | Promise<T>;
 
 
 export interface IPluginAPI <T, U> {
-  log: CreateLoggerReturns;
-  context: PluginContext<T, U>;
+  context: PluginContext<T>;
   registerTask: IRegisterTask<T>;
   getAllTask: () => string[];
   getAllPlugin: IGetAllPlugin<T, U>;
+  cancelTask: ICancelTask;
   onGetConfig: IOnGetConfig<T>;
   onGetJestConfig: IOnGetJestConfig;
   onHook: IOnHook;
   setValue: (name: string, value: T) => void;
   getValue: (name: string) => T;
-  registerUserConfig: (args: MaybeArray<IUserConfigArgs<T, U>>) => void;
+  registerUserConfig: (args: MaybeArray<IUserConfigArgs<T>>) => void;
   hasRegistration: (name: string, type?: 'cliOption' | 'userConfig') => boolean;
-  registerCliOption: (args: MaybeArray<ICliOptionArgs<T, U>>) => void;
+  registerCliOption: (args: MaybeArray<ICliOptionArgs<T>>) => void;
   registerMethod: IRegisterMethod;
   applyMethod: IApplyMethodAPI;
+  hasMethod: IHasMethod;
   modifyUserConfig: IModifyUserConfig;
+  modifyConfigRegistration: IModifyConfigRegistration<T>;
+  modifyCliRegistration: IModifyCliRegistration<T>;
+
 }
 
-export type PluginContext<T, U> = Pick<Context<T, U>, typeof PLUGIN_CONTEXT_KEY[number]>;
+export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 
-export type UserConfigContext<T, U> = PluginContext<T, U> & {
+export type PluginContext<T> = Pick<Context<T>, typeof PLUGIN_CONTEXT_KEY[number]>;
+
+export type UserConfigContext<T> = PluginContext<T> & {
   taskName: string;
 };
 
@@ -74,25 +79,25 @@ export interface IPluginConfig<T> {
   (config: T): Promise<void> | void;
 }
 
-export interface ISetConfig<T, U> {
-  (config: T, value: JsonValue, context: UserConfigContext<T, U>): Promise<void> | void;
+export interface ISetConfig<T> {
+  (config: T, value: JsonValue, context: UserConfigContext<T>): Promise<void> | void;
 }
 
 export interface IValidation {
   (value: any): boolean;
 }
 
-export interface IUserConfigArgs<T, U> {
+export interface IUserConfigArgs<T> {
   name: string;
-  setConfig?: ISetConfig<T, U>;
+  setConfig?: ISetConfig<T>;
   defaultValue?: any;
   validation?: ValidationKey | IValidation;
   ignoreTasks?: string[];
 }
 
-export interface ICliOptionArgs<T, U> {
+export interface ICliOptionArgs<T> {
   name: string;
-  setConfig?: ISetConfig<T, U>;
+  setConfig?: ISetConfig<T>;
   commands?: string[];
   ignoreTasks?: string[];
 }
@@ -167,8 +172,13 @@ export interface IPluginInfo<T, U> {
 
 export type IPluginOptions = Json | JsonArray;
 
-export interface IPlugin<T, U> {
-  (api: IPluginAPI<T, U>, options?: IPluginOptions): MaybePromise<void>;
+export interface IPlugin<T, U = EmptyObject> {
+  (api: IPluginAPI<T, U>
+  & Omit<U, 'context'>
+  & {
+    context: PluginContext<T> & ('context' extends keyof U ? PropType<U, 'context'> : {});
+  },
+    options?: IPluginOptions): MaybePromise<void>;
 }
 
 export type CommandName = 'start' | 'build' | 'test';
@@ -189,7 +199,7 @@ export interface IContextOptions<U> {
   args: CommandArgs;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
-  bundlers?: U;
+  extendsPluginAPI?: U;
 }
 
 export interface ITaskConfig<T> {
@@ -214,31 +224,31 @@ export interface IModifyRegisteredConfigCallbacks<T> {
   (configArgs: T): T;
 }
 
-export type IUserConfigRegistration<T, U> = Record<string, IUserConfigArgs<T, U>>;
-export type ICliOptionRegistration<T, U> = Record<string, ICliOptionArgs<T, U>>;
+export type IUserConfigRegistration<T> = Record<string, IUserConfigArgs<T>>;
+export type ICliOptionRegistration<T> = Record<string, ICliOptionArgs<T>>;
 
-export interface IModifyConfigRegistration<T, U> {
-  (configFunc: IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T, U>>): void;
+export interface IModifyConfigRegistration<T> {
+  (configFunc: IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>): void;
   (
     configName: string,
-    configFunc: IModifyRegisteredConfigCallbacks<IUserConfigArgs<T, U>>,
+    configFunc: IModifyRegisteredConfigCallbacks<IUserConfigArgs<T>>,
   ): void;
 }
 
-export interface IModifyCliRegistration<T, U> {
-  (configFunc: IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T, U>>): void;
+export interface IModifyCliRegistration<T> {
+  (configFunc: IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T>>): void;
   (
     configName: string,
-    configFunc: IModifyRegisteredConfigCallbacks<ICliOptionArgs<T, U>>,
+    configFunc: IModifyRegisteredConfigCallbacks<ICliOptionArgs<T>>,
   ): void;
 }
 
 export type IModifyRegisteredConfigArgs<T, U> =
-  | [string, IModifyRegisteredConfigCallbacks<IUserConfigArgs<T, U>>]
-  | [IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T, U>>];
+  | [string, IModifyRegisteredConfigCallbacks<IUserConfigArgs<T>>]
+  | [IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>];
 export type IModifyRegisteredCliArgs<T, U> =
-  | [string, IModifyRegisteredConfigCallbacks<ICliOptionArgs<T, U>>]
-  | [IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T, U>>];
+  | [string, IModifyRegisteredConfigCallbacks<ICliOptionArgs<T>>]
+  | [IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T>>];
 
 export type IOnGetConfigArgs<T> =
   | [string, IPluginConfig<T>]
@@ -247,3 +257,7 @@ export type IOnGetConfigArgs<T> =
 export type IRegistrationKey =
   | 'modifyConfigRegistrationCallbacks'
   | 'modifyCliRegistrationCallbacks';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EmptyObject = {};
+

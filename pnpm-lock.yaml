@@ -34,6 +34,7 @@ importers:
       '@types/semver': ^6.2.0
       camelcase: ^5.3.1
       commander: ^2.19.0
+      consola: ^2.15.3
       deepmerge: ^4.0.0
       esbuild: ~0.14.0
       fast-glob: ^3.2.7
@@ -51,6 +52,7 @@ importers:
       '@jest/types': 27.5.0
       camelcase: 5.3.1
       commander: 2.20.3
+      consola: 2.15.3
       deepmerge: 4.2.2
       esbuild: 0.14.20
       fast-glob: 3.2.11
@@ -3041,6 +3043,10 @@ packages:
     resolution: {integrity: sha512-e54B99q/OUoH64zYYRf3HBP5z24G38h5D3qXu23JGRoigpX5Ss4r9ZnDk3g0Z8uQC2x2lPaJ+UlWBc1ZWBWdLg==}
     engines: {node: '>=0.8'}
     dev: true
+
+  /consola/2.15.3:
+    resolution: {integrity: sha512-9vAdYbHj6x2fLKC4+oPH0kFzY/orMZyG2Aj+kNylHxKGJ/Ed4dpNyAQYwJOdqO4zdM7XpVHmyejQDcQHrnuXbw==}
+    dev: false
 
   /console-control-strings/1.1.0:
     resolution: {integrity: sha512-ty/fTekppD2fIwRvnZAVdeOiGd1c7YXEixbgJTNzqcxJWKQnjJ/V1bNEEE6hygpM3WjwHFUVK6HTjWSzV4a8sQ==}

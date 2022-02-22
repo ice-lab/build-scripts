@@ -10,7 +10,7 @@ import type webpack from 'webpack';
 const build = async function (context: Context<WebpackChain>, options?: IRunOptions): Promise<void | Array<ITaskConfig<WebpackChain>>> {
   const { eject } = options || {};
   const configArr = context.getConfig();
-  const { command, commandArgs, applyHook, rootDir, bundlers: { webpack: webpackInstance }, logger } = context;
+  const { command, commandArgs, applyHook, rootDir, extendsPluginAPI: { webpack: webpackInstance }, logger } = context;
   await applyHook(`before.${command}.load`, { args: commandArgs, webpackConfig: configArr });
   // eject config
   if (eject) {

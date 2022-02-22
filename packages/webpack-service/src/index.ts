@@ -10,7 +10,7 @@ const webpackService = new Service<WebpackChain, Record<'webpack', typeof webpac
     start,
     build,
   },
-  bundlers: {
+  extendsPluginAPI: {
     webpack,
   },
 });
