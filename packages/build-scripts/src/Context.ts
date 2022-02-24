@@ -306,7 +306,7 @@ class Context<T = {}, U = EmptyObject> {
         modifyUserConfig: this.modifyUserConfig,
         modifyConfigRegistration: this.modifyConfigRegistration,
         modifyCliRegistration: this.modifyCliRegistration,
-      }, this.extendsPluginAPI);
+      }, this.extendsPluginAPI || {});
 
       // eslint-disable-next-line no-await-in-loop
       await fn(pluginAPI as any, options);
