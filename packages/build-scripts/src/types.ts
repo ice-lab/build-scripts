@@ -208,9 +208,11 @@ export interface ITaskConfig<T> {
   modifyFunctions: Array<IPluginConfig<T>>;
 }
 
-export interface IUserConfig extends Json {
+export interface IUserConfig {
   plugins: IPluginList;
+  [key: string]: any;
 }
+
 
 export interface IModeConfig {
   [name: string]: IUserConfig;
