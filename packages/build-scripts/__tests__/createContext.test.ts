@@ -4,7 +4,7 @@ import path = require('path')
 describe('create-context', () => {
   it('basic', async () => {
     const context = await createContext({
-      args: {
+      commandArgs: {
         https: true
       },
       command: 'start',

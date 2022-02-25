@@ -4,7 +4,7 @@ import path = require('path')
 describe('load js config', () => {
   it('combine basic config', async () => {
     const context = await createContext({
-      args: {},
+      commandArgs: {},
       command: 'start',
       rootDir: path.join(__dirname, 'fixtures/jsConfig/')
     });
@@ -16,7 +16,7 @@ describe('load js config', () => {
 describe('load ts config', () => {
   it('combine basic config', async () => {
     const context = await createContext({
-      args: {},
+      commandArgs: {},
       command: 'start',
       rootDir: path.join(__dirname, 'fixtures/tsConfig/')
     });
@@ -27,7 +27,7 @@ describe('load ts config', () => {
 describe('load mix config', () => {
   it('combine basic config', async () => {
     const context = await createContext({
-      args: {},
+      commandArgs: {},
       command: 'start',
       rootDir: path.join(__dirname, 'fixtures/mixConfig/')
     });
