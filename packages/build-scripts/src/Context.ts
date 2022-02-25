@@ -68,7 +68,7 @@ const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   }
 };
 
-class Context<T = {}, U = EmptyObject> {
+class Context<T = {}, U = EmptyObject, K = EmptyObject> {
   command: CommandName;
 
   commandArgs: CommandArgs;
@@ -79,7 +79,7 @@ class Context<T = {}, U = EmptyObject> {
 
   pkg: Json;
 
-  userConfig: IUserConfig;
+  userConfig: IUserConfig<K>;
 
   originalUserConfig: IUserConfig;
 
@@ -243,7 +243,10 @@ class Context<T = {}, U = EmptyObject> {
         _.isUndefined(this.userConfig[confName]) &&
         Object.prototype.hasOwnProperty.call(conf, 'defaultValue')
       ) {
-        this.userConfig[confName] = (conf as IUserConfigArgs<T>).defaultValue;
+        this.userConfig = {
+          ...this.userConfig,
+          [confName]: (conf as IUserConfigArgs<T>).defaultValue,
+        };
       }
     });
   };
@@ -266,7 +269,10 @@ class Context<T = {}, U = EmptyObject> {
           taskName,
         };
         // eslint-disable-next-line no-await-in-loop
-        await fn(configInfo.config, configValue, userConfigContext);
+        const maybeConfig = await fn(configInfo.config, configValue, userConfigContext);
+        if (maybeConfig) {
+          configInfo.config = maybeConfig;
+        }
       }
     }
   }
@@ -450,7 +456,10 @@ class Context<T = {}, U = EmptyObject> {
     for (const configInfo of this.configArr) {
       for (const func of configInfo.modifyFunctions) {
         // eslint-disable-next-line no-await-in-loop
-        await func(configInfo.config);
+        const maybeConfig = await func(configInfo.config);
+        if (maybeConfig) {
+          configInfo.config = maybeConfig;
+        }
       }
     }
   };
@@ -526,9 +535,13 @@ class Context<T = {}, U = EmptyObject> {
         }
         Object.keys(modifiedValue).forEach((modifiedConfigKey) => {
           const originalValue = this.userConfig[modifiedConfigKey];
-          this.userConfig[modifiedConfigKey] = mergeInDeep
-            ? mergeConfig<JsonValue>(originalValue, modifiedValue[modifiedConfigKey])
-            : modifiedValue[modifiedConfigKey];
+
+          this.userConfig = {
+            ...this.userConfig,
+            [modifiedConfigKey]: mergeInDeep
+              ? mergeConfig<JsonValue>(originalValue, modifiedValue[modifiedConfigKey])
+              : modifiedValue[modifiedConfigKey],
+          };
         });
       } else {
         throw new Error('modifyUserConfig must return a plain object');

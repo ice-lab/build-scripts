@@ -76,11 +76,11 @@ export interface IOnHook {
 }
 
 export interface IPluginConfig<T> {
-  (config: T): Promise<void> | void;
+  (config: T): Promise<void | T> | void | T;
 }
 
 export interface ISetConfig<T> {
-  (config: T, value: JsonValue, context: UserConfigContext<T>): Promise<void> | void;
+  (config: T, value: JsonValue, context: UserConfigContext<T>): Promise<void | T> | void | T;
 }
 
 export interface IValidation {
@@ -208,14 +208,13 @@ export interface ITaskConfig<T> {
   modifyFunctions: Array<IPluginConfig<T>>;
 }
 
-export interface IUserConfig {
+export type IUserConfig<K = EmptyObject> = K & {
   plugins: IPluginList;
   [key: string]: any;
-}
+};
 
-
-export interface IModeConfig {
-  [name: string]: IUserConfig;
+export interface IModeConfig<K> {
+  [name: string]: IUserConfig<K>;
 }
 
 export interface IJestConfigFunction {

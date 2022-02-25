@@ -5,20 +5,20 @@ import * as JSON5 from 'json5';
 import buildConfig from './buildConfig';
 import { USER_CONFIG_FILE } from './constant';
 
-import type { IUserConfig, IModeConfig, CommandArgs } from '../types';
+import type { IUserConfig, IModeConfig, CommandArgs, EmptyObject, IPluginList } from '../types';
 import type { CreateLoggerReturns } from './logger';
 
-export const mergeModeConfig = (mode: string, userConfig: IUserConfig): IUserConfig => {
+export const mergeModeConfig = <K> (mode: string, userConfig: IUserConfig<K>): IUserConfig<K> => {
   // modify userConfig by userConfig.modeConfig
   if (
     userConfig.modeConfig &&
     mode &&
-    (userConfig.modeConfig as IModeConfig)[mode]
+    (userConfig.modeConfig as IModeConfig<K>)[mode]
   ) {
     const {
       plugins,
       ...basicConfig
-    } = (userConfig.modeConfig as IModeConfig)[mode] as IUserConfig;
+    } = (userConfig.modeConfig as IModeConfig<K>)[mode] as IUserConfig<K>;
     const userPlugins = [...userConfig.plugins];
     if (Array.isArray(plugins)) {
       const pluginKeys = userPlugins.map((pluginInfo) => {
@@ -43,7 +43,7 @@ export const mergeModeConfig = (mode: string, userConfig: IUserConfig): IUserCon
   return userConfig;
 };
 
-export const getUserConfig = async ({
+export const getUserConfig = async <K extends EmptyObject>({
   rootDir,
   commandArgs,
   logger,
@@ -51,7 +51,7 @@ export const getUserConfig = async ({
   rootDir: string;
   commandArgs: CommandArgs;
   logger: CreateLoggerReturns;
-}): Promise<IUserConfig> => {
+}): Promise<IUserConfig<K>> => {
   const { config } = commandArgs;
   let configPath = '';
   if (config) {
@@ -62,8 +62,8 @@ export const getUserConfig = async ({
     const [defaultUserConfig] = await fg(USER_CONFIG_FILE, { cwd: rootDir, absolute: true });
     configPath = defaultUserConfig;
   }
-  let userConfig: IUserConfig = {
-    plugins: [],
+  let userConfig = {
+    plugins: [] as IPluginList,
   };
   if (configPath && fs.existsSync(configPath)) {
     try {
@@ -86,7 +86,7 @@ export const getUserConfig = async ({
     process.exit(1);
   }
 
-  return mergeModeConfig(commandArgs.mode, userConfig);
+  return mergeModeConfig(commandArgs.mode, userConfig as IUserConfig<K>);
 };
 
 export async function loadConfig<T>(filePath: string, log: CreateLoggerReturns): Promise<T|undefined> {
