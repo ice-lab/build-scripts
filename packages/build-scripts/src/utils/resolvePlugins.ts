@@ -2,6 +2,9 @@ import path from 'path';
 import _ from 'lodash';
 import type { IPluginList, IPluginInfo, IPluginOptions } from '../types.js';
 import type { CreateLoggerReturns } from './logger.js';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 const resolvePlugins = async <T, U> (allPlugins: IPluginList, {
   rootDir,
