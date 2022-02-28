@@ -1,5 +1,5 @@
-import * as path from 'path';
-import * as fs from 'fs';
+import path from 'path';
+import fs from 'fs';
 import { build as esbuild, Plugin } from 'esbuild';
 
 const buildConfig = async (fileName: string, mjs: boolean): Promise<string> => {

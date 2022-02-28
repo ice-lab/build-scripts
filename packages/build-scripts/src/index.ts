@@ -1,7 +1,7 @@
-import Service from './Service';
-import Context, { createContext } from './Context';
+import Service from './Service.js';
+import Context, { createContext } from './Context.js';
 
-export * from './types';
+export * from './types.js';
 
 export {
   Service,

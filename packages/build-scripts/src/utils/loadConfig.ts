@@ -1,9 +1,9 @@
-import * as path from 'path';
-import * as fs from 'fs';
-import * as fg from 'fast-glob';
-import * as JSON5 from 'json5';
-import buildConfig from './buildConfig';
-import { USER_CONFIG_FILE } from './constant';
+import path from 'path';
+import fs from 'fs';
+import fg from 'fast-glob';
+import JSON5 from 'json5';
+import buildConfig from './buildConfig.js';
+import { USER_CONFIG_FILE } from './constant.js';
 
 import type { IUserConfig, IModeConfig, CommandArgs, EmptyObject, IPluginList } from '../types';
 import type { CreateLoggerReturns } from './logger';

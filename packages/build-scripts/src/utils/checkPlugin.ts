@@ -1,5 +1,5 @@
-import * as _ from 'lodash';
-import type { IPluginList } from '../types';
+import _ from 'lodash';
+import type { IPluginList } from '../types.js';
 
 const checkPluginValue = (plugins: IPluginList): void => {
   let flag;

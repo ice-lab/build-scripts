@@ -1,8 +1,8 @@
 /* eslint-disable max-lines */
-import * as deepmerge from 'deepmerge';
+import deepmerge from 'deepmerge';
 import camelCase from 'camelcase';
-import * as assert from 'assert';
-import * as _ from 'lodash';
+import assert from 'assert';
+import _ from 'lodash';
 import {
   IHash,
   Json,
@@ -48,14 +48,14 @@ import {
   IModifyCliRegistration,
   IModifyRegisteredCliArgs,
   EmptyObject,
-} from './types';
-import { getUserConfig } from './utils/loadConfig';
-import loadPkg from './utils/loadPkg';
-import { createLogger } from './utils/logger';
-import resolvePlugins from './utils/resolvePlugins';
-import checkPlugin from './utils/checkPlugin';
+} from './types.js';
+import { getUserConfig } from './utils/loadConfig.js';
+import loadPkg from './utils/loadPkg.js';
+import { createLogger } from './utils/logger.js';
+import resolvePlugins from './utils/resolvePlugins.js';
+import checkPlugin from './utils/checkPlugin.js';
 
-import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP, BUILTIN_CLI_OPTIONS, IGNORED_USE_CONFIG_KEY } from './utils/constant';
+import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP, BUILTIN_CLI_OPTIONS, IGNORED_USE_CONFIG_KEY } from './utils/constant.js';
 
 const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   // only merge when currentValue and newValue is object and array
@@ -194,7 +194,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     ];
 
     checkPlugin(builtInPlugins); // check plugins property
-    this.plugins = resolvePlugins(
+    this.plugins = await resolvePlugins(
       [
         ...builtInPlugins,
         ...(this.userConfig.plugins || []),
