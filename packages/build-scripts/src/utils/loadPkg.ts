@@ -10,10 +10,7 @@ const loadPkg = (rootDir: string, logger: CreateLoggerReturns): Json => {
     try {
       config = fs.readJsonSync(resolvedPath);
     } catch (err) {
-      logger.info(
-        'CONFIG',
-        `Fail to load config file ${resolvedPath}, use empty object`,
-      );
+      logger.info(`Fail to load config file ${resolvedPath}, use empty object`);
     }
   }
 

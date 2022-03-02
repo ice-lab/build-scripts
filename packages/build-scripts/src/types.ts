@@ -38,7 +38,6 @@ export interface IDefaultPluginAPI <T, U> {
   modifyUserConfig: IModifyUserConfig;
   modifyConfigRegistration: IModifyConfigRegistration<T>;
   modifyCliRegistration: IModifyCliRegistration<T>;
-
 }
 
 export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
@@ -176,10 +175,10 @@ export interface IPlugin<T, U = EmptyObject> {
   (api: IPluginAPI<T, U>, options?: IPluginOptions): MaybePromise<void>;
 }
 
-export type IPluginAPI <T, U = EmptyObject> = IDefaultPluginAPI<T, U> & Omit<U, 'context'>
-& {
-  context: PluginContext & ('context' extends keyof U ? U['context'] : {});
-};
+export type IPluginAPI <T, U = EmptyObject> =
+ Omit<IDefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'> & Omit<U, 'context'>
+ & { context: PluginContext & ('context' extends keyof U ? U['context'] : {}) }
+ & Pick<IDefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'>;
 
 export type CommandName = 'start' | 'build' | 'test' | string;
 

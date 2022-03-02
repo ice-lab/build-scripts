@@ -37,8 +37,8 @@ const resolvePlugins = async <T, U> (allPlugins: IPluginList, {
         fn = await import(pluginPath);
       } catch (err: unknown) {
         if (err instanceof Error) {
-          logger.error('CONFIG', `Fail to load plugin ${pluginPath}`);
-          logger.error('CONFIG', err.stack || err.toString());
+          logger.error(`Fail to load plugin ${pluginPath}`);
+          logger.error(err.stack || err.toString());
           process.exit(1);
         }
       }

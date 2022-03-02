@@ -85,7 +85,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   plugins: Array<IPluginInfo<T, U>>;
 
-  logger = createLogger();
+  logger = createLogger('BUILD-SCRIPTS');
 
   private options: IContextOptions<U>;
 
@@ -479,7 +479,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   private cancelTask: ICancelTask = (name) => {
     if (this.cancelTaskNames.includes(name)) {
-      this.logger.info('TASK', `task ${name} has already been canceled`);
+      this.logger.info(`task ${name} has already been canceled`);
     } else {
       this.cancelTaskNames.push(name);
     }
@@ -530,7 +530,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       if (_.isPlainObject(modifiedValue)) {
         if (Object.prototype.hasOwnProperty.call(modifiedValue, 'plugins')) {
           // remove plugins while it is not support to be modified
-          this.logger.info('[modifyUserConfig]', 'delete plugins of user config while it is not support to be modified');
+          this.logger.info('delete plugins of user config while it is not support to be modified');
           delete modifiedValue.plugins;
         }
         Object.keys(modifiedValue).forEach((modifiedConfigKey) => {

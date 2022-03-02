@@ -70,19 +70,13 @@ export const getUserConfig = async <K extends EmptyObject>({
       userConfig = await loadConfig(configPath, logger);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        logger.info(
-          'CONFIG',
-          `Fail to load config file ${configPath}`,
-        );
-        logger.error('CONFIG', err.stack || err.toString());
+        logger.info(`Fail to load config file ${configPath}`);
+        logger.error(err.stack || err.toString());
         process.exit(1);
       }
     }
   } else {
-    logger.error(
-      'CONFIG',
-      `config file${`(${configPath})` || ''} is not exist`,
-    );
+    logger.error(`config file${`(${configPath})` || ''} is not exist`);
     process.exit(1);
   }
 

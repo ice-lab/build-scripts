@@ -1,41 +1,38 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable no-nested-ternary */
+import consola from 'consola';
 import picocolors from 'picocolors';
 
-export type LOG_LEVEL = 'info' | 'success' | 'error' | 'warn';
+// copy from consola
+enum LogLevel {
+  Fatal= 0,
+  Error= 0,
+  Warn= 1,
+  Log= 2,
+  Info= 3,
+  Success= 3,
+  Debug= 4,
+  Trace= 5,
+  Silent= -Infinity,
+  Verbose= Infinity,
+}
 
-let logLevel = 'info';
-
-const envs = ['verbose', 'info', 'warn', 'error'];
-logLevel = envs.indexOf(process.env.LOG_LEVEL) !== -1 ? process.env.LOG_LEVEL : 'info';
-
-const colorize = (type: LOG_LEVEL) => (msg: string) => {
+const colorize = (type: LogLevel) => (msg: string) => {
   const color =
-    type === 'info'
+    type === LogLevel.Info
       ? 'blue'
-      : type === 'error'
+      : type === LogLevel.Error
         ? 'red'
-        : type === 'warn'
+        : type === LogLevel.Warn
           ? 'yellow'
           : 'green';
   return picocolors[color](msg);
 };
 
-function colorizeLabel(
-  name: string | undefined,
-  label: string,
-  type: LOG_LEVEL,
+function colorizeNamespace(
+  name: string,
+  type: LogLevel,
 ) {
-  return [
-    name && `${picocolors.dim('[')}${name.toUpperCase()}${picocolors.dim(']')}`,
-    colorize(type)(label.toUpperCase()),
-  ]
-    .filter(Boolean)
-    .join(' ');
-}
-
-export function setSlient() {
-  logLevel = 'error';
+  return `${picocolors.dim('[')}${colorize(type)(name.toUpperCase())}${picocolors.dim(']')} `;
 }
 
 /**
@@ -43,40 +40,34 @@ export function setSlient() {
  * @param name
  * @returns
  */
-export function createLogger(name?: string) {
+export function createLogger(namespace?: string) {
   return {
-    log(
-      type: LOG_LEVEL,
-      label: string,
-      msg: string,
-    ) {
-      if (envs.indexOf(type) >= envs.indexOf(logLevel)) {
-        switch (type) {
-          case 'error':
-            console.error(
-              colorizeLabel(name, label, 'error'),
-              colorize('error')(msg),
-            );
-            break;
-          default:
-            console.log(
-              colorizeLabel(name, label, type),
-              colorize(type)(msg),
-            );
-        }
-      }
+    info(...args: string[]) {
+      consola.info(
+        colorizeNamespace(namespace, LogLevel.Info),
+        ...args.map((item) => colorize(LogLevel.Info)(item)),
+      );
     },
-    success(label: string, msg: string) {
-      this.log('success', label, msg);
+
+    error(...args: string[]) {
+      consola.error(
+        colorizeNamespace(namespace, LogLevel.Error),
+        ...args.map((item) => colorize(LogLevel.Error)(item)),
+      );
     },
-    info(label: string, msg: string) {
-      this.log('info', label, msg);
+
+    warn(...args: string[]) {
+      consola.warn(
+        colorizeNamespace(namespace, LogLevel.Warn),
+        ...args.map((item) => colorize(LogLevel.Warn)(item)),
+      );
     },
-    warn(label: string, msg: string) {
-      this.log('warn', label, msg);
-    },
-    error(label: string, msg: string) {
-      this.log('error', label, msg);
+
+    debug(...args: string[]) {
+      consola.debug(
+        colorizeNamespace(namespace, LogLevel.Debug),
+        ...args.map((item) => colorize(LogLevel.Debug)(item)),
+      );
     },
   };
 }
