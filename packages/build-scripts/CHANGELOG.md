@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+
+- [feat] update `esbuild` from 0.13 to 0.14
+
 ## 1.2.1
 
 - [fix] run `compiler.close()` for store cache after build
