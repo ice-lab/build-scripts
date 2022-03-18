@@ -1,4 +1,4 @@
-export const USER_CONFIG_FILE = ['build.json', 'build.config.(js|ts)'];
+export const USER_CONFIG_FILE = ['build.json', 'build.config.(js|ts|mjs|mts|cjs|cts)'];
 
 export const PLUGIN_CONTEXT_KEY = [
   'command' as const,
