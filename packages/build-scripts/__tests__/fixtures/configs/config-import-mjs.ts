@@ -7,6 +7,6 @@ interface IConfig {
 
 const config: IConfig = defineConfig({
   entry: path.join('src', 'index.js'),
-})
+});
 
 export default config;

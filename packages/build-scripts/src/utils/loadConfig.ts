@@ -120,7 +120,7 @@ export async function loadConfig<T>(filePath: string, logger: CreateLoggerReturn
 
   if (isTs) {
     const code = await buildConfig(filePath);
-    const tempFile = `${filePath}.js`;
+    const tempFile = `${filePath}.mjs`;
     fs.writeFileSync(tempFile, code);
     delete require.cache[require.resolve(tempFile)];
     try {
