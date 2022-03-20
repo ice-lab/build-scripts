@@ -10,7 +10,8 @@
     "lint": "eslint --cache --quiet --ext .js,.ts ./",
     "lint-fix": "eslint --cache --ext .js,.ts ./ --fix",
     "prettier": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'",
-    "test": "cd packages/build-scripts && npm run test",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
     "publish": "cd packages/build-scripts && npm run build && npm publish"
   },
   "husky": {
@@ -23,10 +24,14 @@
     "@commitlint/cli": "^7.5.2",
     "@commitlint/config-conventional": "^7.5.0",
     "@iceworks/spec": "^1.5.0",
-    "build-scripts": "workspace:*",
+    "build-scripts": "workspace: *",
     "eslint": "^7.31.0",
     "husky": "^1.3.1",
     "stylelint": "^10.1.0",
-    "typescript": "^4"
+    "typescript": "^4",
+    "vitest": "^0.7.4"
+  },
+  "dependencies": {
+    "c8": "^7.11.0"
   }
 }

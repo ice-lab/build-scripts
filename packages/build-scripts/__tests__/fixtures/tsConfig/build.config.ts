@@ -5,7 +5,7 @@ interface Config {
 
 const config: Config = {
   entry: 'src/index',
-  plugins: ['./plugin.js']
+  plugins: ['./plugin.js'],
 };
 
 export default config;

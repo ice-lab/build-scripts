@@ -29,10 +29,10 @@ const colorize = (type: LogLevel) => (msg: string) => {
 };
 
 function colorizeNamespace(
-  name: string,
-  type: LogLevel,
+  name?: string,
+  type?: LogLevel,
 ) {
-  return `${picocolors.dim('[')}${colorize(type)(name.toUpperCase())}${picocolors.dim(']')} `;
+  return name ? `${picocolors.dim('[')}${colorize(type)(name.toUpperCase())}${picocolors.dim(']')} ` : '';
 }
 
 /**

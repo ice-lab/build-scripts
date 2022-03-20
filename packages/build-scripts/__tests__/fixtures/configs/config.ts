@@ -5,7 +5,7 @@ interface IConfig {
 }
 
 const config: IConfig = {
-  entry: path.join('src', 'tsFile.ts'),
+  entry: path.join('src', 'index.js'),
 }
 
 export default config;

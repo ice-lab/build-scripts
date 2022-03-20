@@ -1,5 +1,5 @@
 const path = require('path');
 
 module.exports = {
-  entry: path.join('src', 'config.js'),
+  entry: path.join('src', 'index.js'),
 };

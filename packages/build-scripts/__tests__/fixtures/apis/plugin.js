@@ -1,13 +1,13 @@
 const Config = require('webpack-chain');
 
-module.exports = ({ registerTask, registerUserConfig, registerCliOption, modifyConfigRegistration, modifyCliRegistration}) => {
+module.exports = ({ registerTask, registerUserConfig, registerCliOption, modifyConfigRegistration, modifyCliRegistration }) => {
   registerTask('taskApi', (new Config().name('task')));
   registerUserConfig({
     name: 'target',
     validation: 'string',
     configWebpack: (chain) => {
       chain.name('taskigore');
-    }
+    },
   });
   registerUserConfig({
     name: 'output',
@@ -15,11 +15,11 @@ module.exports = ({ registerTask, registerUserConfig, registerCliOption, modifyC
   });
   registerCliOption({
     name: 'slient',
-    commands: ['build']
+    commands: ['build'],
   });
   registerCliOption({
     name: 'disableLog',
-    commands: ['build']
+    commands: ['build'],
   });
   modifyConfigRegistration('target', (options) => {
     return {
@@ -34,15 +34,15 @@ module.exports = ({ registerTask, registerUserConfig, registerCliOption, modifyC
       options.output = {
         ...outputRegistration,
         validation: 'boolean',
-      }
+      };
     }
     return options;
   });
   modifyCliRegistration('slient', (options) => {
     return {
       ...options,
-      commands: ['start']
-    }
+      commands: ['start'],
+    };
   });
   modifyCliRegistration((options) => {
     const registration = options.disableLog;
@@ -50,7 +50,7 @@ module.exports = ({ registerTask, registerUserConfig, registerCliOption, modifyC
       options.disableLog = {
         ...registration,
         commands: ['start'],
-      }
+      };
     }
     return options;
   });
