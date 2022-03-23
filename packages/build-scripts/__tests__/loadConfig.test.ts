@@ -12,12 +12,12 @@ interface IUserConfig {
 
 describe('parse-config-file', () => {
   it('json file', async () => {
-    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.json'), logger);
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.json'), {}, logger);
     expect(userConfig.entry).toContain('src/index');
   });
 
   it('js file respect commonjs spec', async () => {
-    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.cjs'), logger);
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.cjs'), {}, logger);
     expect(userConfig.entry).toContain('src/index');
   });
 
@@ -27,7 +27,7 @@ describe('parse-config-file', () => {
   it('js file respect commonjs spec, while import es module', async () => {
     let errMsg = '';
     try {
-      await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import.cjs'), logger);
+      await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import.cjs'), {}, logger);
     } catch (e) {
       errMsg = e?.message;
     }
@@ -35,31 +35,37 @@ describe('parse-config-file', () => {
   });
 
   it('js file respect es module spec', async () => {
-    const config = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.mjs'), logger);
+    const config = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.mjs'), {}, logger);
 
     expect(config.entry).toContain('src/index');
   });
 
   // Node is capable of handling commonjs module in es module
   it('js file respec es module spec, while import commonjs module', async () => {
-    const config = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import.mjs'), logger);
+    const config = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import.mjs'), {}, logger);
 
     expect(config.entry).toContain('src/index');
   });
 
   // Es module is required in typescript
   it('typescript file respect es module sepc', async () => {
-    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.ts'), logger);
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.ts'), {}, logger);
     expect(userConfig.entry).contain('src/index');
   });
 
   it('typescript files import commonjs module', async () => {
-    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), logger);
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), {}, logger);
     expect(userConfig.entry).contain('src/index');
   });
 
   it('typescript files import es module spec', async () => {
-    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), logger);
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), {}, logger);
+    expect(userConfig.entry).contain('src/index');
+  });
+
+  it('use import in commonjs package', async () => {
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/typeModule/config.cjs'), {}, logger);
+
     expect(userConfig.entry).contain('src/index');
   });
 });
@@ -70,6 +76,7 @@ describe('get-user-config', () => {
       rootDir: path.join(__dirname, './fixtures/projects/empty'),
       commandArgs: {},
       logger,
+      pkg: {},
     });
 
     consola.level = 4;

@@ -182,6 +182,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     this.userConfig = await getUserConfig({
       rootDir: this.rootDir,
       commandArgs: this.commandArgs,
+      pkg: this.pkg,
       logger: this.logger,
     });
     // shallow copy of userConfig while userConfig may be modified

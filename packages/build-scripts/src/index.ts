@@ -1,5 +1,5 @@
-import Service from './Service.js';
-import Context, { createContext } from './Context.js';
+import Service from './Service';
+import Context, { createContext } from './Context';
 
 export * from './types.js';
 

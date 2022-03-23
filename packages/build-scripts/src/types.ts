@@ -79,7 +79,7 @@ export interface IPluginConfig<T> {
 }
 
 export interface ISetConfig<T> {
-  (config: T, value: JsonValue, context: UserConfigContext<T>): Promise<void | T> | void | T;
+  (config: T, value: any, context: UserConfigContext<T>): Promise<void | T> | void | T;
 }
 
 export interface IValidation {

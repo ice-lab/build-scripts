@@ -6,7 +6,7 @@ import { createRequire } from 'module';
 import buildConfig from './buildConfig.js';
 import { USER_CONFIG_FILE } from './constant.js';
 
-import type { IUserConfig, IModeConfig, CommandArgs, EmptyObject, IPluginList } from '../types';
+import type { IUserConfig, IModeConfig, CommandArgs, EmptyObject, IPluginList, Json } from '../types';
 import type { CreateLoggerReturns } from './logger';
 
 const require = createRequire(import.meta.url);
@@ -50,9 +50,11 @@ export const getUserConfig = async <K extends EmptyObject>({
   rootDir,
   commandArgs,
   logger,
+  pkg,
 }: {
   rootDir: string;
   commandArgs: CommandArgs;
+  pkg: Json;
   logger: CreateLoggerReturns;
 }): Promise<IUserConfig<K>> => {
   const { config } = commandArgs;
@@ -70,7 +72,7 @@ export const getUserConfig = async <K extends EmptyObject>({
   };
   if (configPath && fs.existsSync(configPath)) {
     try {
-      userConfig = await loadConfig(configPath, logger);
+      userConfig = await loadConfig(configPath, pkg, logger);
     } catch (err) {
       logger.warn(`Fail to load config file ${configPath}`);
 
@@ -96,15 +98,13 @@ export const getUserConfig = async <K extends EmptyObject>({
   return mergeModeConfig(commandArgs.mode, userConfig as IUserConfig<K>);
 };
 
-export async function loadConfig<T>(filePath: string, logger: CreateLoggerReturns): Promise<T|undefined> {
+export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateLoggerReturns): Promise<T|undefined> {
   const start = Date.now();
+  const isCommonJsPackage = pkg?.type !== 'module';
   const isJson = filePath.endsWith('.json');
 
   // The extname of files may `.mts|.ts`
   const isTs = filePath.endsWith('ts');
-
-  // The extname of files may `.mjs|.js`
-  const isJs = filePath.endsWith('js');
 
   let userConfig: T | undefined;
 
@@ -112,27 +112,49 @@ export async function loadConfig<T>(filePath: string, logger: CreateLoggerReturn
     return JSON5.parse(fs.readFileSync(filePath, 'utf8'));
   }
 
-  if (isJs) {
+  const isESMEcmaScriptModule = filePath.endsWith('.mjs') || (filePath.endsWith('.js') && !isCommonJsPackage);
+
+  // If config file respect es module spec.
+  if (isESMEcmaScriptModule) {
     userConfig = (await import(filePath))?.default;
 
     return userConfig;
   }
 
+  const isCjsEcmaScrptModule = filePath.endsWith('.cjs') || (filePath.endsWith('.js') && isCommonJsPackage);
+
+  if (isCjsEcmaScrptModule) {
+    const code = fs.readFileSync(filePath, 'utf-8');
+    return await createESMTempFileForImporting(code, filePath);
+  }
+
+  // Otherwise, let esbuild to handle typescript file
   if (isTs) {
     const code = await buildConfig(filePath);
-    const tempFile = `${filePath}.mjs`;
-    fs.writeFileSync(tempFile, code);
-    delete require.cache[require.resolve(tempFile)];
-    try {
-      const raw = await import(tempFile);
-      userConfig = raw?.default ?? raw;
-    } catch (err) {
-      fs.unlinkSync(tempFile);
-      throw err;
-    }
-    fs.unlinkSync(tempFile);
-    logger.info(`bundled module file loaded in ${Date.now() - start}m`);
+    userConfig = await createESMTempFileForImporting(code, filePath);
+    logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
   }
+
+  return userConfig;
+}
+
+async function createESMTempFileForImporting(code: string, filePath: string) {
+  const tempFile = `${filePath}.mjs`;
+  let userConfig = null;
+
+  fs.writeFileSync(tempFile, code);
+
+  delete require.cache[require.resolve(tempFile)];
+
+  try {
+    const raw = await import(tempFile);
+    userConfig = raw?.default ?? raw;
+  } catch (err) {
+    fs.unlinkSync(tempFile);
+    throw err;
+  }
+
+  fs.unlinkSync(tempFile);
 
   return userConfig;
 }
