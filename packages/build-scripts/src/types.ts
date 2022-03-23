@@ -1,7 +1,8 @@
-import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
 import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP } from './utils/constant';
+
 import type { Context } from '.';
+import type { AggregatedResult } from '@jest/test-result';
 
 export interface IHash<T> {
   [name: string]: T;

@@ -54,6 +54,7 @@ importers:
 
   packages/build-scripts:
     specifiers:
+      '@jest/test-result': 27.5.1
       '@types/fs-extra': ^8.0.1
       '@types/json5': ^0.0.30
       '@types/lodash': ^4.14.147
@@ -71,7 +72,7 @@ importers:
       npmlog: ^4.1.2
       picocolors: ^1.0.0
       semver: ^7.3.2
-      typescript: ^4.7.0-dev.20220321
+      typescript: ^4
     dependencies:
       camelcase: 5.3.1
       commander: 2.20.3
@@ -86,12 +87,13 @@ importers:
       picocolors: 1.0.0
       semver: 7.3.5
     devDependencies:
+      '@jest/test-result': 27.5.1
       '@types/fs-extra': 8.1.2
       '@types/json5': 0.0.30
       '@types/lodash': 4.14.180
       '@types/npmlog': 4.1.4
       '@types/semver': 6.2.3
-      typescript: 4.7.0-dev.20220321
+      typescript: 4.6.2
 
   packages/template-plugin:
     specifiers:
@@ -9606,12 +9608,6 @@ packages:
 
   /typescript/4.6.2:
     resolution: {integrity: sha512-HM/hFigTBHZhLXshn9sN37H085+hQGeJHJ/X7LpBWLID/fbc2acUMfU+lGD98X81sKP+pFa9f0DZmCwB9GnbAg==}
-    engines: {node: '>=4.2.0'}
-    hasBin: true
-    dev: true
-
-  /typescript/4.7.0-dev.20220321:
-    resolution: {integrity: sha512-2w0N4lMmvlOFMAup4H/OoN6OnnW+J2J9vAgXOjdk03ZrFA48LO0V2YsG/Zx5amhwmJNH8/BK8UDYRhmVM+81HQ==}
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
