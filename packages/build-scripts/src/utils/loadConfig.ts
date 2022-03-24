@@ -4,7 +4,6 @@ import fg from 'fast-glob';
 import JSON5 from 'json5';
 import { createRequire } from 'module';
 import buildConfig from './buildConfig.js';
-import { USER_CONFIG_FILE } from './constant.js';
 
 import type { IUserConfig, IModeConfig, CommandArgs, EmptyObject, IPluginList, Json } from '../types';
 import type { CreateLoggerReturns } from './logger';
@@ -51,11 +50,13 @@ export const getUserConfig = async <K extends EmptyObject>({
   commandArgs,
   logger,
   pkg,
+  configFile,
 }: {
   rootDir: string;
   commandArgs: CommandArgs;
   pkg: Json;
   logger: CreateLoggerReturns;
+  configFile: string | string[];
 }): Promise<IUserConfig<K>> => {
   const { config } = commandArgs;
   let configPath = '';
@@ -64,7 +65,7 @@ export const getUserConfig = async <K extends EmptyObject>({
       ? config
       : path.resolve(rootDir, config);
   } else {
-    const [defaultUserConfig] = await fg(USER_CONFIG_FILE, { cwd: rootDir, absolute: true });
+    const [defaultUserConfig] = await fg(configFile, { cwd: rootDir, absolute: true });
     configPath = defaultUserConfig;
   }
   let userConfig = {
