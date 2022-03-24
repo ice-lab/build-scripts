@@ -196,6 +196,7 @@ export type RegisterCommandModules = (key: string, module: CommandModule<any>) =
 export interface IContextOptions<U> {
   command: CommandName;
   rootDir?: string;
+  configFile?: string | string[];
   commandArgs: CommandArgs;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
