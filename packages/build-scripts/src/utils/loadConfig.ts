@@ -91,7 +91,7 @@ export const getUserConfig = async <K extends EmptyObject>({
   } else {
     logger.debug(
       'It\'s most likely you don\'t have a config file in root directory!\n' +
-      'Just ignore this message if you don\'t it actually; Otherwise, check it by yourself.',
+      'Just ignore this message if you know what you do; Otherwise, check it by yourself.',
     );
   }
 
@@ -105,6 +105,8 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
 
   // The extname of files may `.mts|.ts`
   const isTs = filePath.endsWith('ts');
+  const isJs = filePath.endsWith('js');
+  const isEsm = path.extname(filePath)[1] === 'm' || (!isCommonJsPackage && path.extname(filePath)[1] === 'c')
 
   let userConfig: T | undefined;
 
@@ -112,33 +114,29 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
     return JSON5.parse(fs.readFileSync(filePath, 'utf8'));
   }
 
-  const isESMEcmaScriptModule = filePath.endsWith('.mjs') || (filePath.endsWith('.js') && !isCommonJsPackage);
-
   // If config file respect es module spec.
-  if (isESMEcmaScriptModule) {
-    userConfig = (await import(filePath))?.default;
+  if (isJs && isEsm) {
+    userConfig = (await importWithoutCache(filePath))?.default;
 
     return userConfig;
   }
 
-  const isCjsEcmaScrptModule = filePath.endsWith('.cjs') || (filePath.endsWith('.js') && isCommonJsPackage);
-
-  if (isCjsEcmaScrptModule) {
+  if (isJs && !isEsm) {
     const code = fs.readFileSync(filePath, 'utf-8');
-    return await createESMTempFileForImporting(code, filePath);
+    return await excuteConfigModule(code, filePath);
   }
 
   // Otherwise, let esbuild to handle typescript file
   if (isTs) {
     const code = await buildConfig(filePath);
-    userConfig = await createESMTempFileForImporting(code, filePath);
+    userConfig = await excuteConfigModule(code, filePath);
     logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
   }
 
   return userConfig;
 }
 
-async function createESMTempFileForImporting(code: string, filePath: string) {
+async function excuteConfigModule(code: string, filePath: string) {
   const tempFile = `${filePath}.mjs`;
   let userConfig = null;
 
@@ -147,7 +145,7 @@ async function createESMTempFileForImporting(code: string, filePath: string) {
   delete require.cache[require.resolve(tempFile)];
 
   try {
-    const raw = await import(tempFile);
+    const raw = await importWithoutCache(tempFile);
     userConfig = raw?.default ?? raw;
   } catch (err) {
     fs.unlinkSync(tempFile);
@@ -157,4 +155,8 @@ async function createESMTempFileForImporting(code: string, filePath: string) {
   fs.unlinkSync(tempFile);
 
   return userConfig;
+}
+
+async function importWithoutCache(file: string) {
+  return import(file + `?t=${Date.now()}`);
 }
