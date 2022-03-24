@@ -3,6 +3,7 @@ import consola from 'consola';
 import { describe, it, expect } from 'vitest';
 import { loadConfig, getUserConfig } from '../src/utils/loadConfig';
 import { createLogger } from '../src/utils/logger';
+import { USER_CONFIG_FILE } from '../src/utils/constant';
 
 const logger = createLogger('BUILD-SCRIPT');
 
@@ -73,6 +74,7 @@ describe('parse-config-file', () => {
 describe('get-user-config', () => {
   it('get-empty-user-config', async () => {
     const userConfig = await getUserConfig({
+      configFile: USER_CONFIG_FILE,
       rootDir: path.join(__dirname, './fixtures/projects/empty'),
       commandArgs: {},
       logger,
