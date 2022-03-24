@@ -54,8 +54,7 @@ import loadPkg from './utils/loadPkg.js';
 import { createLogger } from './utils/logger.js';
 import resolvePlugins from './utils/resolvePlugins.js';
 import checkPlugin from './utils/checkPlugin.js';
-
-import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP, BUILTIN_CLI_OPTIONS, IGNORED_USE_CONFIG_KEY } from './utils/constant.js';
+import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP, BUILTIN_CLI_OPTIONS, IGNORED_USE_CONFIG_KEY, USER_CONFIG_FILE } from './utils/constant.js';
 
 const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   // only merge when currentValue and newValue is object and array
@@ -87,6 +86,8 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   logger = createLogger('BUILD-SCRIPTS');
 
+  configFile: string | string[];
+
   private options: IContextOptions<U>;
 
   // 存放 config 配置的数组
@@ -117,6 +118,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
   constructor(options: IContextOptions<U>) {
     const {
       command,
+      configFile = USER_CONFIG_FILE,
       rootDir = process.cwd(),
       commandArgs = {},
       extendsPluginAPI,
@@ -131,6 +133,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     this.extendsPluginAPI = extendsPluginAPI;
 
     this.pkg = loadPkg(rootDir, this.logger);
+    this.configFile = configFile;
 
     // Register built-in command
     this.registerCliOption(BUILTIN_CLI_OPTIONS);
@@ -184,6 +187,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       commandArgs: this.commandArgs,
       pkg: this.pkg,
       logger: this.logger,
+      configFile: this.configFile,
     });
     // shallow copy of userConfig while userConfig may be modified
     this.originalUserConfig = { ...this.userConfig };
