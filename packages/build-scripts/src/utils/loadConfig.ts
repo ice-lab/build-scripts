@@ -106,7 +106,7 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
   // The extname of files may `.mts|.ts`
   const isTs = filePath.endsWith('ts');
   const isJs = filePath.endsWith('js');
-  const isEsm = path.extname(filePath)[1] === 'm' || (!isCommonJsPackage && path.extname(filePath)[1] === 'c')
+  const isEsm = !(filePath.endsWith('cjs') || (isCommonJsPackage && filePath.endsWith('.js')));
 
   let userConfig: T | undefined;
 
