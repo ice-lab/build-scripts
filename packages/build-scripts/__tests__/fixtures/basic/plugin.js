@@ -5,14 +5,14 @@ module.exports = ({
   registerUserConfig([
     {
       name: 'entry',
-      validation: 'string'
-    }
+      validation: 'string',
+    },
   ]);
 
   registerCliOption([
     {
       name: 'https',
-      commands: ['start', 'build']
-    }
-  ])
-}
+      commands: ['start', 'build'],
+    },
+  ]);
+};

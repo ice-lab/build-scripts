@@ -1,8 +1,8 @@
 /* eslint-disable max-lines */
-import * as deepmerge from 'deepmerge';
+import deepmerge from 'deepmerge';
 import camelCase from 'camelcase';
-import * as assert from 'assert';
-import * as _ from 'lodash';
+import assert from 'assert';
+import _ from 'lodash';
 import {
   IHash,
   Json,
@@ -48,14 +48,13 @@ import {
   IModifyCliRegistration,
   IModifyRegisteredCliArgs,
   EmptyObject,
-} from './types';
-import { getUserConfig } from './utils/loadConfig';
-import loadPkg from './utils/loadPkg';
-import { createLogger } from './utils/logger';
-import resolvePlugins from './utils/resolvePlugins';
-import checkPlugin from './utils/checkPlugin';
-
-import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP, BUILTIN_CLI_OPTIONS, IGNORED_USE_CONFIG_KEY } from './utils/constant';
+} from './types.js';
+import { getUserConfig } from './utils/loadConfig.js';
+import loadPkg from './utils/loadPkg.js';
+import { createLogger } from './utils/logger.js';
+import resolvePlugins from './utils/resolvePlugins.js';
+import checkPlugin from './utils/checkPlugin.js';
+import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP, BUILTIN_CLI_OPTIONS, IGNORED_USE_CONFIG_KEY, USER_CONFIG_FILE } from './utils/constant.js';
 
 const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   // only merge when currentValue and newValue is object and array
@@ -85,7 +84,9 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   plugins: Array<IPluginInfo<T, U>>;
 
-  logger = createLogger();
+  logger = createLogger('BUILD-SCRIPTS');
+
+  configFile: string | string[];
 
   private options: IContextOptions<U>;
 
@@ -117,6 +118,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
   constructor(options: IContextOptions<U>) {
     const {
       command,
+      configFile = USER_CONFIG_FILE,
       rootDir = process.cwd(),
       commandArgs = {},
       extendsPluginAPI,
@@ -131,6 +133,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     this.extendsPluginAPI = extendsPluginAPI;
 
     this.pkg = loadPkg(rootDir, this.logger);
+    this.configFile = configFile;
 
     // Register built-in command
     this.registerCliOption(BUILTIN_CLI_OPTIONS);
@@ -182,7 +185,9 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     this.userConfig = await getUserConfig({
       rootDir: this.rootDir,
       commandArgs: this.commandArgs,
+      pkg: this.pkg,
       logger: this.logger,
+      configFile: this.configFile,
     });
     // shallow copy of userConfig while userConfig may be modified
     this.originalUserConfig = { ...this.userConfig };
@@ -194,7 +199,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     ];
 
     checkPlugin(builtInPlugins); // check plugins property
-    this.plugins = resolvePlugins(
+    this.plugins = await resolvePlugins(
       [
         ...builtInPlugins,
         ...(this.userConfig.plugins || []),
@@ -479,7 +484,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   private cancelTask: ICancelTask = (name) => {
     if (this.cancelTaskNames.includes(name)) {
-      this.logger.info('TASK', `task ${name} has already been canceled`);
+      this.logger.info(`task ${name} has already been canceled`);
     } else {
       this.cancelTaskNames.push(name);
     }
@@ -530,7 +535,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       if (_.isPlainObject(modifiedValue)) {
         if (Object.prototype.hasOwnProperty.call(modifiedValue, 'plugins')) {
           // remove plugins while it is not support to be modified
-          this.logger.info('[modifyUserConfig]', 'delete plugins of user config while it is not support to be modified');
+          this.logger.info('delete plugins of user config while it is not support to be modified');
           delete modifiedValue.plugins;
         }
         Object.keys(modifiedValue).forEach((modifiedConfigKey) => {

@@ -1,7 +1,7 @@
 import Service from './Service';
 import Context, { createContext } from './Context';
 
-export * from './types';
+export * from './types.js';
 
 export {
   Service,

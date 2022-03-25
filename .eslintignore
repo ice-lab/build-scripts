@@ -7,5 +7,5 @@ website
 gh-pages
 vendors
 examples
-__tests__
+__tests__/fixtures
 lib

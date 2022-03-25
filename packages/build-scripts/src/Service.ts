@@ -1,6 +1,6 @@
-import Context, { createContext } from './Context';
+import Context, { createContext } from './Context.js';
 import consola from 'consola';
-import type { IContextOptions } from './types';
+import type { IContextOptions } from './types.js';
 
 export interface ICommandFn <T, U> {
   (ctx: Context<T, U>): void | Promise<void> | any;

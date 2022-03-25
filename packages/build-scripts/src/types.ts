@@ -1,7 +1,8 @@
-import { AggregatedResult } from '@jest/test-result';
 import { GlobalConfig } from '@jest/types/build/Config';
 import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP } from './utils/constant';
+
 import type { Context } from '.';
+import type { AggregatedResult } from '@jest/test-result';
 
 export interface IHash<T> {
   [name: string]: T;
@@ -38,7 +39,6 @@ export interface IDefaultPluginAPI <T, U> {
   modifyUserConfig: IModifyUserConfig;
   modifyConfigRegistration: IModifyConfigRegistration<T>;
   modifyCliRegistration: IModifyCliRegistration<T>;
-
 }
 
 export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
@@ -80,7 +80,7 @@ export interface IPluginConfig<T> {
 }
 
 export interface ISetConfig<T> {
-  (config: T, value: JsonValue, context: UserConfigContext<T>): Promise<void | T> | void | T;
+  (config: T, value: any, context: UserConfigContext<T>): Promise<void | T> | void | T;
 }
 
 export interface IValidation {
@@ -176,10 +176,10 @@ export interface IPlugin<T, U = EmptyObject> {
   (api: IPluginAPI<T, U>, options?: IPluginOptions): MaybePromise<void>;
 }
 
-export type IPluginAPI <T, U = EmptyObject> = IDefaultPluginAPI<T, U> & Omit<U, 'context'>
-& {
-  context: PluginContext & ('context' extends keyof U ? U['context'] : {});
-};
+export type IPluginAPI <T, U = EmptyObject> =
+ Omit<IDefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'> & Omit<U, 'context'>
+ & { context: PluginContext & ('context' extends keyof U ? U['context'] : {}) }
+ & Pick<IDefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'>;
 
 export type CommandName = 'start' | 'build' | 'test' | string;
 
@@ -196,6 +196,7 @@ export type RegisterCommandModules = (key: string, module: CommandModule<any>) =
 export interface IContextOptions<U> {
   command: CommandName;
   rootDir?: string;
+  configFile?: string | string[];
   commandArgs: CommandArgs;
   plugins?: IPluginList;
   getBuiltInPlugins?: IGetBuiltInPlugins;
