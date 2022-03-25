@@ -1,7 +1,8 @@
 import path from 'path';
 import fs from 'fs-extra';
 import type { CreateLoggerReturns } from './logger.js';
-import type { Json } from '../types';
+
+import type { Json } from '../types.js';
 
 const loadPkg = (rootDir: string, logger: CreateLoggerReturns): Json => {
   const resolvedPath = path.resolve(rootDir, 'package.json');

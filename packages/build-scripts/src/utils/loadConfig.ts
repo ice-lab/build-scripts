@@ -5,8 +5,8 @@ import JSON5 from 'json5';
 import { createRequire } from 'module';
 import buildConfig from './buildConfig.js';
 
-import type { IUserConfig, IModeConfig, CommandArgs, EmptyObject, IPluginList, Json } from '../types';
-import type { CreateLoggerReturns } from './logger';
+import type { IUserConfig, IModeConfig, CommandArgs, EmptyObject, IPluginList, Json } from '../types.js';
+import type { CreateLoggerReturns } from './logger.js';
 
 const require = createRequire(import.meta.url);
 

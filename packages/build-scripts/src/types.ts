@@ -1,5 +1,5 @@
 import { GlobalConfig } from '@jest/types/build/Config';
-import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP } from './utils/constant';
+import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP } from './utils/constant.js';
 
 import type { Context } from '.';
 import type { AggregatedResult } from '@jest/test-result';
