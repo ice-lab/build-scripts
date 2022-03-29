@@ -77,8 +77,8 @@ build-scripts 核心是提供一套完善的工程插件设计，本身不耦合
 ### NPM 包开发
 
 - 方案：build-plugin-component
-- 文档：https://github.com/ice-lab/iceworks-cli/tree/master/packages/build-plugin-component#readme
-- 代码：https://github.com/ice-lab/iceworks-cli/tree/master/packages/build-plugin-component
+- 文档：https://github.com/ice-lab/iceworks-cli/tree/stable/0.x/packages/build-plugin-component#readme
+- 代码：https://github.com/ice-lab/iceworks-cli/tree/stable/0.x/packages/build-plugin-component
 
 ### 自定义工程
 
