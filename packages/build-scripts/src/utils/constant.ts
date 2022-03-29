@@ -16,6 +16,7 @@ export const VALIDATION_MAP = {
   array: 'isArray' as const,
   object: 'isObject' as const,
   boolean: 'isBoolean' as const,
+  function: 'isFunction' as const,
 };
 
 export const BUILTIN_CLI_OPTIONS = [
