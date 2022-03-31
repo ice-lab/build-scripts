@@ -49,6 +49,8 @@ export type UserConfigContext<T> = PluginContext & {
   taskName: string;
 };
 
+export type ValidationKey = keyof typeof VALIDATION_MAP;
+
 export interface IJestResult {
   results: AggregatedResult;
   globalConfig: GlobalConfig;
@@ -183,7 +185,7 @@ export type CommandName = 'start' | 'build' | 'test' | string;
 
 export type CommandArgs = IHash<any>;
 
-export type IPluginList<T = any, U = EmptyObject> = Array<string | [string, Json]> | IPlugin<T, U>;
+export type IPluginList<T = any, U = EmptyObject> = Array<string | [string, Json] | IPlugin<T, U>>;
 
 export type IGetBuiltInPlugins = (userConfig: IUserConfig) => IPluginList;
 
