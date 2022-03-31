@@ -91,7 +91,7 @@ export interface IUserConfigArgs<T> {
   name: string;
   setConfig?: ISetConfig<T>;
   defaultValue?: any;
-  validation?: ValidationKey | IValidation;
+  validation?: string | IValidation;
   ignoreTasks?: string[];
 }
 
@@ -185,7 +185,7 @@ export type CommandName = 'start' | 'build' | 'test' | string;
 
 export type CommandArgs = IHash<any>;
 
-export type IPluginList = Array<string | [string, Json]>;
+export type IPluginList<T = any, U = EmptyObject> = Array<string | [string, Json] | IPlugin<T, U>>;
 
 export type IGetBuiltInPlugins = (userConfig: IUserConfig) => IPluginList;
 
