@@ -67,6 +67,14 @@ const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   }
 };
 
+/**
+ * Build Scripts Context
+ *
+ * @class Context
+ * @template T Task Config
+ * @template U Type of extendsPluginAPI
+ * @template K User Config
+ */
 class Context<T = {}, U = EmptyObject, K = EmptyObject> {
   command: CommandName;
 
@@ -602,8 +610,8 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
 export default Context;
 
-export const createContext = async <T, U> (args: IContextOptions<U>): Promise<Context<T, U>> => {
-  const ctx = new Context<T, U>(args);
+export const createContext = async <T, U, K> (args: IContextOptions<U>): Promise<Context<T, U, K>> => {
+  const ctx = new Context<T, U, K>(args);
 
   await ctx.setup();
 
