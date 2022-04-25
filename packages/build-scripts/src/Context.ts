@@ -201,7 +201,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     return this.userConfig;
   };
 
-  resolvePlugins = async (): Promise<PluginList<T, U>> => {
+  resolvePlugins = async (): Promise<Array<PluginInfo<T, U>>> => {
     if (!this.plugins) {
       // shallow copy of userConfig while userConfig may be modified
       this.originalUserConfig = { ...this.userConfig };
