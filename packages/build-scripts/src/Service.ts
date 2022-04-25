@@ -1,6 +1,6 @@
 import Context, { createContext } from './Context.js';
 import consola from 'consola';
-import type { IContextOptions } from './types.js';
+import type { ContextOptions } from './types.js';
 
 export interface ICommandFn <T, U, K> {
   (ctx: Context<T, U, K>): void | Promise<void> | any;
@@ -22,7 +22,7 @@ class Service<T, U = any, K = any> {
     this.serviceConfig = serviceConfig;
   }
 
-  run = async (options: IContextOptions<U>): Promise<void> => {
+  run = async (options: ContextOptions<U>): Promise<void> => {
     const { command } = options;
     const ctx = await createContext<T, U, K>({
       extendsPluginAPI: this.serviceConfig.extendsPluginAPI,

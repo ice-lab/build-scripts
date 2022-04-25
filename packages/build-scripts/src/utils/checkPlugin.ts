@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import type { IPluginList } from '../types.js';
+import type { PluginList } from '../types.js';
 
-const checkPluginValue = (plugins: IPluginList): void => {
+const checkPluginValue = (plugins: PluginList): void => {
   let flag;
   if (!_.isArray(plugins)) {
     flag = false;

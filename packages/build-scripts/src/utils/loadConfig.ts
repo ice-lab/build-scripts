@@ -5,22 +5,22 @@ import JSON5 from 'json5';
 import { createRequire } from 'module';
 import buildConfig from './buildConfig.js';
 
-import type { IUserConfig, IModeConfig, CommandArgs, EmptyObject, IPluginList, Json } from '../types.js';
+import type { UserConfig, ModeConfig, CommandArgs, EmptyObject, PluginList, Json } from '../types.js';
 import type { CreateLoggerReturns } from './logger.js';
 
 const require = createRequire(import.meta.url);
 
-export const mergeModeConfig = <K> (mode: string, userConfig: IUserConfig<K>): IUserConfig<K> => {
+export const mergeModeConfig = <K> (mode: string, userConfig: UserConfig<K>): UserConfig<K> => {
   // modify userConfig by userConfig.modeConfig
   if (
     userConfig.modeConfig &&
     mode &&
-    (userConfig.modeConfig as IModeConfig<K>)[mode]
+    (userConfig.modeConfig as ModeConfig<K>)[mode]
   ) {
     const {
       plugins,
       ...basicConfig
-    } = (userConfig.modeConfig as IModeConfig<K>)[mode] as IUserConfig<K>;
+    } = (userConfig.modeConfig as ModeConfig<K>)[mode] as UserConfig<K>;
     const userPlugins = [...userConfig.plugins];
     if (Array.isArray(plugins)) {
       const pluginKeys = userPlugins.map((pluginInfo) => {
@@ -57,7 +57,7 @@ export const getUserConfig = async <K extends EmptyObject>({
   pkg: Json;
   logger: CreateLoggerReturns;
   configFile: string | string[];
-}): Promise<IUserConfig<K>> => {
+}): Promise<UserConfig<K>> => {
   const { config } = commandArgs;
   let configPath = '';
   if (config) {
@@ -69,7 +69,7 @@ export const getUserConfig = async <K extends EmptyObject>({
     configPath = defaultUserConfig;
   }
   let userConfig = {
-    plugins: [] as IPluginList,
+    plugins: [] as PluginList,
   };
   if (configPath && fs.existsSync(configPath)) {
     try {
@@ -96,7 +96,7 @@ export const getUserConfig = async <K extends EmptyObject>({
     );
   }
 
-  return mergeModeConfig(commandArgs.mode, userConfig as IUserConfig<K>);
+  return mergeModeConfig(commandArgs.mode, userConfig as UserConfig<K>);
 };
 
 export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateLoggerReturns): Promise<T|undefined> {
@@ -124,20 +124,20 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
 
   if (isJs && !isEsm) {
     const code = fs.readFileSync(filePath, 'utf-8');
-    return await excuteConfigModule(code, filePath);
+    return await executeConfigModule(code, filePath);
   }
 
   // Otherwise, let esbuild to handle typescript file
   if (isTs) {
     const code = await buildConfig(filePath);
-    userConfig = await excuteConfigModule(code, filePath);
+    userConfig = await executeConfigModule(code, filePath);
     logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
   }
 
   return userConfig;
 }
 
-async function excuteConfigModule(code: string, filePath: string) {
+async function executeConfigModule(code: string, filePath: string) {
   const tempFile = `${filePath}.mjs`;
   let userConfig = null;
 

@@ -1,28 +1,30 @@
 import path from 'path';
 import _ from 'lodash';
-import type { IPluginList, IPluginInfo, IPluginOptions } from '../types.js';
+import type { PluginList, PluginInfo, PluginOption } from '../types.js';
 import type { CreateLoggerReturns } from './logger.js';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 
-const resolvePlugins = async <T, U> (allPlugins: IPluginList, {
+const resolvePlugins = async <T, U> (allPlugins: PluginList, {
   rootDir,
   logger,
 }: {
   rootDir: string;
   logger: CreateLoggerReturns;
-}): Promise<Array<IPluginInfo<T, U>>> => {
+}): Promise<Array<PluginInfo<T, U>>> => {
   const userPlugins = await Promise.all(allPlugins.map(
-    async (pluginInfo): Promise<IPluginInfo<T, U>> => {
-      let fn;
+    async (pluginInfo): Promise<PluginInfo<T, U>> => {
+      let pluginInstance;
       if (_.isFunction(pluginInfo)) {
         return {
-          fn: pluginInfo,
+          plugin: pluginInfo,
           options: {},
         };
+      } else if (typeof pluginInfo === 'object' && !Array.isArray(pluginInfo)) {
+        return pluginInfo;
       }
-      const plugins: [string, IPluginOptions] = Array.isArray(pluginInfo)
+      const plugins: [string, any] = Array.isArray(pluginInfo)
         ? pluginInfo
         : [pluginInfo, undefined];
       const pluginResolveDir = process.env.EXTRA_PLUGIN_DIR
@@ -34,7 +36,7 @@ const resolvePlugins = async <T, U> (allPlugins: IPluginList, {
       const options = plugins[1];
 
       try {
-        fn = await import(pluginPath);
+        pluginInstance = await import(pluginPath);
       } catch (err: unknown) {
         if (err instanceof Error) {
           logger.error(`Fail to load plugin ${pluginPath}`);
@@ -46,7 +48,7 @@ const resolvePlugins = async <T, U> (allPlugins: IPluginList, {
       return {
         name: plugins[0],
         pluginPath,
-        fn: fn.default || fn || ((): void => {}),
+        plugin: pluginInstance.default || pluginInstance || ((): void => {}),
         options,
       };
     },
