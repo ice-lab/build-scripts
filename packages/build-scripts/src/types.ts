@@ -203,8 +203,8 @@ export interface IContextOptions<U> {
   extendsPluginAPI?: U;
 }
 
-export interface ITaskConfig<T> {
-  name: string;
+export interface ITaskConfig<T, U = string> {
+  name: U;
   config: T;
   modifyFunctions: Array<IPluginConfig<T>>;
 }
