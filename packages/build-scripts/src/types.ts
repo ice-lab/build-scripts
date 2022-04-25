@@ -43,7 +43,7 @@ export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 
 export type PluginContext = Pick<Context, typeof PLUGIN_CONTEXT_KEY[number]>;
 
-export type UserConfigContext<T=string> = PluginContext & {
+export type UserConfigContext<T = string> = PluginContext & {
   taskName: T;
 };
 
@@ -186,7 +186,7 @@ export type PluginAPI <T, U = EmptyObject> =
 
 export type CommandName = 'start' | 'build' | 'test' | string;
 
-export type CommandArgs = Record<string, string>;
+export type CommandArgs = Record<string, any>;
 
 export type PluginList<T = any, U = EmptyObject> = Array<string | [string, Json] | Plugin<T, U> | PluginOption<T, U>>;
 
