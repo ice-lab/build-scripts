@@ -49,30 +49,31 @@ describe('parse-config-file', () => {
   });
 
   // Es module is required in typescript
-  // it('typescript file respect es module sepc', async () => {
-  //   const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.ts'), {}, logger);
-  //   expect(userConfig.entry).contain('src/index');
-  // });
+  it('typescript file respect es module sepc', async () => {
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config.ts'), {}, logger);
+    expect(userConfig.entry).contain('src/index');
+  });
 
-  // it('typescript files import commonjs module', async () => {
-  //   const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), {}, logger);
-  //   expect(userConfig.entry).contain('src/index');
-  // });
+  it('typescript files import commonjs module', async () => {
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), {}, logger);
+    expect(userConfig.entry).contain('src/index');
+  });
 
-  // it('typescript files import es module spec', async () => {
-  //   const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), {}, logger);
-  //   expect(userConfig.entry).contain('src/index');
-  // });
+  // Relative files will be bundle, so it just works
+  it('typescript files import es module spec', async () => {
+    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), {}, logger);
+    expect(userConfig.entry).contain('src/index');
+  });
 
-  // it.only('use import in commonjs package', async () => {
-  //   let errMsg = '';
-  //   try {
-  //     await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/typeModule/config.cjs'), {}, logger);
-  //   } catch (e) {
-  //     errMsg = e?.message;
-  //   }
-  //   expect(errMsg).contain('Must use import to load ES Module');
-  // });
+  it('use import in commonjs package', async () => {
+    let errMsg = '';
+    try {
+      await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/typeModule/config.cjs'), {}, logger);
+    } catch (e) {
+      errMsg = e?.message;
+    }
+    expect(errMsg).contain('Cannot use import statement outside a module');
+  });
 });
 
 describe('get-user-config', () => {
