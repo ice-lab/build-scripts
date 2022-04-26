@@ -101,13 +101,15 @@ export const getUserConfig = async <K extends EmptyObject>({
 
 export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateLoggerReturns): Promise<T|undefined> {
   const start = Date.now();
-  const isCommonJsPackage = pkg?.type !== 'module';
+  const isESModulePackage = pkg?.type === 'module';
   const isJson = filePath.endsWith('.json');
 
   // The extname of files may `.mts|.ts`
   const isTs = filePath.endsWith('ts');
   const isJs = filePath.endsWith('js');
-  const isEsm = !(filePath.endsWith('cjs') || (isCommonJsPackage && filePath.endsWith('.js')));
+
+  const isEsm = ['mjs', 'mts'].some((type) => filePath.endsWith(type))
+    || (isESModulePackage && ['js', 'ts'].some((type) => filePath.endsWith(type)));
 
   let userConfig: T | undefined;
 
@@ -115,30 +117,37 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
     return JSON5.parse(fs.readFileSync(filePath, 'utf8'));
   }
 
-  // If config file respect es module spec.
-  if (isJs && isEsm) {
-    userConfig = (await importWithoutCache(filePath))?.default;
+  // If config file respect ES module spec.
+  if (isEsm) {
+    if (isJs) {
+      userConfig = (await importWithoutCache(filePath))?.default;
+    }
 
-    return userConfig;
+    if (isTs) {
+      const code = await buildConfig(filePath);
+      userConfig = await excuteTypescriptModule(code, filePath);
+      logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
+    }
   }
 
-  if (isJs && !isEsm) {
-    const code = fs.readFileSync(filePath, 'utf-8');
-    return await excuteConfigModule(code, filePath);
-  }
+  // Config file respect CommonJS spec.
+  if (!isEsm) {
+    if (isJs) {
+      userConfig = require(filePath);
+    }
 
-  // Otherwise, let esbuild to handle typescript file
-  if (isTs) {
-    const code = await buildConfig(filePath);
-    userConfig = await excuteConfigModule(code, filePath);
-    logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
+    if (isTs) {
+      const code = await buildConfig(filePath, 'cjs');
+      userConfig = await excuteTypescriptModule(code, filePath, false);
+      logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
+    }
   }
 
   return userConfig;
 }
 
-async function excuteConfigModule(code: string, filePath: string) {
-  const tempFile = `${filePath}.mjs`;
+async function excuteTypescriptModule(code: string, filePath: string, isEsm = true) {
+  const tempFile = `${filePath}.${isEsm ? 'm' : 'c'}js`;
   let userConfig = null;
 
   fs.writeFileSync(tempFile, code);
@@ -146,10 +155,17 @@ async function excuteConfigModule(code: string, filePath: string) {
   delete require.cache[require.resolve(tempFile)];
 
   try {
-    const raw = await importWithoutCache(tempFile);
+    const raw = isEsm ? (await importWithoutCache(tempFile)) : require(tempFile);
     userConfig = raw?.default ?? raw;
   } catch (err) {
     fs.unlinkSync(tempFile);
+
+    // Hajack error message
+    if (err instanceof Error) {
+      err.message = err.message.replace(tempFile, filePath);
+      err.stack = err.stack.replace(tempFile, filePath);
+    }
+
     throw err;
   }
 
@@ -159,5 +175,5 @@ async function excuteConfigModule(code: string, filePath: string) {
 }
 
 async function importWithoutCache(file: string) {
-  return import(file + `?t=${Date.now()}`);
+  return import(`${file}?t=${Date.now()}`);
 }
