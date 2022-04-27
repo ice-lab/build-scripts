@@ -101,15 +101,15 @@ export const getUserConfig = async <K extends EmptyObject>({
 
 export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateLoggerReturns): Promise<T|undefined> {
   const start = Date.now();
-  const isESModulePackage = pkg?.type === 'module';
+  const isTypeModule = pkg?.type === 'module';
   const isJson = filePath.endsWith('.json');
 
   // The extname of files may `.mts|.ts`
   const isTs = filePath.endsWith('ts');
   const isJs = filePath.endsWith('js');
 
-  const isEsm = ['mjs', 'mts'].some((type) => filePath.endsWith(type))
-    || (isESModulePackage && ['js', 'ts'].some((type) => filePath.endsWith(type)));
+  const isESM = ['mjs', 'mts'].some((type) => filePath.endsWith(type))
+    || (isTypeModule && ['js', 'ts'].some((type) => filePath.endsWith(type)));
 
   let userConfig: T | undefined;
 
@@ -118,30 +118,21 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
   }
 
   // If config file respect ES module spec.
-  if (isEsm) {
-    if (isJs) {
-      userConfig = (await importWithoutCache(filePath))?.default;
-    }
-
-    if (isTs) {
-      const code = await buildConfig(filePath);
-      userConfig = await excuteTypescriptModule(code, filePath);
-      logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
-    }
+  if (isESM && isJs) {
+    userConfig = (await importWithoutCache(filePath))?.default;
   }
 
   // Config file respect CommonJS spec.
-  if (!isEsm) {
-    if (isJs) {
-      userConfig = require(filePath);
-    }
-
-    if (isTs) {
-      const code = await buildConfig(filePath, 'cjs');
-      userConfig = await excuteTypescriptModule(code, filePath, false);
-      logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
-    }
+  if (!isESM && isJs) {
+    userConfig = require(filePath);
   }
+
+  if (isTs) {
+    const code = await buildConfig(filePath, isESM ? 'esm' : 'cjs');
+    userConfig = await excuteTypescriptModule(code, filePath, isESM);
+    logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
+  }
+
 
   return userConfig;
 }
