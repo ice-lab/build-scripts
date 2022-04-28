@@ -151,7 +151,7 @@ async function excuteTypescriptModule(code: string, filePath: string, isEsm = tr
   } catch (err) {
     fs.unlinkSync(tempFile);
 
-    // Hajack error message
+    // Hijack error message
     if (err instanceof Error) {
       err.message = err.message.replace(tempFile, filePath);
       err.stack = err.stack.replace(tempFile, filePath);
