@@ -59,15 +59,20 @@ describe('parse-config-file', () => {
     expect(userConfig.entry).contain('src/index');
   });
 
+  // Relative files will be bundle, so it just works
   it('typescript files import es module spec', async () => {
     const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/config-import-cjs.ts'), {}, logger);
     expect(userConfig.entry).contain('src/index');
   });
 
   it('use import in commonjs package', async () => {
-    const userConfig = await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/typeModule/config.cjs'), {}, logger);
-
-    expect(userConfig.entry).contain('src/index');
+    let errMsg = '';
+    try {
+      await loadConfig<IUserConfig>(path.join(__dirname, './fixtures/configs/typeModule/config.cjs'), {}, logger);
+    } catch (e) {
+      errMsg = e?.message;
+    }
+    expect(errMsg).contain('Cannot use import statement outside a module');
   });
 });
 

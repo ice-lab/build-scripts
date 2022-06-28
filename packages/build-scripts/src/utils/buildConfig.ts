@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { build as esbuild, Plugin } from 'esbuild';
 
-const buildConfig = async (fileName: string): Promise<string> => {
+const buildConfig = async (fileName: string, format: 'esm' | 'cjs' = 'esm'): Promise<string> => {
   const pluginExternalDeps: Plugin = {
     name: 'plugin-external-deps',
     setup(build) {
@@ -44,7 +44,7 @@ const buildConfig = async (fileName: string): Promise<string> => {
     write: false,
     platform: 'node',
     bundle: true,
-    format: 'esm',
+    format,
     metafile: true,
     plugins: [pluginExternalDeps, pluginReplaceImport],
   });
