@@ -161,23 +161,24 @@ export interface GetAllPlugin<T, U> {
   (dataKeys?: string[]): Array<Partial<PluginInfo<T, U>>>;
 }
 
-export interface PluginInfo<T, U, K = any> {
-  plugin: Plugin<T, U>;
-  name?: string;
+export interface PluginInfo<T, U, K = any> extends Partial<_Plugin<T, U>> {
   pluginPath?: string;
-  runtime?: string;
   options?: K;
 }
 
-export interface PluginOption<T, U> {
+export interface _Plugin<T, U> {
   name?: string;
-  plugin: Plugin<T, U>;
+  setup: PluginSetup<T, U>;
   runtime?: string;
 }
 
-export interface Plugin<T, U = EmptyObject, K = any> {
+export interface PluginSetup<T, U = EmptyObject, K = any> {
   (api: PluginAPI<T, U>, options?: K): MaybePromise<void>;
 }
+
+type PluginLegacy<T, U = EmptyObject, K = any> = string | [string, Json] | PluginSetup<T, U, K>;
+
+export type Plugin<T, U = EmptyObject, K = any> = _Plugin<T, U> | PluginLegacy<T, U, K>;
 
 export type PluginAPI <T, U = EmptyObject> =
  Omit<DefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'> & Omit<U, 'context'>
@@ -188,7 +189,7 @@ export type CommandName = 'start' | 'build' | 'test' | string;
 
 export type CommandArgs = Record<string, any>;
 
-export type PluginList<T = any, U = EmptyObject> = Array<string | [string, Json] | Plugin<T, U> | PluginOption<T, U>>;
+export type PluginList<T = any, U = EmptyObject> = Array<PluginLegacy<T, U> | Plugin<T, U>>;
 
 export type GetBuiltInPlugins = (userConfig: UserConfig) => PluginList;
 

@@ -320,7 +320,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   private runPlugins = async (): Promise<void> => {
     for (const pluginInfo of this.plugins) {
-      const { plugin, options, name: pluginName } = pluginInfo;
+      const { setup, options, name: pluginName } = pluginInfo;
 
       const pluginContext = _.pick(this, PLUGIN_CONTEXT_KEY);
       const applyMethod: ApplyMethodAPI = (methodName, ...args) => {
@@ -349,7 +349,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       }, this.extendsPluginAPI || {});
 
       // eslint-disable-next-line no-await-in-loop
-      await plugin(pluginAPI as any, options);
+      await setup(pluginAPI as any, options);
     }
   };
 

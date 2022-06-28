@@ -1,6 +1,6 @@
 import path from 'path';
 import _ from 'lodash';
-import type { PluginList, PluginInfo, PluginOption } from '../types.js';
+import type { PluginList, PluginInfo } from '../types.js';
 import type { CreateLoggerReturns } from './logger.js';
 import { createRequire } from 'module';
 
@@ -18,13 +18,13 @@ const resolvePlugins = async <T, U> (allPlugins: PluginList, {
       let pluginInstance;
       if (_.isFunction(pluginInfo)) {
         return {
-          plugin: pluginInfo,
+          setup: pluginInfo,
           options: {},
         };
       } else if (typeof pluginInfo === 'object' && !Array.isArray(pluginInfo)) {
         return pluginInfo;
       }
-      const plugins: [string, any] = Array.isArray(pluginInfo)
+      const plugins = Array.isArray(pluginInfo)
         ? pluginInfo
         : [pluginInfo, undefined];
       const pluginResolveDir = process.env.EXTRA_PLUGIN_DIR
@@ -48,7 +48,7 @@ const resolvePlugins = async <T, U> (allPlugins: PluginList, {
       return {
         name: plugins[0],
         pluginPath,
-        plugin: pluginInstance.default || pluginInstance || ((): void => {}),
+        setup: pluginInstance.default || pluginInstance || ((): void => {}),
         options,
       };
     },
