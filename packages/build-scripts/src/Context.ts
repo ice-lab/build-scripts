@@ -1,5 +1,4 @@
 /* eslint-disable max-lines */
-import deepmerge from 'deepmerge';
 import camelCase from 'camelcase';
 import assert from 'assert';
 import _ from 'lodash';
@@ -60,7 +59,7 @@ const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   const isBothArray = Array.isArray(currentValue) && Array.isArray(newValue);
   const isBothObject = _.isPlainObject(currentValue) && _.isPlainObject(newValue);
   if (isBothArray || isBothObject) {
-    return deepmerge(currentValue, newValue);
+    return _.merge(currentValue, newValue);
   } else {
     return newValue;
   }
@@ -326,7 +325,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       const applyMethod: ApplyMethodAPI = (methodName, ...args) => {
         return this.applyMethod([methodName, pluginName], ...args);
       };
-      const pluginAPI = deepmerge({
+      const pluginAPI = _.merge({
         context: pluginContext,
         registerTask: this.registerTask,
         getAllTask: this.getAllTask,
