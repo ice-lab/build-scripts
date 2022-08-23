@@ -12,7 +12,7 @@ export default async function dynamicImport(filePath: string, timestamp?: boolea
     }
     importPath = importUrl.toString();
   } else if (timestamp) {
-    importPath += `t=${Date.now()}`;
+    importPath += `?t=${Date.now()}`;
   }
   return await import(importPath);
 }
