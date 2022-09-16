@@ -3,6 +3,7 @@ import _ from 'lodash';
 import type { PluginList, PluginInfo } from '../types.js';
 import type { CreateLoggerReturns } from './logger.js';
 import { createRequire } from 'module';
+import dynamicImport from './dynamicImport.js';
 
 const require = createRequire(import.meta.url);
 
@@ -36,7 +37,7 @@ const resolvePlugins = async <T, U> (allPlugins: PluginList, {
       const options = plugins[1];
 
       try {
-        pluginInstance = await import(pluginPath);
+        pluginInstance = await dynamicImport(pluginPath);
       } catch (err: unknown) {
         if (err instanceof Error) {
           logger.error(`Fail to load plugin ${pluginPath}`);

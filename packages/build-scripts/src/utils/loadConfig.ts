@@ -4,6 +4,7 @@ import fg from 'fast-glob';
 import JSON5 from 'json5';
 import { createRequire } from 'module';
 import buildConfig from './buildConfig.js';
+import dynamicImport from './dynamicImport.js';
 
 import type { UserConfig, ModeConfig, CommandArgs, EmptyObject, PluginList, Json } from '../types.js';
 import type { CreateLoggerReturns } from './logger.js';
@@ -119,7 +120,7 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
 
   // If config file respect ES module spec.
   if (isESM && isJs) {
-    userConfig = (await importWithoutCache(filePath))?.default;
+    userConfig = (await dynamicImport(filePath, true))?.default;
   }
 
   // Config file respect CommonJS spec.
@@ -129,7 +130,7 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
 
   if (isTs) {
     const code = await buildConfig(filePath, isESM ? 'esm' : 'cjs');
-    userConfig = await excuteTypescriptModule(code, filePath, isESM);
+    userConfig = await executeTypescriptModule(code, filePath, isESM);
     logger.debug(`bundled module file loaded in ${Date.now() - start}m`);
   }
 
@@ -137,7 +138,7 @@ export async function loadConfig<T>(filePath: string, pkg: Json, logger: CreateL
   return userConfig;
 }
 
-async function excuteTypescriptModule(code: string, filePath: string, isEsm = true) {
+async function executeTypescriptModule(code: string, filePath: string, isEsm = true) {
   const tempFile = `${filePath}.${isEsm ? 'm' : 'c'}js`;
   let userConfig = null;
 
@@ -146,7 +147,7 @@ async function excuteTypescriptModule(code: string, filePath: string, isEsm = tr
   delete require.cache[require.resolve(tempFile)];
 
   try {
-    const raw = isEsm ? (await importWithoutCache(tempFile)) : require(tempFile);
+    const raw = isEsm ? (await dynamicImport(tempFile, true)) : require(tempFile);
     userConfig = raw?.default ?? raw;
   } catch (err) {
     fs.unlinkSync(tempFile);
@@ -163,8 +164,4 @@ async function excuteTypescriptModule(code: string, filePath: string, isEsm = tr
   fs.unlinkSync(tempFile);
 
   return userConfig;
-}
-
-async function importWithoutCache(file: string) {
-  return import(`${file}?t=${Date.now()}`);
 }
