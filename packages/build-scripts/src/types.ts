@@ -3,260 +3,264 @@ import { PLUGIN_CONTEXT_KEY, VALIDATION_MAP } from './utils/constant.js';
 
 import type { Context } from '.';
 import type { AggregatedResult } from '@jest/test-result';
+import type { Config } from '@jest/types';
 
-export interface IHash<T> {
+export interface Hash<T> {
   [name: string]: T;
 }
 
-export type Json = IHash<string | number | boolean | Date | Json | JsonArray>;
+export type Json = Hash<string | number | boolean | Date | Json | JsonArray>;
 
 export type JsonArray = Array<string | number | boolean | Date | Json | JsonArray>;
-
-export type JsonValue = Json[keyof Json];
 
 export type MaybeArray<T> = T | T[];
 
 export type MaybePromise<T> = T | Promise<T>;
 
-
-export interface IDefaultPluginAPI <T, U> {
+export interface DefaultPluginAPI <T, U> {
   context: PluginContext;
-  registerTask: IRegisterTask<T>;
+  registerTask: RegisterTask<T>;
   getAllTask: () => string[];
-  getAllPlugin: IGetAllPlugin<T, U>;
-  cancelTask: ICancelTask;
-  onGetConfig: IOnGetConfig<T>;
-  onGetJestConfig: IOnGetJestConfig;
-  onHook: IOnHook;
+  getAllPlugin: GetAllPlugin<T, U>;
+  cancelTask: CancelTask;
+  onGetConfig: OnGetConfig<T>;
+  onGetJestConfig: OnGetJestConfig;
+  onHook: OnHook;
   setValue: (name: string, value: T) => void;
   getValue: (name: string) => T;
-  registerUserConfig: (args: MaybeArray<IUserConfigArgs<T>>) => void;
+  registerUserConfig: (args: MaybeArray<UserConfigArgs<T>>) => void;
   hasRegistration: (name: string, type?: 'cliOption' | 'userConfig') => boolean;
-  registerCliOption: (args: MaybeArray<ICliOptionArgs<T>>) => void;
-  registerMethod: IRegisterMethod;
-  applyMethod: IApplyMethodAPI;
-  hasMethod: IHasMethod;
-  modifyUserConfig: IModifyUserConfig;
-  modifyConfigRegistration: IModifyConfigRegistration<T>;
-  modifyCliRegistration: IModifyCliRegistration<T>;
+  registerCliOption: (args: MaybeArray<CliOptionArgs<T>>) => void;
+  registerMethod: RegisterMethod;
+  applyMethod: ApplyMethodAPI;
+  hasMethod: HasMethod;
+  modifyUserConfig: ModifyUserConfig;
+  modifyConfigRegistration: ModifyConfigRegistration<T>;
+  modifyCliRegistration: ModifyCliRegistration<T>;
 }
 
 export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 
 export type PluginContext = Pick<Context, typeof PLUGIN_CONTEXT_KEY[number]>;
 
-export type UserConfigContext<T> = PluginContext & {
-  taskName: string;
+export type UserConfigContext<T = string> = PluginContext & {
+  taskName: T;
 };
 
 export type ValidationKey = keyof typeof VALIDATION_MAP;
 
-export interface IJestResult {
+export interface JestResult {
   results: AggregatedResult;
   globalConfig: GlobalConfig;
 }
 
-export interface IOnHookCallbackArg {
+export interface OnHookCallbackArg {
   err?: Error;
   args?: CommandArgs;
   stats?: any;
   url?: string;
   devServer?: any;
   config?: any;
-  result?: IJestResult;
+  result?: JestResult;
   [other: string]: unknown;
 }
 
-export interface IOnHookCallback {
-  (arg?: IOnHookCallbackArg): MaybePromise<void>;
+export interface OnHookCallback {
+  (arg?: OnHookCallbackArg): MaybePromise<void>;
 }
 
-export interface IOnHook {
-  (eventName: string, callback: IOnHookCallback): void;
+export interface OnHook {
+  (eventName: string, callback: OnHookCallback): void;
 }
 
-export interface IPluginConfig<T> {
+export interface PluginConfig<T> {
   (config: T): Promise<void | T> | void | T;
 }
 
-export interface ISetConfig<T> {
-  (config: T, value: any, context: UserConfigContext<T>): Promise<void | T> | void | T;
+export interface SetConfig<T> {
+  (config: T, value: any, context: UserConfigContext): Promise<void | T> | void | T;
 }
 
-export interface IValidation {
+export interface Validation {
   (value: any): boolean;
 }
 
-export interface IUserConfigArgs<T> {
+export interface UserConfigArgs<T> {
   name: string;
-  setConfig?: ISetConfig<T>;
+  setConfig?: SetConfig<T>;
   defaultValue?: any;
-  validation?: string | IValidation;
+  validation?: string | Validation;
   ignoreTasks?: string[];
 }
 
-export interface ICliOptionArgs<T> {
+export interface CliOptionArgs<T> {
   name: string;
-  setConfig?: ISetConfig<T>;
+  setConfig?: SetConfig<T>;
   commands?: string[];
   ignoreTasks?: string[];
 }
 
-export interface IOnGetConfig<T> {
-  (name: string, fn: IPluginConfig<T>): void;
-  (fn: IPluginConfig<T>): void;
+export interface OnGetConfig<T> {
+  (name: string, fn: PluginConfig<T>): void;
+  (fn: PluginConfig<T>): void;
 }
 
-export interface IOnGetJestConfig {
-  (fn: IJestConfigFunction): void;
+export interface OnGetJestConfig {
+  (fn: JestConfigFunction): void;
 }
 
-export interface IRegisterTask<T> {
+export interface RegisterTask<T> {
   (name: string, config: T): void;
 }
 
-export interface ICancelTask {
+export interface CancelTask {
   (name: string): void;
 }
 
-export interface IMethodRegistration {
+export interface MethodRegistration {
   (args?: any): void;
 }
 
-export interface IMethodCurry {
-  (data?: any): IMethodRegistration;
+export interface MethodCurry {
+  (data?: any): MethodRegistration;
 }
 
-export type IMethodFunction = IMethodRegistration | IMethodCurry;
+export type MethodFunction = MethodRegistration | MethodCurry;
 
-export interface IMethodOptions {
+export interface MethodOptions {
   pluginName?: boolean;
 }
 
-export interface IRegisterMethod {
-  (name: string, fn: IMethodFunction, options?: IMethodOptions): void;
+export interface RegisterMethod {
+  (name: string, fn: MethodFunction, options?: MethodOptions): void;
 }
 
-type IMethod = [string, string] | string;
+type Method = [string, string] | string;
 
-export interface IApplyMethod {
-  (config: IMethod, ...args: any[]): any;
+export interface ApplyMethod {
+  (config: Method, ...args: any[]): any;
 }
 
-export interface IApplyMethodAPI {
+export interface ApplyMethodAPI {
   (name: string, ...args: any[]): any;
 }
 
-export interface IHasMethod {
+export interface HasMethod {
   (name: string): boolean;
 }
 
-export interface IModifyConfig {
-  (userConfig: IUserConfig): Omit<IUserConfig, 'plugins'>;
+export interface ModifyConfig {
+  (userConfig: UserConfig): Omit<UserConfig, 'plugins'>;
 }
 
-export interface IModifyUserConfig {
-  (configKey: string | IModifyConfig, value?: any, options?: { deepmerge: boolean }): void;
+export interface ModifyUserConfig {
+  (configKey: string | ModifyConfig, value?: any, options?: { deepmerge: boolean }): void;
 }
 
-export interface IGetAllPlugin<T, U> {
-  (dataKeys?: string[]): Array<Partial<IPluginInfo<T, U>>>;
+export interface GetAllPlugin<T, U> {
+  (dataKeys?: string[]): Array<Partial<PluginInfo<T, U>>>;
 }
 
-export interface IPluginInfo<T, U> {
-  fn: IPlugin<T, U>;
-  name?: string;
+export interface PluginInfo<T, U, K = any> extends Partial<_Plugin<T, U>> {
   pluginPath?: string;
-  options: IPluginOptions;
+  options?: K;
 }
 
-export type IPluginOptions = Json | JsonArray;
-
-export interface IPlugin<T, U = EmptyObject> {
-  (api: IPluginAPI<T, U>, options?: IPluginOptions): MaybePromise<void>;
+export interface _Plugin<T, U> {
+  name?: string;
+  setup: PluginSetup<T, U>;
+  runtime?: string;
 }
 
-export type IPluginAPI <T, U = EmptyObject> =
- Omit<IDefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'> & Omit<U, 'context'>
+export interface PluginSetup<T, U = EmptyObject, K = any> {
+  (api: PluginAPI<T, U>, options?: K): MaybePromise<void>;
+}
+
+type PluginLegacy<T, U = EmptyObject, K = any> = string | [string, Json] | PluginSetup<T, U, K>;
+
+export type Plugin<T, U = EmptyObject, K = any> = _Plugin<T, U> | PluginLegacy<T, U, K>;
+
+export type PluginAPI <T, U = EmptyObject> =
+ Omit<DefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'> & Omit<U, 'context'>
  & { context: PluginContext & ('context' extends keyof U ? U['context'] : {}) }
- & Pick<IDefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'>;
+ & Pick<DefaultPluginAPI<T, U>, 'onHook' | 'setValue' | 'getValue'>;
 
 export type CommandName = 'start' | 'build' | 'test' | string;
 
-export type CommandArgs = IHash<any>;
+export type CommandArgs = Record<string, any>;
 
-export type IPluginList<T = any, U = EmptyObject> = Array<string | [string, Json] | IPlugin<T, U>>;
+export type PluginList<T = any, U = EmptyObject> = Array<PluginLegacy<T, U> | Plugin<T, U>>;
 
-export type IGetBuiltInPlugins = (userConfig: IUserConfig) => IPluginList;
+export type GetBuiltInPlugins = (userConfig: UserConfig) => PluginList;
 
 export type CommandModule<T> = (context: Context<T>, options: any) => Promise<T>;
 
 export type RegisterCommandModules = (key: string, module: CommandModule<any>) => void;
 
-export interface IContextOptions<U> {
+export interface ContextOptions<U> {
   command: CommandName;
   rootDir?: string;
   configFile?: string | string[];
   commandArgs: CommandArgs;
-  plugins?: IPluginList;
-  getBuiltInPlugins?: IGetBuiltInPlugins;
+  plugins?: PluginList;
+  getBuiltInPlugins?: GetBuiltInPlugins;
   extendsPluginAPI?: U;
 }
 
-export interface ITaskConfig<T, U = string> {
+export interface TaskConfig<T, U = string> {
   name: U;
   config: T;
-  modifyFunctions: Array<IPluginConfig<T>>;
+  modifyFunctions: Array<PluginConfig<T>>;
 }
 
-export type IUserConfig<K = EmptyObject> = K & {
-  plugins: IPluginList;
+export type UserConfig<K = EmptyObject> = K & {
+  plugins: PluginList;
   [key: string]: any;
 };
 
-export interface IModeConfig<K> {
-  [name: string]: IUserConfig<K>;
+export interface ModeConfig<K> {
+  [name: string]: UserConfig<K>;
 }
 
-export interface IJestConfigFunction {
-  (JestConfig: Json): Json;
+export interface JestConfigFunction {
+  (JestConfig: Config.InitialOptions): Config.InitialOptions;
 }
 
-export interface IModifyRegisteredConfigCallbacks<T> {
+export interface ModifyRegisteredConfigCallbacks<T> {
   (configArgs: T): T;
 }
 
-export type IUserConfigRegistration<T> = Record<string, IUserConfigArgs<T>>;
-export type ICliOptionRegistration<T> = Record<string, ICliOptionArgs<T>>;
+export type UserConfigRegistration<T> = Record<string, UserConfigArgs<T>>;
+export type CliOptionRegistration<T> = Record<string, CliOptionArgs<T>>;
 
-export interface IModifyConfigRegistration<T> {
-  (configFunc: IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>): void;
+export interface ModifyConfigRegistration<T> {
+  (configFunc: ModifyRegisteredConfigCallbacks<UserConfigRegistration<T>>): void;
   (
     configName: string,
-    configFunc: IModifyRegisteredConfigCallbacks<IUserConfigArgs<T>>,
+    configFunc: ModifyRegisteredConfigCallbacks<UserConfigArgs<T>>,
   ): void;
 }
 
-export interface IModifyCliRegistration<T> {
-  (configFunc: IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T>>): void;
+export interface ModifyCliRegistration<T> {
+  (configFunc: ModifyRegisteredConfigCallbacks<CliOptionRegistration<T>>): void;
   (
     configName: string,
-    configFunc: IModifyRegisteredConfigCallbacks<ICliOptionArgs<T>>,
+    configFunc: ModifyRegisteredConfigCallbacks<CliOptionArgs<T>>,
   ): void;
 }
 
-export type IModifyRegisteredConfigArgs<T, U> =
-  | [string, IModifyRegisteredConfigCallbacks<IUserConfigArgs<T>>]
-  | [IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>];
-export type IModifyRegisteredCliArgs<T, U> =
-  | [string, IModifyRegisteredConfigCallbacks<ICliOptionArgs<T>>]
-  | [IModifyRegisteredConfigCallbacks<ICliOptionRegistration<T>>];
+export type ModifyRegisteredConfigArgs<T> =
+  | [string, ModifyRegisteredConfigCallbacks<UserConfigArgs<T>>]
+  | [ModifyRegisteredConfigCallbacks<UserConfigRegistration<T>>];
+export type ModifyRegisteredCliArgs<T> =
+  | [string, ModifyRegisteredConfigCallbacks<CliOptionArgs<T>>]
+  | [ModifyRegisteredConfigCallbacks<CliOptionRegistration<T>>];
 
-export type IOnGetConfigArgs<T> =
-  | [string, IPluginConfig<T>]
-  | [IPluginConfig<T>];
+export type OnGetConfigArgs<T> =
+  | [string, PluginConfig<T>]
+  | [PluginConfig<T>];
 
-export type IRegistrationKey =
+export type RegistrationKey =
   | 'modifyConfigRegistrationCallbacks'
   | 'modifyCliRegistrationCallbacks';
 

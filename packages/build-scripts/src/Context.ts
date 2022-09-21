@@ -1,54 +1,52 @@
 /* eslint-disable max-lines */
-import deepmerge from 'deepmerge';
 import camelCase from 'camelcase';
 import assert from 'assert';
 import _ from 'lodash';
-import {
-  IHash,
+import type {
   Json,
-  JsonValue,
   MaybeArray,
   CommandName,
   CommandArgs,
-  IUserConfig,
-  IPluginInfo,
-  IContextOptions,
-  ITaskConfig,
-  IOnGetConfigArgs,
-  IJestConfigFunction,
-  IModifyRegisteredConfigArgs,
-  IOnHookCallback,
-  IUserConfigRegistration,
-  ICliOptionRegistration,
-  IMethodFunction,
-  IUserConfigArgs,
-  ICliOptionArgs,
-  ISetConfig,
+  UserConfig,
+  PluginInfo,
+  ContextOptions,
+  TaskConfig,
+  OnGetConfigArgs,
+  JestConfigFunction,
+  ModifyRegisteredConfigArgs,
+  OnHookCallback,
+  UserConfigRegistration,
+  CliOptionRegistration,
+  MethodFunction,
+  UserConfigArgs,
+  CliOptionArgs,
+  SetConfig,
   UserConfigContext,
-  IOnHook,
-  IPluginList,
-  IRegistrationKey,
-  IGetAllPlugin,
-  IPluginConfig,
-  IApplyMethod,
-  IModifyConfigRegistration,
+  OnHook,
+  PluginList,
+  RegistrationKey,
+  GetAllPlugin,
+  PluginConfig,
+  ApplyMethod,
+  ModifyConfigRegistration,
   ValidationKey,
-  IApplyMethodAPI,
-  IModifyRegisteredConfigCallbacks,
-  IRegisterTask,
-  ICancelTask,
-  IRegisterMethod,
-  IMethodCurry,
-  IModifyUserConfig,
-  IHasMethod,
-  IOnGetConfig,
-  IMethodRegistration,
-  IMethodOptions,
-  IOnGetJestConfig,
-  IModifyCliRegistration,
-  IModifyRegisteredCliArgs,
+  ApplyMethodAPI,
+  ModifyRegisteredConfigCallbacks,
+  RegisterTask,
+  CancelTask,
+  RegisterMethod,
+  MethodCurry,
+  ModifyUserConfig,
+  HasMethod,
+  OnGetConfig,
+  MethodRegistration,
+  MethodOptions,
+  OnGetJestConfig,
+  ModifyCliRegistration,
+  ModifyRegisteredCliArgs,
   EmptyObject,
 } from './types.js';
+import type { Config } from '@jest/types';
 import { getUserConfig } from './utils/loadConfig.js';
 import loadPkg from './utils/loadPkg.js';
 import { createLogger } from './utils/logger.js';
@@ -61,7 +59,7 @@ const mergeConfig = <T>(currentValue: T, newValue: T): T => {
   const isBothArray = Array.isArray(currentValue) && Array.isArray(newValue);
   const isBothObject = _.isPlainObject(currentValue) && _.isPlainObject(newValue);
   if (isBothArray || isBothObject) {
-    return deepmerge(currentValue, newValue);
+    return _.merge(currentValue, newValue);
   } else {
     return newValue;
   }
@@ -86,44 +84,44 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   pkg: Json;
 
-  userConfig: IUserConfig<K>;
+  userConfig: UserConfig<K>;
 
-  originalUserConfig: IUserConfig;
+  originalUserConfig: UserConfig;
 
-  plugins: Array<IPluginInfo<T, U>>;
+  plugins: Array<PluginInfo<T, U>>;
 
   logger = createLogger('BUILD-SCRIPTS');
 
   configFile: string | string[];
 
-  private options: IContextOptions<U>;
+  private options: ContextOptions<U>;
 
   // 存放 config 配置的数组
-  private configArr: Array<ITaskConfig<T>> = [];
+  private configArr: Array<TaskConfig<T>> = [];
 
-  private modifyConfigFns: Array<IOnGetConfigArgs<T>> = [];
+  private modifyConfigFns: Array<OnGetConfigArgs<T>> = [];
 
-  private modifyJestConfig: IJestConfigFunction[] = [];
+  private modifyJestConfig: JestConfigFunction[] = [];
 
-  private modifyConfigRegistrationCallbacks: Array<IModifyRegisteredConfigArgs<T, U>> = [];
+  private modifyConfigRegistrationCallbacks: Array<ModifyRegisteredConfigArgs<T>> = [];
 
-  private modifyCliRegistrationCallbacks: Array<IModifyRegisteredConfigArgs<T, U>> = [];
+  private modifyCliRegistrationCallbacks: Array<ModifyRegisteredConfigArgs<T>> = [];
 
   private eventHooks: {
-    [name: string]: IOnHookCallback[];
+    [name: string]: OnHookCallback[];
   } = {};
 
-  private internalValue: IHash<any> = {};
+  private internalValue: Record<string, any> = {};
 
-  private userConfigRegistration: IUserConfigRegistration<T> = {};
+  private userConfigRegistration: UserConfigRegistration<T> = {};
 
-  private cliOptionRegistration: ICliOptionRegistration<T> = {};
+  private cliOptionRegistration: CliOptionRegistration<T> = {};
 
-  private methodRegistration: { [name: string]: [IMethodFunction, any] } = {};
+  private methodRegistration: { [name: string]: [MethodFunction, any] } = {};
 
   private cancelTaskNames: string[] = [];
 
-  constructor(options: IContextOptions<U>) {
+  constructor(options: ContextOptions<U>) {
     const {
       command,
       configFile = USER_CONFIG_FILE,
@@ -147,7 +145,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     this.registerCliOption(BUILTIN_CLI_OPTIONS);
   }
 
-  runJestConfig = (jestConfig: Json): Json => {
+  runJestConfig = (jestConfig: Config.InitialOptions): Config.InitialOptions => {
     let result = jestConfig;
     for (const fn of this.modifyJestConfig) {
       result = fn(result);
@@ -155,16 +153,16 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     return result;
   };
 
-  getConfig = (): Array<ITaskConfig<T>> => {
+  getTaskConfig = (): Array<TaskConfig<T>> => {
     return this.configArr;
   };
 
-  setup = async (): Promise<Array<ITaskConfig<T>>> => {
-    await this.resolveConfig();
+  setup = async (): Promise<Array<TaskConfig<T>>> => {
+    await this.resolveUserConfig();
+    await this.resolvePlugins();
     await this.runPlugins();
     await this.runConfigModification();
     await this.validateUserConfig();
-    // userconifg
     await this.runOnGetConfigFn();
     await this.runCliOption();
     // filter webpack config by cancelTaskNames
@@ -178,45 +176,54 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     return this.configArr.map((v) => v.name);
   };
 
-  getAllPlugin: IGetAllPlugin<T, U> = (
+  getAllPlugin: GetAllPlugin<T, U> = (
     dataKeys = ['pluginPath', 'options', 'name'],
   ) => {
     return this.plugins.map(
-      (pluginInfo): Partial<IPluginInfo<T, U>> => {
+      (pluginInfo): Partial<PluginInfo<T, U>> => {
         // filter fn to avoid loop
         return _.pick(pluginInfo, dataKeys);
       },
     );
   };
 
-  resolveConfig = async (): Promise<void> => {
-    this.userConfig = await getUserConfig({
-      rootDir: this.rootDir,
-      commandArgs: this.commandArgs,
-      pkg: this.pkg,
-      logger: this.logger,
-      configFile: this.configFile,
-    });
-    // shallow copy of userConfig while userConfig may be modified
-    this.originalUserConfig = { ...this.userConfig };
-    const { plugins = [], getBuiltInPlugins = () => [] } = this.options;
-    // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
-    const builtInPlugins: IPluginList = [
-      ...plugins,
-      ...getBuiltInPlugins(this.userConfig),
-    ];
-
-    checkPlugin(builtInPlugins); // check plugins property
-    this.plugins = await resolvePlugins(
-      [
-        ...builtInPlugins,
-        ...(this.userConfig.plugins || []),
-      ],
-      {
+  resolveUserConfig = async (): Promise<UserConfig<K>> => {
+    if (!this.userConfig) {
+      this.userConfig = await getUserConfig<K>({
         rootDir: this.rootDir,
+        commandArgs: this.commandArgs,
+        pkg: this.pkg,
         logger: this.logger,
-      },
-    );
+        configFile: this.configFile,
+      });
+    }
+    return this.userConfig;
+  };
+
+  resolvePlugins = async (): Promise<Array<PluginInfo<T, U>>> => {
+    if (!this.plugins) {
+      // shallow copy of userConfig while userConfig may be modified
+      this.originalUserConfig = { ...this.userConfig };
+      const { plugins = [], getBuiltInPlugins = () => [] } = this.options;
+      // run getBuiltInPlugins before resolve webpack while getBuiltInPlugins may add require hook for webpack
+      const builtInPlugins: PluginList = [
+        ...plugins,
+        ...getBuiltInPlugins(this.userConfig),
+      ];
+
+      checkPlugin(builtInPlugins); // check plugins property
+      this.plugins = await resolvePlugins(
+        [
+          ...builtInPlugins,
+          ...(this.userConfig.plugins || []),
+        ],
+        {
+          rootDir: this.rootDir,
+          logger: this.logger,
+        },
+      );
+    }
+    return this.plugins;
   };
 
   applyHook = async (key: string, opts = {}): Promise<void> => {
@@ -228,9 +235,22 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     }
   };
 
-  private registerConfig = (
+  registerTask: RegisterTask<T> = (name, config) => {
+    const exist = this.configArr.find((v): boolean => v.name === name);
+    if (!exist) {
+      this.configArr.push({
+        name,
+        config,
+        modifyFunctions: [],
+      });
+    } else {
+      throw new Error(`[Error] config '${name}' already exists!`);
+    }
+  };
+
+  registerConfig = (
     type: string,
-    args: MaybeArray<IUserConfigArgs<T>> | MaybeArray<ICliOptionArgs<T>>,
+    args: MaybeArray<UserConfigArgs<T>> | MaybeArray<CliOptionArgs<T>>,
     parseName?: (name: string) => string,
   ): void => {
     const registerKey = `${type}Registration` as
@@ -258,15 +278,15 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       ) {
         this.userConfig = {
           ...this.userConfig,
-          [confName]: (conf as IUserConfigArgs<T>).defaultValue,
+          [confName]: (conf as UserConfigArgs<T>).defaultValue,
         };
       }
     });
   };
 
   private async runSetConfig(
-    fn: ISetConfig<T>,
-    configValue: JsonValue,
+    fn: SetConfig<T>,
+    configValue: UserConfig<K>[keyof UserConfig<K>],
     ignoreTasks: string[] | null,
   ): Promise<void> {
     for (const configInfo of this.configArr) {
@@ -277,7 +297,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
           new RegExp(ignoreTask).exec(taskName));
       }
       if (!ignoreConfig) {
-        const userConfigContext: UserConfigContext<T> = {
+        const userConfigContext: UserConfigContext = {
           ..._.pick(this, PLUGIN_CONTEXT_KEY),
           taskName,
         };
@@ -290,7 +310,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     }
   }
 
-  private onHook: IOnHook = (key, fn) => {
+  private onHook: OnHook = (key, fn) => {
     if (!Array.isArray(this.eventHooks[key])) {
       this.eventHooks[key] = [];
     }
@@ -299,13 +319,13 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   private runPlugins = async (): Promise<void> => {
     for (const pluginInfo of this.plugins) {
-      const { fn, options, name: pluginName } = pluginInfo;
+      const { setup, options, name: pluginName } = pluginInfo;
 
       const pluginContext = _.pick(this, PLUGIN_CONTEXT_KEY);
-      const applyMethod: IApplyMethodAPI = (methodName, ...args) => {
+      const applyMethod: ApplyMethodAPI = (methodName, ...args) => {
         return this.applyMethod([methodName, pluginName], ...args);
       };
-      const pluginAPI = deepmerge({
+      const pluginAPI = _.merge({
         context: pluginContext,
         registerTask: this.registerTask,
         getAllTask: this.getAllTask,
@@ -328,7 +348,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       }, this.extendsPluginAPI || {});
 
       // eslint-disable-next-line no-await-in-loop
-      await fn(pluginAPI as any, options);
+      await setup(pluginAPI as any, options);
     }
   };
 
@@ -338,8 +358,8 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       'modifyCliRegistrationCallbacks',
     ];
     callbackRegistrations.forEach((registrationKey) => {
-      const registrations = this[registrationKey as IRegistrationKey] as Array<| IModifyRegisteredConfigArgs<T, U>
-      | IModifyRegisteredConfigArgs<T, U>>;
+      const registrations = this[registrationKey as RegistrationKey] as Array<| ModifyRegisteredConfigArgs<T>
+      | ModifyRegisteredConfigArgs<T>>;
       registrations.forEach(([name, callback]) => {
         const modifyAll = _.isFunction(name);
         const configRegistrations = this[
@@ -348,7 +368,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
             : 'cliOptionRegistration'
         ];
         if (modifyAll) {
-          const modifyFunction = name as IModifyRegisteredConfigCallbacks<IUserConfigRegistration<T>>;
+          const modifyFunction = name as ModifyRegisteredConfigCallbacks<UserConfigRegistration<T>>;
           const modifiedResult = modifyFunction(configRegistrations);
           Object.keys(modifiedResult).forEach((configKey) => {
             configRegistrations[configKey] = {
@@ -454,7 +474,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       if (isAll) {
         // modify all
         this.configArr.forEach((config) => {
-          config.modifyFunctions.push(name as IPluginConfig<T>);
+          config.modifyFunctions.push(name as PluginConfig<T>);
         });
       } else {
         // modify named config
@@ -477,20 +497,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     }
   };
 
-  private registerTask: IRegisterTask<T> = (name, config) => {
-    const exist = this.configArr.find((v): boolean => v.name === name);
-    if (!exist) {
-      this.configArr.push({
-        name,
-        config,
-        modifyFunctions: [],
-      });
-    } else {
-      throw new Error(`[Error] config '${name}' already exists!`);
-    }
-  };
-
-  private cancelTask: ICancelTask = (name) => {
+  private cancelTask: CancelTask = (name) => {
     if (this.cancelTaskNames.includes(name)) {
       this.logger.info(`task ${name} has already been canceled`);
     } else {
@@ -498,36 +505,36 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     }
   };
 
-  private registerMethod: IRegisterMethod = (name, fn, options) => {
+  private registerMethod: RegisterMethod = (name, fn, options) => {
     if (this.methodRegistration[name]) {
       throw new Error(`[Error] method '${name}' already registered`);
     } else {
-      const registration = [fn, options] as [IMethodFunction, IMethodOptions];
+      const registration = [fn, options] as [MethodFunction, MethodOptions];
       this.methodRegistration[name] = registration;
     }
   };
 
-  private applyMethod: IApplyMethod = (config, ...args) => {
+  private applyMethod: ApplyMethod = (config, ...args) => {
     const [methodName, pluginName] = Array.isArray(config) ? config : [config];
     if (this.methodRegistration[methodName]) {
       const [registerMethod, methodOptions] = this.methodRegistration[
         methodName
       ];
       if (methodOptions?.pluginName) {
-        return (registerMethod as IMethodCurry)(pluginName)(...args);
+        return (registerMethod as MethodCurry)(pluginName)(...args);
       } else {
-        return (registerMethod as IMethodRegistration)(...args);
+        return (registerMethod as MethodRegistration)(...args);
       }
     } else {
       throw new Error(`apply unknown method ${methodName}`);
     }
   };
 
-  private hasMethod: IHasMethod = (name) => {
+  private hasMethod: HasMethod = (name) => {
     return !!this.methodRegistration[name];
   };
 
-  private modifyUserConfig: IModifyUserConfig = (configKey, value, options) => {
+  private modifyUserConfig: ModifyUserConfig = (configKey, value, options) => {
     const errorMsg = 'config plugins is not support to be modified';
     const { deepmerge: mergeInDeep } = options || {};
     if (typeof configKey === 'string') {
@@ -537,7 +544,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
       const configPath = configKey.split('.');
       const originalValue = _.get(this.userConfig, configPath);
       const newValue = typeof value !== 'function' ? value : value(originalValue);
-      _.set(this.userConfig, configPath, mergeInDeep ? mergeConfig<JsonValue>(originalValue, newValue) : newValue);
+      _.set(this.userConfig, configPath, mergeInDeep ? mergeConfig<UserConfig<K>>(originalValue, newValue) : newValue);
     } else if (typeof configKey === 'function') {
       const modifiedValue = configKey(this.userConfig);
       if (_.isPlainObject(modifiedValue)) {
@@ -552,7 +559,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
           this.userConfig = {
             ...this.userConfig,
             [modifiedConfigKey]: mergeInDeep
-              ? mergeConfig<JsonValue>(originalValue, modifiedValue[modifiedConfigKey])
+              ? mergeConfig<UserConfig<K>>(originalValue, modifiedValue[modifiedConfigKey])
               : modifiedValue[modifiedConfigKey],
           };
         });
@@ -562,25 +569,25 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     }
   };
 
-  private modifyConfigRegistration: IModifyConfigRegistration<T> = (
-    ...args: IModifyRegisteredConfigArgs<T, U>
+  private modifyConfigRegistration: ModifyConfigRegistration<T> = (
+    ...args: ModifyRegisteredConfigArgs<T>
   ) => {
     this.modifyConfigRegistrationCallbacks.push(args);
   };
 
-  private modifyCliRegistration: IModifyCliRegistration<T> = (
-    ...args: IModifyRegisteredCliArgs<T, U>
+  private modifyCliRegistration: ModifyCliRegistration<T> = (
+    ...args: ModifyRegisteredCliArgs<T>
   ) => {
     this.modifyCliRegistrationCallbacks.push(args);
   };
 
-  private onGetConfig: IOnGetConfig<T> = (
-    ...args: IOnGetConfigArgs<T>
+  private onGetConfig: OnGetConfig<T> = (
+    ...args: OnGetConfigArgs<T>
   ) => {
     this.modifyConfigFns.push(args);
   };
 
-  private onGetJestConfig: IOnGetJestConfig = (fn: IJestConfigFunction) => {
+  private onGetJestConfig: OnGetJestConfig = (fn: JestConfigFunction) => {
     this.modifyJestConfig.push(fn);
   };
 
@@ -592,7 +599,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     return this.internalValue[key];
   };
 
-  private registerUserConfig = (args: MaybeArray<IUserConfigArgs<T>>): void => {
+  private registerUserConfig = (args: MaybeArray<UserConfigArgs<T>>): void => {
     this.registerConfig('userConfig', args);
   };
 
@@ -601,7 +608,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     return Object.keys(this[mappedType] || {}).includes(name);
   };
 
-  private registerCliOption = (args: MaybeArray<ICliOptionArgs<T>>): void => {
+  private registerCliOption = (args: MaybeArray<CliOptionArgs<T>>): void => {
     this.registerConfig('cliOption', args, (name) => {
       return camelCase(name, { pascalCase: false });
     });
@@ -610,7 +617,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
 export default Context;
 
-export const createContext = async <T, U, K> (args: IContextOptions<U>): Promise<Context<T, U, K>> => {
+export const createContext = async <T, U, K> (args: ContextOptions<U>): Promise<Context<T, U, K>> => {
   const ctx = new Context<T, U, K>(args);
 
   await ctx.setup();

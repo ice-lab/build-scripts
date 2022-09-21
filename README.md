@@ -66,7 +66,7 @@ build-scripts 核心是提供一套完善的工程插件设计，本身不耦合
 
 ### NPM 包开发
 
-- 方案：build-plugin-component
+- 方案：ICE PKG
 - 文档：https://pkg.ice.work/
 - 代码：https://github.com/ice-lab/icepkg
 
