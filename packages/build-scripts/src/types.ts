@@ -169,14 +169,13 @@ export interface PluginInfo<T, U, K = any> extends Partial<_Plugin<T, U>> {
 export interface _Plugin<T, U> {
   name?: string;
   setup: PluginSetup<T, U>;
-  runtime?: string;
 }
 
 export interface PluginSetup<T, U = EmptyObject, K = any> {
   (api: PluginAPI<T, U>, options?: K): MaybePromise<void>;
 }
 
-type PluginLegacy<T, U = EmptyObject, K = any> = string | [string, Json] | PluginSetup<T, U, K>;
+export type PluginLegacy<T, U = EmptyObject, K = any> = string | [string, Json] | PluginSetup<T, U, K>;
 
 export type Plugin<T, U = EmptyObject, K = any> = _Plugin<T, U> | PluginLegacy<T, U, K>;
 
