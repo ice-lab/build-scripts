@@ -363,7 +363,7 @@ module.exports = ({ registerUserConfig }) => {
       return typeof value === 'string';
     },
     configWebpack: (config, value, context) => {
-      config.mode(value);
+      config.entry(value);
     },
   });
 };
