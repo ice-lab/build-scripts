@@ -2,14 +2,14 @@
  * get cli options by program
  */
 import { Command, Option } from 'commander';
-import { IHash, JsonValue } from '../types';
+import camelCase from 'camelcase';
 
-import camelcase = require('camelcase');
+type CliOptions = Record<string, string>;
 
-module.exports = (program: Command): IHash<JsonValue> => {
-  const cliOptions: IHash<JsonValue> = {};
+module.exports = (program: Command): CliOptions => {
+  const cliOptions: CliOptions = {};
   program.options.forEach((option: Option): void => {
-    const key = camelcase(option.long, {
+    const key = camelCase(option.long, {
       pascalCase: false,
     });
 

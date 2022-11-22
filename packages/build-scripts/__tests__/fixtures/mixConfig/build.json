@@ -1,0 +1,6 @@
+{
+  "entry": "src/index.ts",
+  "plugins": [
+    "./plugin.js"
+  ]
+}

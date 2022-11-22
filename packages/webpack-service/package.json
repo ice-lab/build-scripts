@@ -1,0 +1,44 @@
+{
+  "name": "@builder/webpack-service",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "Builtin webpack service for build-scripts",
+  "main": "lib/index.js",
+  "types": "lib",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "start": "tsc -w",
+    "test": "jest --runInBand"
+  },
+  "repository": {
+    "type": "http",
+    "url": "https://github.com/ice-lab/build-scripts"
+  },
+  "dependencies": {
+    "address": "^1.1.0",
+    "build-scripts": "workspace: ^2.0.0",
+    "deepmerge": "^4.0.0",
+    "fs-extra": "^8.1.0",
+    "npmlog": "^4.1.2",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@builder/webpack-config": "^2.0.0",
+    "@types/fs-extra": "^8.0.1",
+    "@types/jest": "^27.0.6",
+    "@types/npmlog": "^4.1.2",
+    "@types/webpack": "^4.41.30",
+    "@types/webpack-chain": "^5.2.0",
+    "@types/webpack-dev-server": "^4.0.0",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.3",
+    "typescript": "^4",
+    "webpack": "^5.0.0",
+    "webpack-chain": "^6.4.0",
+    "webpack-dev-server": "^4.0.0"
+  }
+}

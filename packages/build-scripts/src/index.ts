@@ -1,23 +1,10 @@
-import build = require('./commands/build');
-import start = require('./commands/start');
-import test = require('./commands/test');
-import webpackStart = require('./service/start');
-import webpackBuild = require('./service/build');
-import jestTest = require('./service/test');
-import WebpackService from './service/WebpackService';
-import JestService from './service/JestService';
-import Context from './core/Context';
+import Service from './Service.js';
+import Context, { createContext } from './Context.js';
 
-export * from './core/Context';
-export * from './types';
+export * from './types.js';
+
 export {
-  build,
-  start,
-  test,
-  WebpackService,
-  JestService,
+  Service,
   Context,
-  webpackStart,
-  webpackBuild,
-  jestTest,
+  createContext,
 };

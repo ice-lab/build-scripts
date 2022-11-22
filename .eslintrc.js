@@ -1,38 +1,9 @@
-const { eslint, tslint, deepmerge } = require('@ice/spec');
+const { getESLintConfig } = require('@iceworks/spec');
 
-const commonRules = {
-  'global-require': 0,
-  'import/no-dynamic-require': 0,
-  'no-restricted-syntax': ['error', "BinaryExpression[operator='of']"],
-  'import/order': 0,
-};
-
-const jsRules = deepmerge(eslint, {
+module.exports = getESLintConfig('react-ts', {
   rules: {
-    ...commonRules,
+    'no-async-promise-executor': 'off',
+    '@iceworks/best-practices/recommend-polyfill': 'off',
+    '@typescript-eslint/no-invalid-void-type': 'off',
   },
 });
-
-const tsRules = deepmerge(tslint, {
-  rules: {
-    ...commonRules,
-    '@typescript-eslint/explicit-function-return-type': [
-      'warn',
-      {
-        allowTypedFunctionExpressions: true,
-      },
-    ],
-  },
-});
-
-delete tsRules.root;
-
-module.exports = {
-  ...jsRules,
-  overrides: [
-    {
-      ...tsRules,
-      files: ['**/*.ts', '**/*.tsx'],
-    },
-  ],
-};

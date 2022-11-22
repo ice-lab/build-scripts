@@ -1,4 +1,4 @@
-1.x | [0.x](https://github.com/ice-lab/build-scripts/tree/stable/0.x)
+2.x | [1.x](https://github.com/ice-lab/build-scripts/blob/stable/1.x) | [0.x](https://github.com/ice-lab/build-scripts/blob/stable/0.x)
 
 # build-scripts
 
@@ -13,7 +13,6 @@
 - [常见问题](#常见问题)
 - [使用场景](#使用场景)
 - [能力介绍](#能力介绍)
-  - [命令行能力](#命令行能力)
   - [配置文件](#配置文件)
   - [配置插件](#配置插件)
   - [本地自定义配置](#本地自定义配置)
@@ -26,7 +25,6 @@
 
 - 完善灵活的插件能力，帮助扩展不同工程构建的场景
 - 提供多构建任务机制，支持同时构建多份产物
-- 基于 webpack-chain 提供灵活的自定义 webpack 配置能力
 - 标准化构建&调试的完整流程，同时提供 Hook 能力进行定制
 - 已支持多种场景：
   - React 项目开发
@@ -40,13 +38,13 @@
 
 1.x 以及未来都以 `build-scripts` 为准，0.x 版本当时因为命名被占用只能使用 `@alib/build-scripts` 这个包名。
 
-### 1.x 相比 0.x 有什么变化？
+### 2.x 相比 1.x 有什么变化？
 
 参考 [版本升级](#版本升级) 章节。
 
 ### 何时使用 build-scripts？
 
-多个项目共享 Webpack 以及其他工程能力，同时支持插件扩展&修改配置。
+多个项目共享配置以及其他工程能力，同时支持插件扩展&修改配置。
 
 ### 使用 build-scripts 的项目如何修改工程配置？
 
@@ -62,68 +60,32 @@ build-scripts 核心是提供一套完善的工程插件设计，本身不耦合
 - 文档：https://ice.work/docs/guide/about
 - 代码：https://github.com/alibaba/ice
 
-### Rax 项目开发
-
-- 方案：rax-app
-- 文档：https://rax.js.org/docs/guide/getting-start
-- 代码：https://github.com/raxjs/rax-app
-
 ### 天马模块
 
-- 方案：build-plugin-pegasus-base
-- 文档：仅阿里内部
-- 代码：仅阿里内部
+私有方案
 
 ### NPM 包开发
 
-- 方案：build-plugin-component
-- 文档：https://github.com/ice-lab/iceworks-cli/tree/stable/0.x/packages/build-plugin-component#readme
-- 代码：https://github.com/ice-lab/iceworks-cli/tree/stable/0.x/packages/build-plugin-component
+- 方案：ICE PKG
+- 文档：https://pkg.ice.work/
+- 代码：https://github.com/ice-lab/icepkg
 
 ### 自定义工程
 
 如果不想使用上述官方提供的解决方案，也可以基于 build-scripts 自定义完整的工程能力，具体请参考 [example](/examples/plugin-react-app/README.md) 。
 
+## 方案设计
+
+![image](https://nazha-image-store.oss-cn-shanghai.aliyuncs.com/frontends/build-scripts-arch.png)
+
+- `build-scripts` 提供核心配置、插件机制、构建生命周期等能力
+- `build-scripts` 本身不在耦合具体构建工具的设计，具体实现由上层工具决定
+
 ## 能力介绍
 
-### 命令行能力
+build-scripts 2.0 本身不耦合任何构建工具，以下能力均以官方实现的 [webpack-service](/packages/webpack-service/) 为基础
 
-build-scripts 核心支持了 start、build 和 test 三个命令。
-
-#### 启动调试
-
-```bash
-$ build-scripts start --help
-
-Usage: build-scripts start [options]
-
-Options:
-  --port <port>      服务端口号
-  --host <host>      服务主机名
-  --config <config>      自定义配置文件路径（支持 json 或者 js，推荐命名 build.config.js/build.json）
-```
-
-#### 执行构建
-
-```bash
-$ build-scripts build --help
-
-Usage: build-scripts build [options]
-
-Options:
-  --config <config>      同 start
-```
-
-#### 运行单测
-
-```bash
-$ build-scripts test --help
-
-Usage: build-scripts test [options]
-
-Options:
-  --config <config>      同 start
-```
+> webpack-service 是集合 build-scripts 和 webpack 提供的基础构建服务，能力上对标 build-scripts 1.x 版本
 
 ### 配置文件
 
@@ -148,16 +110,15 @@ build.json 中核心包括两部分内容：
 - 基础配置：比如示例的 `externals` 字段，**默认情况下不支持任何字段，由基础插件通过 `registerUserConfig` API 注册扩展**
 - 插件配置：二三方插件，以及针对单个项目通过本地插件实现 webpack config 的更改
 
-除了 json 类型以外，build-scripts 也支持 js 类型的配置文件：
+除了 json 类型以外，build-scripts 也支持 ts 类型的配置文件：
 
 ```js
-// build.plugin.js
-module.exports = {
-  plugins: []
+// build.plugin.ts
+
+export default {
+  plugins: [],
 }
 ```
-
-然后通过 `--config` 参数指定即可 `build-scripts start --config build.config.js`。
 
 ### 配置插件
 
@@ -179,9 +140,9 @@ module.exports = {
 如果基础配置和已有插件都无法支持业务需求，可以通过本地插件自定义配置来实现，新建 `build.plugin.js` 文件作为一个自定义插件，然后写入以下代码：
 
 ```js
-module.exports = ({ context, onGetWebpackConfig }) => {
+module.exports = ({ context, onGetConfig }) => {
   // 这里面可以写哪些，具体请查看插件开发章节
-  onGetWebpackConfig((config) => {
+  onGetConfig((config) => {
   });
 }
 ```
@@ -192,7 +153,7 @@ module.exports = ({ context, onGetWebpackConfig }) => {
 
 {
   "plugins": [
-    "build-plugin-component",
+    "build-plugin-app",
     "./build.plugin.js"
   ]
 }
@@ -210,7 +171,7 @@ $ cd <pluginName>
 插件本质上是一个 Node.js 模块，入口如下：
 
 ```js
-module.exports = ({ context, onGetWebpackConfig, log, onHook, ...rest }, options) => {
+module.exports = ({ context, onGetConfig, onHook, ...rest }, options) => {
   // 第一项参数为插件 API 提供的能力
   // options：插件自定义参数
 };
@@ -232,7 +193,6 @@ context 参数包含运行时的各种环境信息：
 - `originalUserConfig` 用户在 build.json 中配置的原始内容
 - `userConfig` 用户配置，包含被 modifyUserConfig 修改后的结果
 - `pkg` 项目 package.json 的内容
-- `webpack` webpack 实例，插件中针对 webpack 的逻辑均使用此方式引入
 
 ```js
 module.exports = ({ context }) => {
@@ -242,9 +202,9 @@ module.exports = ({ context }) => {
 };
 ```
 
-#### onGetWebpackConfig
+#### onGetConfig
 
-通过 `onGetWebpackConfig` 获取 [webpack-chain](https://github.com/neutrinojs/webpack-chain) 形式的配置，并对配置进行自定义修改：
+通过 `onGetConfig` 获取通过 [registerTask](#registerTask) 注册的配置，并对配置进行自定义修改：
 
 ```js
 // 场景一：修改所有 webpack 配置
@@ -255,15 +215,15 @@ module.exports = ({ onGetWebpackConfig }) => {
 }
 
 // 场景二：多 webpack 任务情况下，修改指定任务配置
-module.exports = ({onGetWebpackConfig, registerTask}) => {
+module.exports = ({onGetConfig, registerTask}) => {
   registerTask('web', webpackConfigWeb);
   registerTask('weex', webpackConfigWeex);
 
-  onGetWebpackConfig('web'，(config) => {
+  onGetConfig('web'，(config) => {
     config.entry('src/index');
   });
 
-  onGetWebpackConfig('weex'，(config) => {
+  onGetConfig('weex'，(config) => {
     config.entry('src/app');
   });
 }
@@ -312,24 +272,11 @@ test 命令：
 | before.test.run  | { args: CommandArgs; config: JestConfig }             | jest 执行构建之前  |
 | after.test       | { result: JestResult }                                | 测试结束           |
 
-#### log
-
-build-scripts 统一的 log 工具，底层使用 npmlog ，便于生成统一格式的 log：
-
-```js
-module.exports = ({ log }) => {
-  log.verbose('verbose');
-  log.info('info');
-  log.error('error');
-  log.warn('warn');
-};
-```
-
 #### registerUserConfig
 
 通过 registerUserConfig 注册 build.json 中的顶层配置字段，注册是可以进行用户字段校验，支持传入单个配置对象或者包含多个配置对象的数组。
 
-方法生效的生命周期，在 registerTask 和 onGetWebpackConfig 之间。
+方法生效的生命周期，在 registerTask 和 onGetConfig 之间。
 
 配置对象字段如下：
 
@@ -346,11 +293,11 @@ module.exports = ({ log }) => {
 
 配置忽略指定 webpack 任务
 
-- configWebpack(function)
+- setConfig(function)
 
 字段效果，具体作用到 webpack 配置上，接收参数：
 
-- config：webpack-chain 形式的配置
+- config：通过 registerTask 注册的配置
 - value: build.json 中的字段值
 - context：与外部 context 相同，新增字段 taskName 表现当前正在修改的 task
 
@@ -362,8 +309,8 @@ module.exports = ({ registerUserConfig }) => {
     validation: value => {
       return typeof value === 'string';
     },
-    configWebpack: (config, value, context) => {
-      config.entry(value);
+    config: (config, value, context) => {
+      config.mode(value);
     },
   });
 };
@@ -462,7 +409,7 @@ module.exports = ({ registerCliOption }) => {
   registerCliOption({
     name: 'https', // 注册的 cli 参数名称，
     commands: ['start'], // 支持的命令，如果为空默认任何命令都将执行注册方法
-    configWebpack: (config, value, context) => {
+    config: (config, value, context) => {
       // 对应命令链路上的需要执行的相关操作
     },
   });
@@ -570,6 +517,56 @@ module.exports = ({ applyMethod }) => {
 
 ## 版本升级
 
+### 1.x -> 2.x
+
+2.x 的核心变化：
+
+- 与 webpack 整体解耦，沉淀为插件开发服务
+- 修改与 webpack 耦合的相关 API
+
+具体的 API 变化如下：
+
+#### onGetWebpackConfig 移除
+
+`onGetWebpackConfig` 变更为 `onGetConfig`，使用方式保持与之前不变，对于调用 `onGetConfig` 获取的 config 配置内容由具体的框架决定。
+比如在 ICE PKG 下使用 API `onGetConfig` 获取的配置内容为基于 rollup 配置抽象的[配置对象](https://pkg.ice.work/reference/plugins-development)
+
+#### registerTask 变化
+
+`registerTask` 原先要求注册的任务配置必须是 `webpack-chain` 形式的配置，基于 build-scripts 2.0，其注册的内容由上层框架决定。
+比如在 ICE PKG 下，任务配置为一个对象，详解[具体配置项]((https://pkg.ice.work/reference/plugins-development))
+
+#### registerUserConfig 变化
+
+`registerUserConfig` 的参数 `configWebpack` 变更为 `setConfig`，`setConfig` 具体配置由上层框架决定：
+
+```js
+module.exports = ({ registerUserConfig }) => {
+  registerUserConfig({
+    name: 'custom-key',
+    validation: 'boolean' // 可选，支持类型有 string, number, array, object, boolean
+    setConfig: (config) => {
+      // config 内容由具体框架决定
+    },
+  });
+};
+```
+
+#### registerCliOption 变化
+
+`registerCliOption` 变化同 `registerUserConfig`
+
+```js
+module.exports = ({ registerCliOption }) => {
+  registerCliOption({
+    name: 'custom-options',
+    setConfig: (config) => {
+      // config 内容由具体框架决定
+    },
+  });
+};
+```
+
 ### 0.x -> 1.x
 
 1.x 核心变化：
@@ -598,6 +595,8 @@ module.exports = ({ applyMethod }) => {
 ```
 
 其中 jest 可按需判断是否需要安装，webpack 版本按需选择。修改完成后重装依赖然后重启即可。
+
+> build-scripts 暂时不支持直接从 1.x 升级为 2.x，2.x 的升级必须搭配上层 service 实现，比如 build-scripts 1.x + build-plugin-component 的组件开发模式将会由 [ICE PKG](https://github.com/ice-lab/icepkg) 支持，ICE PKG 即是一个基于 build-scripts 2.x 实现的包开发方案
 
 #### React 项目（icejs）
 
