@@ -72,6 +72,20 @@ export = async function(context: Context, options?: IRunOptions): Promise<void |
           stats,
         });
       } else {
+        // @ts-ignore
+        if (process.env.DEBUG) {
+          const errorCompilations = stats?.stats?.map((s: any) => s.compilation && s.compilation.errors && s.compilation.errors.length ? s.compilation : null).filter((a: any) => a);
+          if (errorCompilations.length) {
+            console.log('\nStats error');
+            errorCompilations.forEach((c: any) => {
+              console.log(`Webpack task ${c.name} compile error`);
+              c.errors.forEach((err: any) => {
+                console.log(err);
+              });
+            });
+            console.log('');
+          }
+        }
         reject(new Error('webpack compile error'));
       }
     });
