@@ -1,8 +1,9 @@
 # Changelog
 
-## 2.0.1
+## 2.1.0
 
 - [feat] update `esbuild` from 0.14 to 0.16
+- [feat] support `enforce` option for excute order of hooks
 
 ## 2.0.0
 

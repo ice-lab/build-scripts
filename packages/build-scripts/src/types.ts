@@ -69,8 +69,12 @@ export interface OnHookCallback {
   (arg?: OnHookCallbackArg): MaybePromise<void>;
 }
 
+export interface HookOptions {
+  enforce?: 'pre' | 'post';
+}
+
 export interface OnHook {
-  (eventName: string, callback: OnHookCallback): void;
+  (eventName: string, callback: OnHookCallback, options?: HookOptions): void;
 }
 
 export interface PluginConfig<T> {

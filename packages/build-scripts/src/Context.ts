@@ -23,6 +23,7 @@ import type {
   SetConfig,
   UserConfigContext,
   OnHook,
+  HookOptions,
   PluginList,
   RegistrationKey,
   GetAllPlugin,
@@ -108,7 +109,7 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
   private modifyCliRegistrationCallbacks: Array<ModifyRegisteredConfigArgs<T>> = [];
 
   private eventHooks: {
-    [name: string]: OnHookCallback[];
+    [name: string]: [OnHookCallback, HookOptions][];
   } = {};
 
   private internalValue: Record<string, any> = {};
@@ -228,8 +229,21 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   applyHook = async (key: string, opts = {}): Promise<void> => {
     const hooks = this.eventHooks[key] || [];
+    const preHooks: OnHookCallback[] = [];
+    const normalHooks: OnHookCallback[] = [];
+    const postHooks: OnHookCallback[] = [];
 
-    for (const fn of hooks) {
+    hooks.forEach(([fn, options]) => {
+      if (options?.enforce === 'pre') {
+        preHooks.push(fn);
+      } else if (options?.enforce === 'post') {
+        postHooks.push(fn);
+      } else {
+        normalHooks.push(fn);
+      }
+    });
+
+    for (const fn of [...preHooks, ...normalHooks, ...postHooks]) {
       // eslint-disable-next-line no-await-in-loop
       await fn(opts);
     }
@@ -310,11 +324,11 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
     }
   }
 
-  private onHook: OnHook = (key, fn) => {
+  private onHook: OnHook = (key, fn, options) => {
     if (!Array.isArray(this.eventHooks[key])) {
       this.eventHooks[key] = [];
     }
-    this.eventHooks[key].push(fn);
+    this.eventHooks[key].push([fn, options]);
   };
 
   private runPlugins = async (): Promise<void> => {
