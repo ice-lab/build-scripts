@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.0
+
+- [feat] update `esbuild` from 0.14 to 0.16
+- [feat] support `enforce` option for excute order of hooks
+
+## 2.0.0
+
+BreakChange for build-scripts, Visit [Github](https://github.com/ice-lab/build-scripts#1x---2x) for details
+
 ## 1.3.0
 
 - [feat] update `esbuild` from 0.13 to 0.14
