@@ -17,6 +17,10 @@ export type MaybeArray<T> = T | T[];
 
 export type MaybePromise<T> = T | Promise<T>;
 
+export type GetValue<T=any> = (name: string) => T;
+
+export type SetValue<T=any> = (name: string, value: T) => void;
+
 export interface DefaultPluginAPI <T, U> {
   context: PluginContext;
   registerTask: RegisterTask<T>;
@@ -26,8 +30,8 @@ export interface DefaultPluginAPI <T, U> {
   onGetConfig: OnGetConfig<T>;
   onGetJestConfig: OnGetJestConfig;
   onHook: OnHook;
-  setValue: (name: string, value: T) => void;
-  getValue: (name: string) => T;
+  setValue: SetValue;
+  getValue: GetValue;
   registerUserConfig: (args: MaybeArray<UserConfigArgs<T>>) => void;
   hasRegistration: (name: string, type?: 'cliOption' | 'userConfig') => boolean;
   registerCliOption: (args: MaybeArray<CliOptionArgs<T>>) => void;
@@ -69,8 +73,12 @@ export interface OnHookCallback {
   (arg?: OnHookCallbackArg): MaybePromise<void>;
 }
 
+export interface HookOptions {
+  enforce?: 'pre' | 'post';
+}
+
 export interface OnHook {
-  (eventName: string, callback: OnHookCallback): void;
+  (eventName: string, callback: OnHookCallback, options?: HookOptions): void;
 }
 
 export interface PluginConfig<T> {
