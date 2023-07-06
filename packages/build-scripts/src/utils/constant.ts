@@ -8,6 +8,7 @@ export const PLUGIN_CONTEXT_KEY = [
   'originalUserConfig' as const,
   'pkg' as const,
   'extendsPluginAPI' as const,
+  'configFilePath' as const,
 ];
 
 export const VALIDATION_MAP = {

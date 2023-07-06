@@ -46,19 +46,7 @@ export const mergeModeConfig = <K> (mode: string, userConfig: UserConfig<K>): Us
   return userConfig;
 };
 
-export const getUserConfig = async <K extends EmptyObject>({
-  rootDir,
-  commandArgs,
-  logger,
-  pkg,
-  configFile,
-}: {
-  rootDir: string;
-  commandArgs: CommandArgs;
-  pkg: Json;
-  logger: CreateLoggerReturns;
-  configFile: string | string[];
-}): Promise<UserConfig<K>> => {
+export const resolveConfigFile = async (configFile: string | string[], commandArgs: CommandArgs, rootDir: string) => {
   const { config } = commandArgs;
   let configPath = '';
   if (config) {
@@ -69,14 +57,30 @@ export const getUserConfig = async <K extends EmptyObject>({
     const [defaultUserConfig] = await fg(configFile, { cwd: rootDir, absolute: true });
     configPath = defaultUserConfig;
   }
+  return configPath;
+}
+
+export const getUserConfig = async <K extends EmptyObject>({
+  rootDir,
+  commandArgs,
+  logger,
+  pkg,
+  configFilePath,
+}: {
+  rootDir: string;
+  commandArgs: CommandArgs;
+  pkg: Json;
+  logger: CreateLoggerReturns;
+  configFilePath: string;
+}): Promise<UserConfig<K>> => {
   let userConfig = {
     plugins: [] as PluginList,
   };
-  if (configPath && fs.existsSync(configPath)) {
+  if (configFilePath && fs.existsSync(configFilePath)) {
     try {
-      userConfig = await loadConfig(configPath, pkg, logger);
+      userConfig = await loadConfig(configFilePath, pkg, logger);
     } catch (err) {
-      logger.warn(`Fail to load config file ${configPath}`);
+      logger.warn(`Fail to load config file ${configFilePath}`);
 
       if (err instanceof Error) {
         logger.error(err.stack);
@@ -86,9 +90,9 @@ export const getUserConfig = async <K extends EmptyObject>({
 
       process.exit(1);
     }
-  } else if (configPath) {
+  } else if (configFilePath) {
     // If path was not found
-    logger.error(`config file${`(${configPath})` || ''} is not exist`);
+    logger.error(`config file${`(${configFilePath})` || ''} is not exist`);
     process.exit(1);
   } else {
     logger.debug(

@@ -48,7 +48,7 @@ import type {
   EmptyObject,
 } from './types.js';
 import type { Config } from '@jest/types';
-import { getUserConfig } from './utils/loadConfig.js';
+import { getUserConfig, resolveConfigFile } from './utils/loadConfig.js';
 import loadPkg from './utils/loadPkg.js';
 import { createLogger } from './utils/logger.js';
 import resolvePlugins from './utils/resolvePlugins.js';
@@ -94,6 +94,8 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
   logger = createLogger('BUILD-SCRIPTS');
 
   configFile: string | string[];
+
+  configFilePath: string;
 
   private options: ContextOptions<U>;
 
@@ -190,12 +192,13 @@ class Context<T = {}, U = EmptyObject, K = EmptyObject> {
 
   resolveUserConfig = async (): Promise<UserConfig<K>> => {
     if (!this.userConfig) {
+      this.configFilePath = await resolveConfigFile(this.configFile, this.commandArgs, this.rootDir);
       this.userConfig = await getUserConfig<K>({
         rootDir: this.rootDir,
         commandArgs: this.commandArgs,
         pkg: this.pkg,
         logger: this.logger,
-        configFile: this.configFile,
+        configFilePath: this.configFilePath,
       });
     }
     return this.userConfig;
