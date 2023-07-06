@@ -1,6 +1,6 @@
 {
   "name": "build-scripts",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "license": "MIT",
   "description": "scripts core",
   "main": "lib/index.js",
@@ -27,7 +27,7 @@
     "camelcase": "^5.3.1",
     "commander": "^2.19.0",
     "consola": "^2.15.3",
-    "esbuild": "^0.16.5",
+    "esbuild": "^0.17.16",
     "fast-glob": "^3.2.7",
     "fs-extra": "^8.1.0",
     "json5": "^2.1.3",
