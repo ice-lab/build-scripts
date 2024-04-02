@@ -1,6 +1,6 @@
 {
   "name": "build-scripts",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "license": "MIT",
   "description": "scripts core",
   "main": "lib/index.js",
